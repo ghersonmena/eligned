@@ -1,0 +1,267 @@
+/* ---------- Auth (login / register) ---------- */
+.authShell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.authBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.authTitle {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.authTitle span {
+  color: var(--faint);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.input {
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.primary {
+  height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.secondary {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.switchLink {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ---------- App pages ---------- */
+.greeting {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.greeting span {
+  color: var(--faint);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.cardTracker {
+  background: var(--tracker);
+  color: var(--tracker-text);
+  box-shadow: none;
+}
+
+.cardTracker p {
+  color: var(--tracker-text);
+}
+
+.cardInk {
+  background: var(--ink);
+  color: #fbefe7;
+  box-shadow: none;
+}
+
+.cardInk p {
+  color: #c7b2a6;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.themeOption {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.themeOption[aria-checked='true'] {
+  border-color: var(--accent);
+}
+
+.swatch {
+  height: 56px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.swatch span {
+  flex: 1 1 0;
+}
+
+.row {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.row > span {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.row small {
+  color: var(--muted);
+}
+
+.switch {
+  width: 52px;
+  height: 30px;
+  flex-shrink: 0;
+  padding: 3px;
+  display: flex;
+  border: 0;
+  border-radius: 15px;
+  background: var(--soft);
+  cursor: pointer;
+}
+
+.switch[aria-checked='true'] {
+  justify-content: flex-end;
+  background: var(--accent);
+}
+
+.switch span {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+}

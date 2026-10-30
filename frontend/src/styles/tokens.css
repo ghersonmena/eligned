@@ -1,0 +1,56 @@
+/*
+ * Design tokens from the "C2 · Cálida + mosaico" sketches.
+ * The active palette is chosen by <html data-theme="light|dark">.
+ */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4eee8;
+  --side: #fbf7f3;
+  --surface: #ffffff;
+  --soft: #f4e8de;
+  --row: #fbf6f1;
+  --border: #eadbcf;
+  --text: #2b1d16;
+  --muted: #6e564a;
+  --faint: #a8958a;
+  --accent: #c2410c;
+  --accent-text: #b03a0a;
+  --accent-soft: #fde7da;
+  --on-accent: #ffffff;
+  --nav-active: #efe5dc;
+  --ink: #1c1411;
+  --danger: #b91c1c;
+  --shadow: 0 1px 2px rgb(80 40 20 / 5%), 0 6px 20px rgb(80 40 20 / 5%);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #120d0b;
+  --side: #1a1310;
+  --surface: #211915;
+  --soft: #33271f;
+  --row: #2a201b;
+  --border: #3a2e27;
+  --text: #fbefe7;
+  --muted: #c7b2a6;
+  --faint: #7f6b60;
+  --accent: #fb923c;
+  --accent-text: #fdba74;
+  --accent-soft: #3a2a1e;
+  --on-accent: #2b1d16;
+  --nav-active: #2e241e;
+  --ink: #0a0706;
+  --danger: #f87171;
+  --shadow: 0 0 0 1px #2e231d;
+}
+
+:root {
+  /* Fixed brand colors that look the same in both themes. */
+  --tracker: #fb923c;
+  --tracker-text: #2b1d16;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --font: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+}
