@@ -18,6 +18,8 @@ export function useMe() {
     },
     staleTime: 5 * 60 * 1000,
     retry: false,
+    // While waiting for the email confirmation, re-check whenever the tab regains focus.
+    refetchOnWindowFocus: (query) => (query.state.data?.email_verified === false ? 'always' : true),
   })
 }
 
@@ -46,6 +48,10 @@ export function useLogout() {
       queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' })
     },
   })
+}
+
+export function useResendVerification() {
+  return useMutation({ mutationFn: () => authApi.resendVerification() })
 }
 
 export function useUpdatePreferences() {

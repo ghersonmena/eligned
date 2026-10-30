@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { celebrate } from '../lib/celebrate'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import type { User } from '../api/auth'
+import { Icon } from '../components/Icon'
+import { celebrate } from '../lib/celebrate'
 import styles from './pages.module.css'
 
 function greetingFor(hour: number) {
@@ -11,11 +13,26 @@ function greetingFor(hour: number) {
 
 export function HomePage({ user }: { user: User }) {
   const [hour] = useState(() => new Date().getHours())
+  const [params, setParams] = useSearchParams()
+  const justVerified = params.get('correo') === 'verificado'
   const firstName = user.name.split(' ')[0]
   const workspace = user.workspaces[0]
 
+  useEffect(() => {
+    if (justVerified) celebrate(user.preferences.confetti)
+  }, [justVerified, user.preferences.confetti])
+
   return (
     <>
+      {justVerified && (
+        <div className={styles.notice} role="status">
+          <Icon name="mail" />
+          ¡Correo confirmado! Tu cuenta ya está activa.
+          <button type="button" onClick={() => setParams({}, { replace: true })}>
+            Cerrar
+          </button>
+        </div>
+      )}
       <h1 className={styles.greeting}>
         <span>{greetingFor(hour)}</span> {firstName}
       </h1>

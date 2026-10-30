@@ -6,16 +6,8 @@ import { useThemeStore } from '../theme/theme'
 import { Icon } from './Icon'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
+import { UserMenu } from './UserMenu'
 import styles from './layout.module.css'
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-}
 
 const today = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -63,10 +55,7 @@ export function AppLayout({ user }: { user: User }) {
           <span className={styles.spacer} />
           <ThemeToggle />
           <span className={styles.divider} />
-          <NavLink to="/ajustes" className={styles.profile} aria-label="Ajustes de tu cuenta">
-            <span className={styles.avatar}>{initials(user.name)}</span>
-            <span className={styles.profileName}>{user.name}</span>
-          </NavLink>
+          <UserMenu user={user} />
         </header>
         <Outlet />
       </div>

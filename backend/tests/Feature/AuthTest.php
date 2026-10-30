@@ -47,6 +47,19 @@ it('logs in with valid credentials', function () {
     $this->assertAuthenticatedAs($user);
 });
 
+it('logs in when the app is opened by LAN IP (e.g. from a phone)', function () {
+    $user = User::factory()->create(['password' => 'secret-password']);
+
+    $this->withServerVariables(['HTTP_HOST' => '192.168.1.50:8090'])
+        ->withHeaders(['Referer' => 'http://192.168.1.50:8090/login'])
+        ->postJson('http://192.168.1.50:8090/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'secret-password',
+        ])->assertOk();
+
+    $this->assertAuthenticatedAs($user);
+});
+
 it('rejects invalid credentials', function () {
     $user = User::factory()->create(['password' => 'secret-password']);
 

@@ -115,6 +115,75 @@
   cursor: pointer;
 }
 
+.lead {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lead strong {
+  color: var(--text);
+}
+
+.bigIcon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.success {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #15803d;
+}
+
+:root[data-theme='dark'] .success {
+  color: #86efac;
+}
+
+.linkButton {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-text);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.notice {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--radius-md);
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+:root[data-theme='dark'] .notice {
+  background: #16301f;
+  color: #86efac;
+}
+
+.notice button {
+  margin-left: auto;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .switchLink {
   margin: 0;
   text-align: center;

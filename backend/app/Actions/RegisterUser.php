@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\WorkspaceRole;
 use App\Models\User;
 use App\Models\Workspace;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 
 class RegisterUser
@@ -16,7 +17,7 @@ class RegisterUser
      */
     public function handle(array $data): User
     {
-        return DB::transaction(function () use ($data) {
+        $user = DB::transaction(function () use ($data) {
             $user = User::create($data);
 
             $workspace = Workspace::create([
@@ -29,5 +30,10 @@ class RegisterUser
 
             return $user;
         });
+
+        // Sends the "confirm your email" message.
+        event(new Registered($user));
+
+        return $user;
     }
 }

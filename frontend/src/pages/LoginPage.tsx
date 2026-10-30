@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { Logo } from '../components/Logo'
+import { PasswordInput } from '../components/PasswordInput'
 import { useLogin } from '../hooks/useAuth'
 import styles from './pages.module.css'
 
@@ -45,9 +46,8 @@ export function LoginPage() {
           </label>
           <label className={styles.field}>
             Contraseña
-            <input
+            <PasswordInput
               className={styles.input}
-              type="password"
               autoComplete="current-password"
               required
               value={password}

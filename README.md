@@ -31,9 +31,15 @@ Abre **<http://localhost:8090>** y crea tu cuenta.
 | --- | --- |
 | App (PWA + API vía nginx) | <http://localhost:8090> |
 | API | <http://localhost:8090/api/v1> |
+| Correos de prueba (Mailpit) | <http://localhost:8025> |
 | PostgreSQL (para un cliente SQL) | `localhost:5433`, usuario y base `todo_smart`, contraseña `secret` |
 
-¿Puerto ocupado? Cambia `APP_PORT` o `DB_PORT` en el entorno (y `APP_URL` / `SANCTUM_STATEFUL_DOMAINS` en `backend/.env`).
+Al registrarte llega un correo de confirmación: en desarrollo no sale a internet, lo ves en Mailpit.
+
+**Desde el teléfono**: conéctalo a la misma red y abre `http://<IP-de-tu-PC>:8090` (la IP la ves con `hostname -I`).
+Como es HTTP y no HTTPS, el navegador no permite instalarla como PWA ni recibir push; eso funciona en producción con HTTPS.
+
+¿Puerto ocupado? Cambia `APP_PORT`, `DB_PORT` o `MAILPIT_PORT` en el entorno (y `APP_URL` / `SANCTUM_STATEFUL_DOMAINS` en `backend/.env`).
 
 ## Comandos útiles
 

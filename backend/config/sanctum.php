@@ -18,12 +18,14 @@ return [
     |
     */
 
+    // The SPA and the API are always served from the same origin (nginx), so the
+    // current request host is trusted too. This lets the app work when opened by
+    // LAN IP (e.g. from a phone) or any self-hosted domain without extra config.
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
         'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    )).Sanctum::currentRequestHost()),
 
     /*
     |--------------------------------------------------------------------------

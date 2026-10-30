@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { Logo } from '../components/Logo'
+import { PasswordInput } from '../components/PasswordInput'
 import { useRegister } from '../hooks/useAuth'
 import styles from './pages.module.css'
 
@@ -55,9 +56,8 @@ export function RegisterPage() {
           ))}
           <label className={styles.field}>
             Contraseña
-            <input
+            <PasswordInput
               className={styles.input}
-              type="password"
               autoComplete="new-password"
               required
               minLength={8}
@@ -68,9 +68,8 @@ export function RegisterPage() {
           </label>
           <label className={styles.field}>
             Repite la contraseña
-            <input
+            <PasswordInput
               className={styles.input}
-              type="password"
               autoComplete="new-password"
               required
               value={form.password_confirmation}

@@ -136,16 +136,83 @@
   background: var(--soft);
 }
 
+.userMenu {
+  position: relative;
+}
+
 .profile {
   height: 44px;
   padding: 0 8px;
   display: flex;
   align-items: center;
   gap: 10px;
+  border: 0;
   border-radius: 12px;
+  background: transparent;
   color: var(--text);
   font-weight: 600;
+  cursor: pointer;
+}
+
+.profile:hover,
+.profile[aria-expanded='true'] {
+  background: var(--soft);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: 260px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: 0 16px 40px rgb(40 20 10 / 18%);
+}
+
+.menuHeader {
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.menuHeader span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.menuItem {
+  height: 44px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--soft);
+}
+
+.menuDanger {
+  color: var(--danger);
 }
 
 .avatar {

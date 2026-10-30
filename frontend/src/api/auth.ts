@@ -18,6 +18,7 @@ export interface User {
   id: number
   name: string
   email: string
+  email_verified: boolean
   preferences: Preferences
   workspaces: Workspace[]
 }
@@ -45,6 +46,7 @@ export const authApi = {
   register: (input: RegisterInput) =>
     api<Wrapped<User>>('POST', '/auth/register', input).then((r) => r.data),
   logout: () => api<void>('POST', '/auth/logout'),
+  resendVerification: () => api<void>('POST', '/email/verification-notification'),
   updatePreferences: (prefs: Partial<Preferences>) =>
     api<Wrapped<User>>('PATCH', '/me/preferences', prefs).then((r) => r.data),
 }
