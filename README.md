@@ -8,7 +8,9 @@
 
 ## Estado
 
-**Fase 0 · Base**: monorepo, Docker, API con inicio de sesión, PWA con tema claro / oscuro / sistema.
+- **Fase 0 · Base** ✔: monorepo, Docker, registro con confirmación de correo, inicio de sesión, PWA con tema claro / oscuro / sistema.
+- **Fase 1 · Núcleo** (en revisión): proyectos, tareas agrupadas por fecha, alta rápida, detalle con estado, prioridad,
+  fecha, responsables, descripción, subtareas y comentarios; confeti al completar.
 
 ## Requisitos
 

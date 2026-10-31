@@ -18,6 +18,13 @@ const PATHS = {
   eyeOff: 'M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2',
   chevronDown: 'M6 9l6 6 6-6',
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
+  comment: 'M4 5h16v11H9l-5 4z',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  close: 'M6 6l12 12M18 6L6 18',
+  back: 'M15 6l-6 6 6 6',
+  flag: 'M5 21V4h11l-2 4 2 4H5',
+  archive: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
 } as const
 
 export type IconName = keyof typeof PATHS

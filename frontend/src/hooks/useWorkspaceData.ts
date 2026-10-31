@@ -1,0 +1,180 @@
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import type { ProjectInput, Task, TaskFilters, TaskInput } from '../api/types'
+import { workspaceApi } from '../api/workspace'
+import { useMe } from './useAuth'
+
+/**
+ * Query keys. Everything about a workspace starts with ['ws', id] so a single
+ * invalidation refreshes lists, counts and details after a change.
+ */
+export const keys = {
+  all: (ws: number) => ['ws', ws] as const,
+  tasks: (ws: number, filters: TaskFilters) => ['ws', ws, 'tasks', filters] as const,
+  task: (ws: number, id: number) => ['ws', ws, 'task', id] as const,
+  projects: (ws: number) => ['ws', ws, 'projects'] as const,
+  project: (ws: number, id: number) => ['ws', ws, 'project', id] as const,
+  statuses: (ws: number) => ['ws', ws, 'statuses'] as const,
+  members: (ws: number) => ['ws', ws, 'members'] as const,
+}
+
+/** The workspace the user is working in. For now, their first (personal) one. */
+export function useWorkspaceId(): number {
+  const { data: user } = useMe()
+  const id = user?.workspaces[0]?.id
+  if (!id) throw new Error('El usuario no tiene espacio de trabajo')
+  return id
+}
+
+const refreshWorkspace = (client: QueryClient, ws: number) => client.invalidateQueries({ queryKey: keys.all(ws) })
+
+/* ---------- Reads ---------- */
+
+export function useTasks(filters: TaskFilters, enabled = true) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: keys.tasks(ws, filters), queryFn: () => workspaceApi.tasks(ws, filters), enabled })
+}
+
+export function useTask(id: number) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: keys.task(ws, id), queryFn: () => workspaceApi.task(id) })
+}
+
+export function useProjects() {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: keys.projects(ws), queryFn: () => workspaceApi.projects(ws) })
+}
+
+export function useProject(id: number) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: keys.project(ws, id), queryFn: () => workspaceApi.project(id) })
+}
+
+export function useStatuses() {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: keys.statuses(ws), queryFn: () => workspaceApi.statuses(ws), staleTime: Infinity })
+}
+
+export function useMembers() {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: keys.members(ws), queryFn: () => workspaceApi.members(ws), staleTime: 5 * 60_000 })
+}
+
+/* ---------- Task writes ---------- */
+
+export function useCreateTask() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: TaskInput) => workspaceApi.createTask(ws, input),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+/**
+ * Edits a task. Changes show up immediately in every cached list and detail
+ * (optimistic update) and are rolled back if the server rejects them.
+ */
+export function useUpdateTask() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: TaskInput }) => workspaceApi.updateTask(id, input),
+    onMutate: async ({ id, input }) => {
+      await client.cancelQueries({ queryKey: keys.all(ws) })
+      const snapshot = client.getQueriesData({ queryKey: keys.all(ws) })
+      const patch = (task: Task): Task => (task.id === id ? { ...task, ...pickPatchable(input) } : task)
+
+      client.setQueriesData<unknown>({ queryKey: keys.all(ws) }, (data: unknown) => {
+        if (Array.isArray(data)) return (data as Task[]).map((t) => (isTask(t) ? patch(t) : t))
+        if (isTask(data)) {
+          const task = patch(data)
+          return task.subtasks ? { ...task, subtasks: task.subtasks.map(patch) } : task
+        }
+        return data
+      })
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot.forEach(([key, data]) => client.setQueryData(key, data))
+    },
+    onSettled: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useDeleteTask() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => workspaceApi.deleteTask(id),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useCreateSubtask(taskId: number) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (title: string) => workspaceApi.createSubtask(taskId, { title }),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useAddComment(taskId: number) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (body: string) => workspaceApi.addComment(taskId, body),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.task(ws, taskId) }),
+  })
+}
+
+export function useDeleteComment(taskId: number) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => workspaceApi.deleteComment(id),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.task(ws, taskId) }),
+  })
+}
+
+/* ---------- Project writes ---------- */
+
+export function useCreateProject() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ProjectInput) => workspaceApi.createProject(ws, input),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useUpdateProject() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: ProjectInput }) => workspaceApi.updateProject(id, input),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useDeleteProject() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => workspaceApi.deleteProject(id),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+/* ---------- helpers ---------- */
+
+function isTask(value: unknown): value is Task {
+  return typeof value === 'object' && value !== null && 'title' in value && 'status_id' in value
+}
+
+/** Fields that can be shown optimistically without the server's answer. */
+function pickPatchable(input: TaskInput): Partial<Task> {
+  const rest: TaskInput = { ...input }
+  delete rest.assignee_ids
+  return rest as Partial<Task>
+}

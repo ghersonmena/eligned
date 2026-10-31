@@ -1,0 +1,86 @@
+/** Shapes returned by the Laravel API (see backend/app/Http/Resources). */
+
+export type Priority = 1 | 2 | 3
+
+export type ProjectColor = 'orange' | 'blue' | 'teal' | 'violet' | 'pink' | 'green' | 'amber' | 'slate'
+
+export interface Member {
+  id: number
+  name: string
+  role?: 'owner' | 'admin' | 'member' | 'guest'
+}
+
+export interface TaskStatus {
+  id: number
+  name: string
+  color: ProjectColor
+  position: number
+  is_done: boolean
+}
+
+export interface Project {
+  id: number
+  name: string
+  description: string | null
+  color: ProjectColor
+  archived: boolean
+  open_tasks_count?: number
+  done_tasks_count?: number
+  created_at: string
+}
+
+export interface Comment {
+  id: number
+  body: string
+  author: { id: number; name: string } | null
+  can_delete: boolean
+  created_at: string
+}
+
+export interface Task {
+  id: number
+  title: string
+  description: string | null
+  priority: Priority
+  status_id: number
+  project_id: number | null
+  parent_id: number | null
+  start_at: string | null
+  due_at: string | null
+  completed: boolean
+  completed_at: string | null
+  position: number
+  project?: { id: number; name: string; color: ProjectColor } | null
+  assignees?: Member[]
+  subtasks_count?: number
+  subtasks_done_count?: number
+  comments_count?: number
+  subtasks?: Task[]
+  comments?: Comment[]
+  created_at: string
+}
+
+export interface TaskInput {
+  title?: string
+  description?: string | null
+  priority?: Priority
+  start_at?: string | null
+  due_at?: string | null
+  project_id?: number | null
+  status_id?: number
+  completed?: boolean
+  assignee_ids?: number[]
+}
+
+export interface TaskFilters {
+  status?: 'open' | 'completed' | 'all'
+  project_id?: number
+  assignee?: 'me'
+}
+
+export interface ProjectInput {
+  name?: string
+  description?: string | null
+  color?: ProjectColor
+  archived?: boolean
+}

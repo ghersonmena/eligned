@@ -22,9 +22,31 @@
   --ink: #1c1411;
   --danger: #b91c1c;
   --shadow: 0 1px 2px rgb(80 40 20 / 5%), 0 6px 20px rgb(80 40 20 / 5%);
+
+  /* Project / status colors: soft background + readable text (AA). */
+  --c-orange-bg: #ffedd5; --c-orange-fg: #9a3412; --c-orange-dot: #ea580c;
+  --c-blue-bg: #dbeafe; --c-blue-fg: #1e40af; --c-blue-dot: #2563eb;
+  --c-teal-bg: #ccfbf1; --c-teal-fg: #115e59; --c-teal-dot: #0d9488;
+  --c-violet-bg: #ede9fe; --c-violet-fg: #5b21b6; --c-violet-dot: #7c3aed;
+  --c-pink-bg: #fce7f3; --c-pink-fg: #9d174d; --c-pink-dot: #db2777;
+  --c-green-bg: #dcfce7; --c-green-fg: #166534; --c-green-dot: #16a34a;
+  --c-amber-bg: #fef3c7; --c-amber-fg: #92400e; --c-amber-dot: #d97706;
+  --c-slate-bg: #f1ece7; --c-slate-fg: #57483f; --c-slate-dot: #a8958a;
+  --overdue: #b91c1c;
+  --due-today: #b45309;
 }
 
 :root[data-theme='dark'] {
+  --c-orange-bg: #3a2a1e; --c-orange-fg: #fdba74;
+  --c-blue-bg: #172a3a; --c-blue-fg: #93c5fd;
+  --c-teal-bg: #173230; --c-teal-fg: #5eead4;
+  --c-violet-bg: #2a2340; --c-violet-fg: #c4b5fd;
+  --c-pink-bg: #3a1a2a; --c-pink-fg: #f9a8d4;
+  --c-green-bg: #16301f; --c-green-fg: #86efac;
+  --c-amber-bg: #3a2a0c; --c-amber-fg: #fcd34d;
+  --c-slate-bg: #2e241e; --c-slate-fg: #c7b2a6;
+  --overdue: #f87171;
+  --due-today: #fbbf24;
   color-scheme: dark;
   --bg: #120d0b;
   --side: #1a1310;

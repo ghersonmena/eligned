@@ -10,11 +10,11 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Inicio', icon: 'home' },
-  { to: '/tareas', label: 'Mis tareas', icon: 'tasks', phase: 1 },
+  { to: '/tareas', label: 'Mis tareas', icon: 'tasks' },
   { to: '/calendario', label: 'Calendario', icon: 'calendar', phase: 2 },
   { to: '/tablero', label: 'Tablero', icon: 'board', phase: 2 },
   { to: '/cronograma', label: 'Cronograma', icon: 'timeline', phase: 2 },
-  { to: '/proyectos', label: 'Proyectos', icon: 'folder', phase: 1 },
+  { to: '/proyectos', label: 'Proyectos', icon: 'folder' },
   { to: '/metas', label: 'Metas', icon: 'goal', phase: 4 },
   { to: '/equipo', label: 'Equipo', icon: 'team', phase: 4 },
 ]

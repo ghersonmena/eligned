@@ -266,6 +266,12 @@
   color: #c7b2a6;
 }
 
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .pageTitle {
   margin: 0;
   font-size: 30px;

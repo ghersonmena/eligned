@@ -1,6 +1,11 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import type { User } from '../api/auth'
+import { TaskRow } from '../components/tasks/TaskRow'
+import taskStyles from '../components/tasks/tasks.module.css'
+import { useTasks } from '../hooks/useWorkspaceData'
 import { celebrate } from '../lib/celebrate'
+import { dueGroup } from '../lib/dates'
 import styles from './pages.module.css'
 
 function greetingFor(hour: number) {
@@ -12,7 +17,8 @@ function greetingFor(hour: number) {
 export function HomePage({ user }: { user: User }) {
   const [hour] = useState(() => new Date().getHours())
   const firstName = user.name.split(' ')[0]
-  const workspace = user.workspaces[0]
+  const { data: tasks = [], isPending } = useTasks({ status: 'open' })
+  const today = tasks.filter((t) => ['overdue', 'today'].includes(dueGroup(t.due_at)))
 
   return (
     <>
@@ -21,11 +27,19 @@ export function HomePage({ user }: { user: User }) {
       </h1>
       <div className={styles.grid}>
         <section className={styles.card}>
-          <h2>Tu espacio está listo</h2>
-          <p>
-            Estás en <strong>{workspace?.name ?? 'tu espacio personal'}</strong>. Aquí verás tus tareas, la lista
-            rápida y los recordatorios cuando terminemos la fase 1.
-          </p>
+          <h2>Para hoy</h2>
+          {isPending && <p>Cargando…</p>}
+          {!isPending && today.length === 0 && (
+            <p>Nada pendiente para hoy. {tasks.length > 0 ? `Tienes ${tasks.length} tareas abiertas más adelante.` : ''}</p>
+          )}
+          {today.length > 0 && (
+            <ul className={taskStyles.list}>
+              {today.slice(0, 5).map((task) => (
+                <TaskRow key={task.id} task={task} />
+              ))}
+            </ul>
+          )}
+          <Link to="/tareas">Ver todas mis tareas</Link>
         </section>
         <section className={`${styles.card} ${styles.cardTracker}`}>
           <h2>Registro de tiempo</h2>
