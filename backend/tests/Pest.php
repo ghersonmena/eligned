@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\WorkspaceRole;
+use App\Models\User;
+use App\Models\Workspace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +50,24 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * A verified user who belongs to a fresh workspace with the given role.
+ *
+ * @return array{0: User, 1: Workspace}
+ */
+function memberWithWorkspace(WorkspaceRole $role = WorkspaceRole::Owner): array
+{
+    $user = User::factory()->create();
+    $workspace = Workspace::factory()->create(['owner_id' => $user->id]);
+    $workspace->addMember($user, $role);
+
+    return [$user, $workspace];
 }
