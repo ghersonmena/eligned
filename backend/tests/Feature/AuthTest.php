@@ -8,21 +8,21 @@ beforeEach(function () {
     $this->withHeaders(['Referer' => 'http://localhost', 'Accept' => 'application/json']);
 });
 
-it('registers a user with a personal workspace and logs them in', function () {
-    $response = $this->postJson('/api/v1/auth/register', [
+it('registers a user with a personal workspace without signing them in', function () {
+    $this->postJson('/api/v1/auth/register', [
         'name' => 'Gherson',
         'email' => 'gherson@example.com',
         'password' => 'secret-password',
         'password_confirmation' => 'secret-password',
-    ]);
+    ])->assertCreated()->assertJsonPath('email', 'gherson@example.com');
 
-    $response->assertCreated()
-        ->assertJsonPath('data.email', 'gherson@example.com')
-        ->assertJsonPath('data.preferences.theme', 'system')
-        ->assertJsonPath('data.workspaces.0.personal', true)
-        ->assertJsonPath('data.workspaces.0.role', WorkspaceRole::Owner->value);
+    $this->assertGuest();
 
-    $this->assertAuthenticated();
+    $user = User::firstWhere('email', 'gherson@example.com');
+    expect($user->hasVerifiedEmail())->toBeFalse()
+        ->and($user->workspaces)->toHaveCount(1)
+        ->and($user->workspaces->first()->personal)->toBeTrue()
+        ->and($user->workspaces->first()->pivot->role)->toBe(WorkspaceRole::Owner);
 });
 
 it('rejects a registration with an email already in use', function () {
@@ -45,6 +45,17 @@ it('logs in with valid credentials', function () {
     ])->assertOk()->assertJsonPath('data.id', $user->id);
 
     $this->assertAuthenticatedAs($user);
+});
+
+it('does not log in until the email is confirmed', function () {
+    $user = User::factory()->unverified()->create(['password' => 'secret-password']);
+
+    $this->postJson('/api/v1/auth/login', [
+        'email' => $user->email,
+        'password' => 'secret-password',
+    ])->assertForbidden()->assertJsonPath('code', 'email_unverified');
+
+    $this->assertGuest();
 });
 
 it('logs in when the app is opened by LAN IP (e.g. from a phone)', function () {

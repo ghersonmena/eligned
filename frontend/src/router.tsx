@@ -4,6 +4,7 @@ import type { User } from './api/auth'
 import { AppLayout } from './components/AppLayout'
 import { GuestOnly, RequireUser } from './components/RouteGuards'
 import { NAV_ITEMS } from './navigation'
+import { CheckEmailPage } from './pages/CheckEmailPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
@@ -15,6 +16,7 @@ const withUser = (render: (user: User) => ReactNode) => <RequireUser>{render}</R
 export const router = createBrowserRouter([
   { path: '/login', element: <GuestOnly><LoginPage /></GuestOnly> },
   { path: '/registro', element: <GuestOnly><RegisterPage /></GuestOnly> },
+  { path: '/revisa-tu-correo', element: <GuestOnly><CheckEmailPage /></GuestOnly> },
   {
     path: '/',
     element: withUser((user) => <AppLayout user={user} />),

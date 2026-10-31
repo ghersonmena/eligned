@@ -15,16 +15,12 @@ Route::prefix('v1')->group(function () {
     Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware('throttle:6,1')
         ->name('verification.verify');
+    Route::post('email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:3,1');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    // Only verified users can sign in, but "verified" also guards the API itself.
+    Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('me', [MeController::class, 'show']);
         Route::patch('me/preferences', [MeController::class, 'updatePreferences']);
-        Route::post('email/verification-notification', [EmailVerificationController::class, 'resend'])
-            ->middleware('throttle:3,1');
-
-        // Features from phase 1 on go inside this group so unverified accounts can't use them.
-        Route::middleware('verified')->group(function () {
-            //
-        });
     });
 });

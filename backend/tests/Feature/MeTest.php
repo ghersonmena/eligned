@@ -6,6 +6,12 @@ it('requires authentication', function () {
     $this->getJson('/api/v1/me')->assertUnauthorized();
 });
 
+it('is not available to an account with an unconfirmed email', function () {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)->getJson('/api/v1/me')->assertForbidden();
+});
+
 it('returns the current user with default preferences', function () {
     $user = User::factory()->create();
 

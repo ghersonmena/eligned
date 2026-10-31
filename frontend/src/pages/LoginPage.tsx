@@ -1,20 +1,33 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { Logo } from '../components/Logo'
 import { PasswordInput } from '../components/PasswordInput'
+import { ResendNotice } from '../components/ResendNotice'
 import { useLogin } from '../hooks/useAuth'
+import { useResendFeedback } from '../hooks/useResendFeedback'
+import { celebrate } from '../lib/celebrate'
 import styles from './pages.module.css'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const login = useLogin()
+  const { resend, feedback } = useResendFeedback()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
 
+  const justVerified = params.get('correo') === 'verificado'
+  const invalidLink = params.get('correo') === 'enlace-invalido'
+
   const error = login.error instanceof ApiError ? login.error : null
-  const emailError = error?.fieldError('email') ? 'El correo o la contraseña no son correctos.' : undefined
+  const unverified = error?.code === 'email_unverified'
+  const wrongCredentials = Boolean(error?.fieldError('email'))
+
+  useEffect(() => {
+    if (justVerified) celebrate()
+  }, [justVerified])
 
   function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -27,6 +40,16 @@ export function LoginPage() {
         <div className={styles.authBrand}>
           <Logo /> [nombre]
         </div>
+        {justVerified && (
+          <p className={styles.notice} role="status">
+            ¡Correo confirmado! Ya puedes iniciar sesión.
+          </p>
+        )}
+        {invalidLink && (
+          <p className={styles.error} role="alert">
+            Ese enlace no es válido o ya venció. <Link to="/revisa-tu-correo">Pide uno nuevo</Link>.
+          </p>
+        )}
         <h1 className={styles.authTitle}>
           <span>Hola de nuevo,</span> entra a tu espacio
         </h1>
@@ -40,8 +63,8 @@ export function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={emailError ? true : undefined}
-              aria-describedby={emailError ? 'login-error' : undefined}
+              aria-invalid={wrongCredentials ? true : undefined}
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </label>
           <label className={styles.field}>
@@ -54,13 +77,27 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          {emailError && (
+          {wrongCredentials && (
             <span id="login-error" className={styles.error} role="alert">
-              {emailError}
+              El correo o la contraseña no son correctos.
             </span>
           )}
-          {error && !emailError && (
-            <span className={styles.error} role="alert">
+          {unverified && (
+            <div id="login-error" className={styles.callout} role="alert">
+              <span>Aún no confirmas tu correo. Abre el enlace que te enviamos para poder entrar.</span>
+              <button
+                type="button"
+                className={styles.linkButton}
+                disabled={resend.isPending}
+                onClick={() => resend.mutate(email)}
+              >
+                {resend.isPending ? 'Enviando…' : 'Reenviar correo'}
+              </button>
+              <ResendNotice feedback={feedback} />
+            </div>
+          )}
+          {error && !wrongCredentials && !unverified && (
+            <span id="login-error" className={styles.error} role="alert">
               No pudimos iniciar sesión. Inténtalo de nuevo en un momento.
             </span>
           )}

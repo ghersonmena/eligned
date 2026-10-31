@@ -11,12 +11,15 @@ export type ValidationErrors = Record<string, string[]>
 export class ApiError extends Error {
   readonly status: number
   readonly errors: ValidationErrors
+  /** Machine-readable reason sent by the API, e.g. "email_unverified". */
+  readonly code?: string
 
-  constructor(status: number, message: string, errors: ValidationErrors = {}) {
+  constructor(status: number, message: string, errors: ValidationErrors = {}, code?: string) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.errors = errors
+    this.code = code
   }
 
   /** First message for a field, handy for showing it under an input. */
@@ -63,7 +66,7 @@ export async function api<T>(method: Method, path: string, body?: unknown): Prom
 
   if (!response.ok) {
     if (response.status === 419) csrfReady = null
-    throw new ApiError(response.status, data.message ?? 'Error inesperado', data.errors ?? {})
+    throw new ApiError(response.status, data.message ?? 'Error inesperado', data.errors ?? {}, data.code)
   }
 
   return data as T

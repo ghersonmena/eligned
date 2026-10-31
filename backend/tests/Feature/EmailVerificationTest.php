@@ -21,23 +21,24 @@ it('sends the confirmation email when registering', function () {
         'email' => 'gherson@example.com',
         'password' => 'secret-password',
         'password_confirmation' => 'secret-password',
-    ])->assertCreated()->assertJsonPath('data.email_verified', false);
+    ])->assertCreated();
 
     Notification::assertSentTo(User::firstWhere('email', 'gherson@example.com'), VerifyEmail::class);
 });
 
-it('verifies the email from the link, even without a session', function () {
+it('only confirms the email from the link and sends the user to log in', function () {
     $user = User::factory()->unverified()->create();
 
-    $this->get(verificationUrl($user))->assertRedirect('/?correo=verificado');
+    $this->get(verificationUrl($user))->assertRedirect('/login?correo=verificado');
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+    $this->assertGuest();
 });
 
 it('rejects a link with a wrong hash', function () {
     $user = User::factory()->unverified()->create();
 
-    $this->get(verificationUrl($user, hash: sha1('otro@example.com')))->assertRedirect('/?correo=enlace-invalido');
+    $this->get(verificationUrl($user, hash: sha1('otro@example.com')))->assertRedirect('/login?correo=enlace-invalido');
 
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
@@ -45,25 +46,26 @@ it('rejects a link with a wrong hash', function () {
 it('rejects an expired link', function () {
     $user = User::factory()->unverified()->create();
 
-    $this->get(verificationUrl($user, minutes: -1))->assertRedirect('/?correo=enlace-invalido');
+    $this->get(verificationUrl($user, minutes: -1))->assertRedirect('/login?correo=enlace-invalido');
 
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
-it('resends the confirmation email', function () {
+it('resends the confirmation email without being signed in', function () {
     Notification::fake();
     $user = User::factory()->unverified()->create();
 
-    $this->actingAs($user)->postJson('/api/v1/email/verification-notification')->assertAccepted();
+    $this->postJson('/api/v1/email/verification-notification', ['email' => $user->email])->assertAccepted();
 
     Notification::assertSentTo($user, VerifyEmail::class);
 });
 
-it('does not resend when the email is already verified', function () {
+it('answers the same for verified or unknown emails without sending anything', function () {
     Notification::fake();
     $user = User::factory()->create();
 
-    $this->actingAs($user)->postJson('/api/v1/email/verification-notification')->assertNoContent();
+    $this->postJson('/api/v1/email/verification-notification', ['email' => $user->email])->assertAccepted();
+    $this->postJson('/api/v1/email/verification-notification', ['email' => 'nadie@example.com'])->assertAccepted();
 
     Notification::assertNothingSent();
 });

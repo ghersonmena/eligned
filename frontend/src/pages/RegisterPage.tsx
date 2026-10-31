@@ -26,7 +26,9 @@ export function RegisterPage() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault()
-    register.mutate(form, { onSuccess: () => navigate('/', { replace: true }) })
+    register.mutate(form, {
+      onSuccess: (result) => navigate('/revisa-tu-correo', { replace: true, state: { email: result.email } }),
+    })
   }
 
   return (

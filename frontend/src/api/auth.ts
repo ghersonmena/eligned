@@ -40,13 +40,17 @@ export interface RegisterInput {
   password_confirmation: string
 }
 
+export interface RegisterResult {
+  message: string
+  email: string
+}
+
 export const authApi = {
   me: () => api<Wrapped<User>>('GET', '/me').then((r) => r.data),
   login: (input: LoginInput) => api<Wrapped<User>>('POST', '/auth/login', input).then((r) => r.data),
-  register: (input: RegisterInput) =>
-    api<Wrapped<User>>('POST', '/auth/register', input).then((r) => r.data),
+  register: (input: RegisterInput) => api<RegisterResult>('POST', '/auth/register', input),
   logout: () => api<void>('POST', '/auth/logout'),
-  resendVerification: () => api<void>('POST', '/email/verification-notification'),
+  resendVerification: (email: string) => api<void>('POST', '/email/verification-notification', { email }),
   updatePreferences: (prefs: Partial<Preferences>) =>
     api<Wrapped<User>>('PATCH', '/me/preferences', prefs).then((r) => r.data),
 }

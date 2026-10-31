@@ -18,8 +18,6 @@ export function useMe() {
     },
     staleTime: 5 * 60 * 1000,
     retry: false,
-    // While waiting for the email confirmation, re-check whenever the tab regains focus.
-    refetchOnWindowFocus: (query) => (query.state.data?.email_verified === false ? 'always' : true),
   })
 }
 
@@ -31,12 +29,9 @@ export function useLogin() {
   })
 }
 
+/** Creates the account; the user still has to confirm the email and log in. */
 export function useRegister() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (input: RegisterInput) => authApi.register(input),
-    onSuccess: (user) => queryClient.setQueryData(ME_KEY, user),
-  })
+  return useMutation({ mutationFn: (input: RegisterInput) => authApi.register(input) })
 }
 
 export function useLogout() {
@@ -51,7 +46,7 @@ export function useLogout() {
 }
 
 export function useResendVerification() {
-  return useMutation({ mutationFn: () => authApi.resendVerification() })
+  return useMutation({ mutationFn: (email: string) => authApi.resendVerification(email) })
 }
 
 export function useUpdatePreferences() {

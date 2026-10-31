@@ -6,36 +6,51 @@ use App\Actions\RegisterUser;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request, RegisterUser $registerUser): UserResource
+    /**
+     * Creates the account but does not sign in: the user has to confirm the
+     * email first and then log in.
+     */
+    public function register(RegisterRequest $request, RegisterUser $registerUser): JsonResponse
     {
         $user = $registerUser->handle($request->validated());
 
-        Auth::guard('web')->login($user);
-        $request->session()->regenerate();
-
-        return new UserResource($user->load('workspaces'));
+        return response()->json([
+            'message' => 'Cuenta creada. Revisa tu correo para confirmarla.',
+            'email' => $user->email,
+        ], 201);
     }
 
-    public function login(LoginRequest $request): UserResource
+    public function login(LoginRequest $request): UserResource|JsonResponse
     {
-        $credentials = $request->safe()->only(['email', 'password']);
+        $user = User::firstWhere('email', $request->string('email')->lower()->value());
 
-        if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+        if (! $user || ! Hash::check($request->string('password')->value(), $user->password)) {
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
         }
 
+        if (! $user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Confirma tu correo antes de iniciar sesión.',
+                'code' => 'email_unverified',
+            ], 403);
+        }
+
+        Auth::guard('web')->login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        return new UserResource($request->user()->load('workspaces'));
+        return new UserResource($user->load('workspaces'));
     }
 
     public function logout(Request $request): Response
