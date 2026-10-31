@@ -48,6 +48,7 @@ Como es HTTP y no HTTPS, el navegador no permite instalarla como PWA ni recibir 
 docker compose exec app ./vendor/bin/pest        # pruebas
 docker compose exec app ./vendor/bin/pint        # formato
 docker compose exec app php artisan migrate      # migraciones
+docker compose restart queue                     # tras cambiar el correo en backend/.env (los correos salen por la cola)
 
 # Frontend (dentro de frontend/)
 npm test            # pruebas (Vitest)

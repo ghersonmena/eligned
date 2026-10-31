@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Theme;
+use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -53,6 +54,11 @@ class User extends Authenticatable implements MustVerifyEmail
             ->using(WorkspaceMember::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(QueuedVerifyEmail::for($this));
     }
 
     /**
