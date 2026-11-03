@@ -281,3 +281,53 @@
     display: none;
   }
 }
+
+/* ---------- Expandable subtasks ---------- */
+.rowItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expand {
+  min-height: 36px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.expand:hover {
+  color: var(--text);
+}
+
+.expand[aria-expanded='true'] svg:last-child {
+  transform: rotate(180deg);
+}
+
+.subtaskList {
+  margin: 0 0 4px 34px;
+  padding: 0 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 2px solid var(--border);
+  list-style: none;
+}
+
+.subtaskRow {
+  padding: 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  background: var(--row);
+}

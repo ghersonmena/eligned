@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { useLocation } from 'react-router'
+import { Link } from 'react-router'
 import type { TaskFilters } from '../api/types'
-import { QuickAdd } from '../components/tasks/QuickAdd'
 import { TaskGroups, TaskList } from '../components/tasks/TaskGroups'
 import styles from '../components/tasks/tasks.module.css'
 import { useProjects, useTasks } from '../hooks/useWorkspaceData'
@@ -9,7 +8,6 @@ import { dueGroup } from '../lib/dates'
 import pageStyles from './pages.module.css'
 
 export function TasksPage() {
-  const location = useLocation()
   const [mine, setMine] = useState(false)
   const [projectId, setProjectId] = useState<string>('')
   const [showCompleted, setShowCompleted] = useState(false)
@@ -26,11 +24,16 @@ export function TasksPage() {
 
   return (
     <>
-      <div>
+      <div className={pageStyles.headerRow}>
+        <div>
         <span className={pageStyles.eyebrow}>
           {open.isPending ? 'Cargando…' : `${tasks.length} abiertas${overdue ? ` · ${overdue} atrasadas` : ''}`}
         </span>
         <h1 className={pageStyles.pageTitle}>Mis tareas</h1>
+        </div>
+        <Link to="/tareas/nueva" className={`${pageStyles.primary} ${pageStyles.buttonLink}`}>
+          + Nueva tarea
+        </Link>
       </div>
 
       <div className={styles.toolbar}>
@@ -63,8 +66,6 @@ export function TasksPage() {
         </label>
       </div>
 
-      <QuickAdd autoFocus={Boolean((location.state as { focusNew?: boolean } | null)?.focusNew)} />
-
       {open.isError && (
         <p className={pageStyles.error} role="alert">
           No pudimos cargar tus tareas. Revisa tu conexión e inténtalo de nuevo.
@@ -74,7 +75,8 @@ export function TasksPage() {
       {open.isSuccess && tasks.length === 0 && (
         <div className={styles.empty}>
           <strong>Todo al día</strong>
-          <span>No tienes tareas pendientes. Escribe una arriba para empezar.</span>
+          <span>No tienes tareas pendientes.</span>
+          <Link to="/tareas/nueva">Crear una tarea</Link>
         </div>
       )}
 

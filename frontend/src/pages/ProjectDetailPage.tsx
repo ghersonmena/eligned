@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Icon } from '../components/Icon'
-import { QuickAdd } from '../components/tasks/QuickAdd'
 import { TaskGroups, TaskList } from '../components/tasks/TaskGroups'
 import taskStyles from '../components/tasks/tasks.module.css'
 import { useDeleteProject, useProject, useTasks, useUpdateProject } from '../hooks/useWorkspaceData'
@@ -73,12 +72,16 @@ export function ProjectDetailPage() {
         </p>
       )}
 
-      <QuickAdd projectId={project.id} />
+      <div>
+        <Link to={`/tareas/nueva?proyecto=${project.id}`} className={`${pageStyles.primary} ${pageStyles.buttonLink} ${styles.inlineButton}`}>
+          + Nueva tarea en este proyecto
+        </Link>
+      </div>
 
       {open.isSuccess && tasks.length === 0 && (
         <div className={taskStyles.empty}>
           <strong>Sin tareas pendientes</strong>
-          <span>Agrega la primera tarea de este proyecto arriba.</span>
+          <span>Crea la primera tarea de este proyecto con el botón de arriba.</span>
         </div>
       )}
 

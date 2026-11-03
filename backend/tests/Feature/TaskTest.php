@@ -170,3 +170,53 @@ it('lets guests read but not change tasks', function () {
     $this->postJson("/api/v1/workspaces/{$workspace->id}/tasks", ['title' => 'x'])->assertForbidden();
     $this->patchJson("/api/v1/tasks/{$task->id}", ['completed' => true])->assertForbidden();
 });
+
+it('completes the parent automatically when every subtask is done', function () {
+    [$user, $workspace] = memberWithWorkspace();
+    $parent = Task::factory()->for($workspace)->create();
+    $first = Task::factory()->for($workspace)->create(['parent_id' => $parent->id]);
+    $second = Task::factory()->for($workspace)->create(['parent_id' => $parent->id]);
+
+    $this->actingAs($user)->patchJson("/api/v1/tasks/{$first->id}", ['completed' => true])->assertOk();
+    expect($parent->fresh()->isCompleted())->toBeFalse();
+
+    $this->patchJson("/api/v1/tasks/{$second->id}", ['completed' => true])->assertOk();
+    expect($parent->fresh()->isCompleted())->toBeTrue()
+        ->and($parent->fresh()->status->is_done)->toBeTrue();
+});
+
+it('reopens the parent when a subtask is reopened or a new one is added', function () {
+    [$user, $workspace] = memberWithWorkspace();
+    $parent = Task::factory()->for($workspace)->completed()->create();
+    $subtask = Task::factory()->for($workspace)->completed()->create(['parent_id' => $parent->id]);
+
+    $this->actingAs($user)->patchJson("/api/v1/tasks/{$subtask->id}", ['completed' => false])->assertOk();
+    expect($parent->fresh()->isCompleted())->toBeFalse();
+
+    $this->patchJson("/api/v1/tasks/{$subtask->id}", ['completed' => true])->assertOk();
+    expect($parent->fresh()->isCompleted())->toBeTrue();
+
+    $this->postJson("/api/v1/tasks/{$parent->id}/subtasks", ['title' => 'Un paso más'])->assertCreated();
+    expect($parent->fresh()->isCompleted())->toBeFalse();
+});
+
+it('completes the parent when its last open subtask is deleted', function () {
+    [$user, $workspace] = memberWithWorkspace();
+    $parent = Task::factory()->for($workspace)->create();
+    Task::factory()->for($workspace)->completed()->create(['parent_id' => $parent->id]);
+    $open = Task::factory()->for($workspace)->create(['parent_id' => $parent->id]);
+
+    $this->actingAs($user)->deleteJson("/api/v1/tasks/{$open->id}")->assertNoContent();
+
+    expect($parent->fresh()->isCompleted())->toBeTrue();
+});
+
+it('includes subtasks in the task list so they can be expanded', function () {
+    [$user, $workspace] = memberWithWorkspace();
+    $parent = Task::factory()->for($workspace)->create();
+    Task::factory()->for($workspace)->create(['parent_id' => $parent->id, 'title' => 'Paso 1']);
+
+    $this->actingAs($user)->getJson("/api/v1/workspaces/{$workspace->id}/tasks")
+        ->assertOk()
+        ->assertJsonPath('data.0.subtasks.0.title', 'Paso 1');
+});

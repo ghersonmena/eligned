@@ -37,6 +37,9 @@ class CreateTask
                 $task->assignees()->sync($data['assignee_ids']);
             }
 
+            // A new open subtask reopens a completed parent.
+            $task->syncParentCompletion();
+
             return $task;
         });
     }

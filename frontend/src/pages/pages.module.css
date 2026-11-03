@@ -355,3 +355,15 @@
   background: #ffffff;
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
 }
+
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerRow .buttonLink {
+  padding: 0 18px;
+}

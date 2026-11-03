@@ -5,6 +5,7 @@ import { MOBILE_NAV_ITEMS, NAV_ITEMS } from '../navigation'
 import { useThemeStore } from '../theme/theme'
 import { Icon } from './Icon'
 import { Logo } from './Logo'
+import { SavingIndicator } from './SavingIndicator'
 import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
 import styles from './layout.module.css'
@@ -28,7 +29,7 @@ export function AppLayout({ user }: { user: User }) {
           <Logo />
           <span>[nombre]</span>
         </div>
-        <button type="button" className={styles.create} onClick={() => navigate('/tareas', { state: { focusNew: true } })}>
+        <button type="button" className={styles.create} onClick={() => navigate('/tareas/nueva')}>
           <Icon name="plus" size={18} />
           Crear tarea
         </button>
@@ -54,6 +55,7 @@ export function AppLayout({ user }: { user: User }) {
             {todayLabel}
           </span>
           <span className={styles.spacer} />
+          <SavingIndicator />
           <ThemeToggle />
           <span className={styles.divider} />
           <UserMenu user={user} />

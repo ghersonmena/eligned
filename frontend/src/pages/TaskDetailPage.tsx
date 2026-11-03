@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import type { Priority, Task, TaskInput } from '../api/types'
+import type { Task } from '../api/types'
 import { Icon } from '../components/Icon'
+import { TaskForm } from '../components/tasks/TaskForm'
 import { CompleteCheckbox } from '../components/tasks/TaskRow'
 import { useMe } from '../hooks/useAuth'
 import {
@@ -9,14 +10,10 @@ import {
   useCreateSubtask,
   useDeleteComment,
   useDeleteTask,
-  useMembers,
-  useProjects,
-  useStatuses,
   useTask,
   useUpdateTask,
 } from '../hooks/useWorkspaceData'
-import { chipStyle, PRIORITIES } from '../lib/colors'
-import { fromInputs, toDateInput, toTimeInput } from '../lib/dates'
+import { toTaskInput, valuesFromTask } from '../lib/taskForm'
 import { initials } from '../lib/initials'
 import styles from './detail.module.css'
 import pageStyles from './pages.module.css'
@@ -25,10 +22,15 @@ const commentDate = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'shor
 
 export function TaskDetailPage() {
   const { id } = useParams()
-  const taskId = Number(id)
-  const { data: task, isPending, isError } = useTask(taskId)
+  const { data: task, isPending, isError } = useTask(Number(id))
 
-  if (isPending) return <p className={pageStyles.eyebrow}>Cargando tarea…</p>
+  if (isPending) {
+    return (
+      <p className={styles.loading} role="status">
+        <span className={styles.spinner} aria-hidden="true" /> Cargando tarea…
+      </p>
+    )
+  }
   if (isError || !task) {
     return (
       <section className={pageStyles.card}>
@@ -38,7 +40,6 @@ export function TaskDetailPage() {
       </section>
     )
   }
-  // key: reset local form state when navigating between tasks.
   return <TaskDetail key={task.id} task={task} />
 }
 
@@ -46,43 +47,23 @@ function TaskDetail({ task }: { task: Task }) {
   const navigate = useNavigate()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
-  const { data: statuses = [] } = useStatuses()
-  const { data: projects = [] } = useProjects()
-  const { data: members = [] } = useMembers()
-  const [title, setTitle] = useState(task.title)
-  const [description, setDescription] = useState(task.description ?? '')
-  const [dueDate, setDueDate] = useState(toDateInput(task.due_at))
-  const [dueTime, setDueTime] = useState(toTimeInput(task.due_at))
-
-  const save = (input: TaskInput) => updateTask.mutate({ id: task.id, input })
-  const assigneeIds = task.assignees?.map((a) => a.id) ?? []
-
-  function saveTitle() {
-    const trimmed = title.trim()
-    if (!trimmed) return setTitle(task.title)
-    if (trimmed !== task.title) save({ title: trimmed })
-  }
-
-  function saveDue(date: string, time: string) {
-    setDueDate(date)
-    setDueTime(time)
-    save({ due_at: fromInputs(date, time) })
-  }
-
-  function toggleAssignee(memberId: number) {
-    const next = assigneeIds.includes(memberId)
-      ? assigneeIds.filter((a) => a !== memberId)
-      : [...assigneeIds, memberId]
-    save({ assignee_ids: next })
-  }
 
   function remove() {
-    if (!window.confirm(`¿Eliminar "${task.title}"${task.subtasks_count ? ' y sus subtareas' : ''}? No se puede deshacer.`)) return
-    deleteTask.mutate(task.id, { onSuccess: () => navigate(task.parent_id ? `/tareas/${task.parent_id}` : '/tareas') })
+    const extra = task.subtasks_count ? ` y sus ${task.subtasks_count} subtareas` : ''
+    if (!window.confirm(`¿Eliminar "${task.title}"${extra}? No se puede deshacer.`)) return
+    deleteTask.mutate(task.id, {
+      onSuccess: () => navigate(task.parent_id ? `/tareas/${task.parent_id}` : '/tareas', { replace: true }),
+    })
   }
 
   return (
     <div className={styles.layout}>
+      {deleteTask.isPending && (
+        <div className={styles.overlay} role="status">
+          <span className={styles.spinner} aria-hidden="true" /> Eliminando tarea…
+        </div>
+      )}
+
       <nav aria-label="Ruta" className={styles.breadcrumb}>
         <Link to="/tareas">Mis tareas</Link>
         {task.project && (
@@ -99,114 +80,28 @@ function TaskDetail({ task }: { task: Task }) {
         )}
       </nav>
 
-      <section className={pageStyles.card}>
-        <div className={styles.titleRow}>
-          <CompleteCheckbox task={task} className={styles.bigCheck} />
-          <label className="visually-hidden" htmlFor="task-title">
-            Título
-          </label>
-          <input
-            id="task-title"
-            className={`${styles.titleInput} ${task.completed ? styles.titleDone : ''}`}
-            value={title}
-            maxLength={255}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={saveTitle}
-            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          />
-        </div>
+      <div className={styles.titleRow}>
+        <CompleteCheckbox task={task} className={styles.bigCheck} />
+        <h1 className={`${styles.title} ${task.completed ? styles.titleDone : ''}`}>{task.title}</h1>
+      </div>
+      {task.completed && task.subtasks_count ? (
+        <p className={styles.autoNote}>Completada: todas sus subtareas están terminadas.</p>
+      ) : null}
 
-        <div className={styles.fields}>
-          <label className={styles.field}>
-            Estado
-            <select value={task.status_id} onChange={(e) => save({ status_id: Number(e.target.value) })}>
-              {statuses.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={styles.field}>
-            Prioridad
-            <select value={task.priority} onChange={(e) => save({ priority: Number(e.target.value) as Priority })}>
-              {PRIORITIES.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {!task.parent_id && (
-            <label className={styles.field}>
-              Proyecto
-              <select
-                value={task.project_id ?? ''}
-                onChange={(e) => save({ project_id: e.target.value ? Number(e.target.value) : null })}
-              >
-                <option value="">Sin proyecto</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <div className={styles.field}>
-            <span id="due-label">Fecha límite</span>
-            <div className={styles.dueInputs} role="group" aria-labelledby="due-label">
-              <input
-                type="date"
-                aria-label="Día"
-                value={dueDate}
-                onChange={(e) => saveDue(e.target.value, e.target.value ? dueTime : '')}
-              />
-              <input
-                type="time"
-                aria-label="Hora (opcional)"
-                value={dueTime}
-                disabled={!dueDate}
-                onChange={(e) => saveDue(dueDate, e.target.value)}
-              />
-              {dueDate && (
-                <button type="button" className={styles.iconButton} aria-label="Quitar fecha" onClick={() => saveDue('', '')}>
-                  <Icon name="close" size={16} />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <fieldset className={styles.assignees}>
-          <legend>Responsables</legend>
-          {members.map((m) => (
-            <label key={m.id} className={styles.assignee}>
-              <input type="checkbox" checked={assigneeIds.includes(m.id)} onChange={() => toggleAssignee(m.id)} />
-              <span className={styles.avatar} aria-hidden="true">
-                {initials(m.name)}
-              </span>
-              {m.name}
-            </label>
-          ))}
-        </fieldset>
-
-        <label className={styles.field}>
-          Descripción
-          <textarea
-            rows={4}
-            placeholder="Agrega detalles, pasos o enlaces…"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => description !== (task.description ?? '') && save({ description: description || null })}
-          />
-        </label>
-
-        {updateTask.isError && (
-          <p className={pageStyles.error} role="alert">
-            No se pudo guardar el último cambio. Inténtalo de nuevo.
-          </p>
-        )}
+      <section className={pageStyles.card} aria-labelledby="edit-title">
+        <h2 id="edit-title">Detalles</h2>
+        <TaskForm
+          // Remount when the status changes elsewhere (checkbox, subtasks) so the form never saves a stale status.
+          key={`${task.status_id}-${task.completed}`}
+          initial={valuesFromTask(task)}
+          submitLabel="Guardar cambios"
+          showProject={!task.parent_id}
+          pending={updateTask.isPending}
+          errorMessage={updateTask.isError ? 'No se pudieron guardar los cambios. Inténtalo de nuevo.' : undefined}
+          onSubmit={(values) =>
+            updateTask.mutateAsync({ id: task.id, input: toTaskInput(values, !task.parent_id) })
+          }
+        />
       </section>
 
       {!task.parent_id && <Subtasks task={task} />}
@@ -217,6 +112,11 @@ function TaskDetail({ task }: { task: Task }) {
           <Icon name="trash" size={18} />
           Eliminar tarea
         </button>
+        {deleteTask.isError && (
+          <p className={pageStyles.error} role="alert">
+            No se pudo eliminar la tarea. Inténtalo de nuevo.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -224,7 +124,9 @@ function TaskDetail({ task }: { task: Task }) {
 
 function Subtasks({ task }: { task: Task }) {
   const [title, setTitle] = useState('')
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const createSubtask = useCreateSubtask(task.id)
+  const deleteTask = useDeleteTask()
   const subtasks = task.subtasks ?? []
   const done = subtasks.filter((s) => s.completed).length
 
@@ -232,6 +134,12 @@ function Subtasks({ task }: { task: Task }) {
     event.preventDefault()
     const trimmed = title.trim()
     if (trimmed) createSubtask.mutate(trimmed, { onSuccess: () => setTitle('') })
+  }
+
+  function remove(subtask: Task) {
+    if (!window.confirm(`¿Eliminar la subtarea "${subtask.title}"?`)) return
+    setDeletingId(subtask.id)
+    deleteTask.mutate(subtask.id, { onSettled: () => setDeletingId(null) })
   }
 
   return (
@@ -249,13 +157,31 @@ function Subtasks({ task }: { task: Task }) {
           </>
         )}
       </div>
+      {subtasks.length > 0 && (
+        <p className={styles.hintText}>Al terminar todas las subtareas, la tarea se completa sola.</p>
+      )}
       <ul className={styles.subtasks}>
         {subtasks.map((s) => (
-          <li key={s.id} className={styles.subtask}>
+          <li key={s.id} className={`${styles.subtask} ${deletingId === s.id ? styles.removing : ''}`}>
             <CompleteCheckbox task={s} />
             <Link to={`/tareas/${s.id}`} className={s.completed ? styles.subtaskDone : undefined}>
               {s.title}
             </Link>
+            {deletingId === s.id ? (
+              <span className={styles.inlineStatus} role="status">
+                <span className={styles.spinner} aria-hidden="true" /> Eliminando…
+              </span>
+            ) : (
+              <button
+                type="button"
+                className={styles.iconButton}
+                aria-label={`Eliminar subtarea "${s.title}"`}
+                disabled={deletingId !== null}
+                onClick={() => remove(s)}
+              >
+                <Icon name="trash" size={16} />
+              </button>
+            )}
           </li>
         ))}
       </ul>
@@ -265,13 +191,13 @@ function Subtasks({ task }: { task: Task }) {
         </label>
         <input
           id="new-subtask"
-          placeholder="Agregar subtarea y pulsar Enter"
+          placeholder="Nueva subtarea"
           value={title}
           maxLength={255}
           onChange={(e) => setTitle(e.target.value)}
         />
         <button type="submit" disabled={!title.trim() || createSubtask.isPending}>
-          Agregar
+          {createSubtask.isPending ? 'Agregando…' : 'Agregar subtarea'}
         </button>
       </form>
     </section>
@@ -313,6 +239,7 @@ function Comments({ task }: { task: Task }) {
                 type="button"
                 className={styles.iconButton}
                 aria-label="Eliminar comentario"
+                disabled={deleteComment.isPending}
                 onClick={() => window.confirm('¿Eliminar este comentario?') && deleteComment.mutate(c.id)}
               >
                 <Icon name="trash" size={16} />
@@ -334,17 +261,9 @@ function Comments({ task }: { task: Task }) {
           onChange={(e) => setBody(e.target.value)}
         />
         <button type="submit" disabled={!body.trim() || addComment.isPending}>
-          Enviar
+          {addComment.isPending ? 'Enviando…' : 'Enviar'}
         </button>
       </form>
-      {task.project && (
-        <p className={styles.footnote}>
-          Proyecto:{' '}
-          <span className={styles.chip} style={chipStyle(task.project.color)}>
-            {task.project.name}
-          </span>
-        </p>
-      )}
     </section>
   )
 }

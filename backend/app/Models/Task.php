@@ -122,6 +122,26 @@ class Task extends Model
         }
     }
 
+    /**
+     * A parent task is completed exactly when all of its subtasks are: finishing
+     * the last subtask completes it, and reopening or adding one reopens it.
+     */
+    public function syncParentCompletion(): void
+    {
+        $parent = $this->parent_id ? Task::find($this->parent_id) : null;
+        if (! $parent) {
+            return;
+        }
+
+        $subtasks = $parent->subtasks()->get(['id', 'completed_at']);
+        $allDone = $subtasks->isNotEmpty() && $subtasks->every(fn (Task $s) => $s->completed_at !== null);
+
+        if ($allDone !== $parent->isCompleted()) {
+            $parent->setCompleted($allDone);
+            $parent->save();
+        }
+    }
+
     /** Keeps completed_at in sync when the status is changed directly (e.g. Kanban). */
     public function moveToStatus(TaskStatus $status): void
     {

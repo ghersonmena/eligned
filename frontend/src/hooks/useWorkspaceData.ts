@@ -25,7 +25,14 @@ export function useWorkspaceId(): number {
   return id
 }
 
-const refreshWorkspace = (client: QueryClient, ws: number) => client.invalidateQueries({ queryKey: keys.all(ws) })
+/**
+ * Refetches everything of the workspace in the background. Not awaited on
+ * purpose: the mutation finishes (and the UI moves on) as soon as the server
+ * confirmed the change.
+ */
+const refreshWorkspace = (client: QueryClient, ws: number) => {
+  void client.invalidateQueries({ queryKey: keys.all(ws) })
+}
 
 /* ---------- Reads ---------- */
 
@@ -82,14 +89,15 @@ export function useUpdateTask() {
     onMutate: async ({ id, input }) => {
       await client.cancelQueries({ queryKey: keys.all(ws) })
       const snapshot = client.getQueriesData({ queryKey: keys.all(ws) })
-      const patch = (task: Task): Task => (task.id === id ? { ...task, ...pickPatchable(input) } : task)
+      // Patches the task wherever it appears, including as a subtask inside a list or detail.
+      const patch = (task: Task): Task => {
+        const self = task.id === id ? { ...task, ...pickPatchable(input) } : task
+        return self.subtasks ? { ...self, subtasks: self.subtasks.map(patch) } : self
+      }
 
       client.setQueriesData<unknown>({ queryKey: keys.all(ws) }, (data: unknown) => {
-        if (Array.isArray(data)) return (data as Task[]).map((t) => (isTask(t) ? patch(t) : t))
-        if (isTask(data)) {
-          const task = patch(data)
-          return task.subtasks ? { ...task, subtasks: task.subtasks.map(patch) } : task
-        }
+        if (Array.isArray(data)) return (data as unknown[]).map((t) => (isTask(t) ? patch(t) : t))
+        if (isTask(data)) return patch(data)
         return data
       })
       return { snapshot }
@@ -97,7 +105,9 @@ export function useUpdateTask() {
     onError: (_error, _vars, context) => {
       context?.snapshot.forEach(([key, data]) => client.setQueryData(key, data))
     },
-    onSettled: () => refreshWorkspace(client, ws),
+    onSettled: () => {
+      refreshWorkspace(client, ws)
+    },
   })
 }
 
@@ -106,7 +116,11 @@ export function useDeleteTask() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => workspaceApi.deleteTask(id),
-    onSuccess: () => refreshWorkspace(client, ws),
+    onSuccess: (_data, id) => {
+      // Drop the deleted task right away so nothing tries to reload it.
+      client.removeQueries({ queryKey: keys.task(ws, id) })
+      refreshWorkspace(client, ws)
+    },
   })
 }
 
@@ -124,7 +138,9 @@ export function useAddComment(taskId: number) {
   const client = useQueryClient()
   return useMutation({
     mutationFn: (body: string) => workspaceApi.addComment(taskId, body),
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.task(ws, taskId) }),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: keys.task(ws, taskId) })
+    },
   })
 }
 
@@ -133,7 +149,9 @@ export function useDeleteComment(taskId: number) {
   const client = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => workspaceApi.deleteComment(id),
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.task(ws, taskId) }),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: keys.task(ws, taskId) })
+    },
   })
 }
 

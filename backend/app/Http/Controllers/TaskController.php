@@ -39,7 +39,8 @@ class TaskController extends Controller
             ->when($request->query('assignee') === 'me', fn (Builder $q) => $q->whereHas(
                 'assignees', fn (Builder $a) => $a->whereKey($request->user()->id),
             ))
-            ->with(['project', 'assignees'])
+            // Subtasks come along so lists can expand them in place.
+            ->with(['project', 'assignees', 'subtasks'])
             ->withCount($this->counts())
             ->when(
                 $status === 'completed',
@@ -99,10 +100,15 @@ class TaskController extends Controller
                 $task->subtasks()->update(['project_id' => $task->project_id]);
             }
 
+            $completionChanged = $task->isDirty('completed_at');
             $task->save();
 
             if (array_key_exists('assignee_ids', $data)) {
                 $task->assignees()->sync($data['assignee_ids']);
+            }
+
+            if ($completionChanged) {
+                $task->syncParentCompletion();
             }
         });
 
@@ -113,7 +119,11 @@ class TaskController extends Controller
     {
         Gate::authorize('delete', $task);
 
-        $task->delete();
+        DB::transaction(function () use ($task) {
+            $task->delete();
+            // Deleting the last open subtask can complete the parent.
+            $task->syncParentCompletion();
+        });
 
         return response()->noContent();
     }

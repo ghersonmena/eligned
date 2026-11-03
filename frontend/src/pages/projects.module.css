@@ -190,3 +190,8 @@
   background: var(--soft);
   font-weight: 600;
 }
+
+.inlineButton {
+  display: inline-flex;
+  padding: 0 18px;
+}

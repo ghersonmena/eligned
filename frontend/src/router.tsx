@@ -13,6 +13,7 @@ import { ProjectsPage } from './pages/ProjectsPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TaskDetailPage } from './pages/TaskDetailPage'
+import { TaskNewPage } from './pages/TaskNewPage'
 import { TasksPage } from './pages/TasksPage'
 
 const withUser = (render: (user: User) => ReactNode) => <RequireUser>{render}</RequireUser>
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { index: true, element: withUser((user) => <HomePage user={user} />) },
       { path: 'ajustes', element: withUser((user) => <SettingsPage user={user} />) },
       { path: 'tareas', element: <TasksPage /> },
+      { path: 'tareas/nueva', element: <TaskNewPage /> },
       { path: 'tareas/:id', element: <TaskDetailPage /> },
       { path: 'proyectos', element: <ProjectsPage /> },
       { path: 'proyectos/:id', element: <ProjectDetailPage /> },
