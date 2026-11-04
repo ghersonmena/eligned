@@ -23,7 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   NAV_ITEMS[0],
   NAV_ITEMS[1],
+  NAV_ITEMS[5],
   NAV_ITEMS[2],
-  NAV_ITEMS[3],
   { to: '/ajustes', label: 'Ajustes', icon: 'settings' },
 ]

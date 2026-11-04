@@ -25,19 +25,23 @@ export function HomePage({ user }: { user: User }) {
       <h1 className={styles.greeting}>
         <span>{greetingFor(hour)}</span> {firstName}
       </h1>
-      <div className={styles.grid}>
-        <section className={styles.card}>
-          <h2>Para hoy</h2>
+      <div className={`${styles.grid} ${styles.homeGrid}`}>
+        <section className={`${styles.card} ${styles.cardToday}`}>
+          <h2>
+            Para hoy{today.length > 0 && <span className={styles.count}> · {today.length}</span>}
+          </h2>
           {isPending && <p>Cargando…</p>}
           {!isPending && today.length === 0 && (
             <p>Nada pendiente para hoy. {tasks.length > 0 ? `Tienes ${tasks.length} tareas abiertas más adelante.` : ''}</p>
           )}
           {today.length > 0 && (
-            <ul className={taskStyles.list}>
-              {today.slice(0, 5).map((task) => (
-                <TaskRow key={task.id} task={task} />
-              ))}
-            </ul>
+            <div className={styles.cardScroll} tabIndex={0} aria-label="Tareas para hoy">
+              <ul className={taskStyles.list}>
+                {today.map((task) => (
+                  <TaskRow key={task.id} task={task} />
+                ))}
+              </ul>
+            </div>
           )}
           <Link to="/tareas">Ver todas mis tareas</Link>
         </section>
