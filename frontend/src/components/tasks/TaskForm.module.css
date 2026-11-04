@@ -1,0 +1,214 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.field select,
+.field textarea,
+.dateInput,
+.timeInput {
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.field textarea {
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.titleInput {
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.titleInput[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+/* The date gets its own row so day, month, year and time are always fully visible. */
+.dueRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateInput {
+  flex: 0 1 190px;
+  min-width: 170px;
+}
+
+.timeInput {
+  flex: 0 1 140px;
+  min-width: 120px;
+}
+
+.timeInput:disabled {
+  opacity: 0.5;
+}
+
+.clear {
+  min-height: 44px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clear:hover {
+  background: var(--soft);
+  color: var(--text);
+}
+
+.hint {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.assignees {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 0;
+}
+
+.assignees legend {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.assignee {
+  min-height: 44px;
+  padding: 0 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assignee input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffedd5;
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.save {
+  min-height: 48px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cancel {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.savedNote {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 40%);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

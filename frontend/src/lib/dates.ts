@@ -1,0 +1,98 @@
+/**
+ * Due dates.
+ *
+ * A task can be due on a day ("todo el día") or at a time. Day-only dates are
+ * stored as 23:59 local time, so they sort after timed tasks of the same day
+ * and count as overdue only once the day is over.
+ */
+
+const DAY_END_HOURS = 23
+const DAY_END_MINUTES = 59
+
+export type DueGroup = 'overdue' | 'today' | 'tomorrow' | 'week' | 'later' | 'none'
+
+export const GROUP_LABELS: Record<DueGroup, string> = {
+  overdue: 'Atrasadas',
+  today: 'Hoy',
+  tomorrow: 'Mañana',
+  week: 'Próximos 7 días',
+  later: 'Más adelante',
+  none: 'Sin fecha',
+}
+
+export const GROUP_ORDER: DueGroup[] = ['overdue', 'today', 'tomorrow', 'week', 'later', 'none']
+
+function startOfDay(date: Date): Date {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function daysBetween(from: Date, to: Date): number {
+  return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86_400_000)
+}
+
+export function isAllDay(date: Date): boolean {
+  return date.getHours() === DAY_END_HOURS && date.getMinutes() === DAY_END_MINUTES
+}
+
+export function dueGroup(dueAt: string | null, now = new Date()): DueGroup {
+  if (!dueAt) return 'none'
+  const due = new Date(dueAt)
+  if (due.getTime() < now.getTime()) return 'overdue'
+  const days = daysBetween(now, due)
+  if (days === 0) return 'today'
+  if (days === 1) return 'tomorrow'
+  if (days <= 7) return 'week'
+  return 'later'
+}
+
+const weekdayShort = new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric', month: 'short' })
+const dayMonth = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' })
+const time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' })
+
+/** "Hoy", "Mañana 10:00", "Ayer", "lun 3 nov", "5 ene 2027"… */
+export function formatDue(dueAt: string, now = new Date()): string {
+  const due = new Date(dueAt)
+  const days = daysBetween(now, due)
+  const clock = isAllDay(due) ? '' : ` ${time.format(due)}`
+
+  if (days === 0) return `Hoy${clock}`
+  if (days === 1) return `Mañana${clock}`
+  if (days === -1) return `Ayer${clock}`
+  if (Math.abs(days) <= 7) return `${weekdayShort.format(due)}${clock}`
+  return `${dayMonth.format(due)}${clock}`
+}
+
+/** Value for <input type="date"> (local day) from an API date. */
+export function toDateInput(dueAt: string | null): string {
+  if (!dueAt) return ''
+  const d = new Date(dueAt)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/** Value for <input type="time">, empty for day-only dates. */
+export function toTimeInput(dueAt: string | null): string {
+  if (!dueAt) return ''
+  const d = new Date(dueAt)
+  if (isAllDay(d)) return ''
+  return time.format(d)
+}
+
+/** Builds the ISO string to send to the API from local date/time inputs. */
+export function fromInputs(date: string, clock = ''): string | null {
+  if (!date) return null
+  const [h, m] = clock ? clock.split(':').map(Number) : [DAY_END_HOURS, DAY_END_MINUTES]
+  const [y, mo, d] = date.split('-').map(Number)
+  return new Date(y, mo - 1, d, h, m).toISOString()
+}
+
+/** Shortcuts for the quick-add menu. */
+export function shortcutDate(kind: 'today' | 'tomorrow' | 'nextWeek', now = new Date()): string {
+  const d = new Date(now)
+  if (kind === 'tomorrow') d.setDate(d.getDate() + 1)
+  if (kind === 'nextWeek') d.setDate(d.getDate() + 7)
+  d.setHours(DAY_END_HOURS, DAY_END_MINUTES, 0, 0)
+  return d.toISOString()
+}
