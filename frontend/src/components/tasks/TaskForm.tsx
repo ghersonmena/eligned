@@ -4,7 +4,7 @@ import type { Priority } from '../../api/types'
 import { useMembers, useProjects, useStatuses } from '../../hooks/useWorkspaceData'
 import { PRIORITIES } from '../../lib/colors'
 import { initials } from '../../lib/initials'
-import type { TaskFormValues } from '../../lib/taskForm'
+import { startAfterDue, type TaskFormValues } from '../../lib/taskForm'
 import { Icon } from '../Icon'
 import styles from './TaskForm.module.css'
 
@@ -65,6 +65,7 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
       setTitleError(true)
       return
     }
+    if (startAfterDue(values)) return
     leavingAfterSave.current = true
     try {
       await onSubmit(values)
@@ -163,6 +164,37 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
           )}
         </div>
         <span className={styles.hint}>La hora es opcional: sin hora, la tarea vence al final del día.</span>
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="start-date">Fecha de inicio (opcional)</label>
+        <div className={styles.dueRow}>
+          <input
+            id="start-date"
+            type="date"
+            className={styles.dateInput}
+            value={values.startDate}
+            max={values.dueDate || undefined}
+            aria-invalid={startAfterDue(values) ? true : undefined}
+            aria-describedby="start-hint"
+            onChange={(e) => set('startDate', e.target.value)}
+          />
+          {values.startDate && (
+            <button type="button" className={styles.clear} onClick={() => set('startDate', '')}>
+              <Icon name="close" size={16} />
+              Quitar inicio
+            </button>
+          )}
+        </div>
+        {startAfterDue(values) ? (
+          <span id="start-hint" className={styles.error}>
+            El inicio no puede ser después de la fecha límite.
+          </span>
+        ) : (
+          <span id="start-hint" className={styles.hint}>
+            Con inicio y fecha límite, la tarea se dibuja como una barra en el cronograma.
+          </span>
+        )}
       </div>
 
       {members.length > 0 && (

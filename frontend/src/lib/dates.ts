@@ -96,3 +96,72 @@ export function shortcutDate(kind: 'today' | 'tomorrow' | 'nextWeek', now = new 
   d.setHours(DAY_END_HOURS, DAY_END_MINUTES, 0, 0)
   return d.toISOString()
 }
+
+/* ---------- Calendar / timeline helpers (all in local time) ---------- */
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** "2026-11-04" for a local day. */
+export function dayKey(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+}
+
+export function parseDayKey(key: string): Date {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+export function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+export { startOfDay, daysBetween }
+
+/** Monday of the week (weeks start on Monday). */
+export function startOfWeek(date: Date): Date {
+  const d = startOfDay(date)
+  return addDays(d, -((d.getDay() + 6) % 7))
+}
+
+/** The 6 weeks (42 days) shown in a month view, starting on a Monday. */
+export function monthGrid(month: Date): Date[] {
+  const first = new Date(month.getFullYear(), month.getMonth(), 1)
+  const start = startOfWeek(first)
+  return Array.from({ length: 42 }, (_, i) => addDays(start, i))
+}
+
+/** End of a local day (23:59:59.999), for inclusive API ranges. */
+export function endOfDay(date: Date): Date {
+  const d = new Date(date)
+  d.setHours(23, 59, 59, 999)
+  return d
+}
+
+/** Same time of day as `iso`, on another local day. */
+export function moveToDay(iso: string, day: Date): string {
+  const src = new Date(iso)
+  const d = new Date(day.getFullYear(), day.getMonth(), day.getDate(), src.getHours(), src.getMinutes())
+  return d.toISOString()
+}
+
+/** Shifts a date by whole days, keeping its time of day. */
+export function shiftDays(iso: string, days: number): string {
+  return moveToDay(iso, addDays(new Date(iso), days))
+}
+
+/** Start dates are day-only: stored as 00:00 local time. */
+export function startFromInput(date: string): string | null {
+  return date ? parseDayKey(date).toISOString() : null
+}
+
+/** A day-only due date (23:59 local) for that day. */
+export function dueAtEndOf(day: Date): string {
+  return new Date(day.getFullYear(), day.getMonth(), day.getDate(), DAY_END_HOURS, DAY_END_MINUTES).toISOString()
+}
+
+export function formatTime(iso: string): string | null {
+  const d = new Date(iso)
+  return isAllDay(d) ? null : time.format(d)
+}

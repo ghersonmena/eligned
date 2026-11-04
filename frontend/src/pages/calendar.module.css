@@ -1,0 +1,328 @@
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.calendar {
+  flex: 3 1 620px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekdays {
+  margin-bottom: 6px;
+}
+
+.weekdays span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cell {
+  min-width: 0;
+  min-height: 112px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 12px;
+  background: var(--row);
+  transition: box-shadow 0.12s;
+}
+
+.week .cell {
+  min-height: 360px;
+}
+
+.week .weekdays {
+  display: none;
+}
+
+.outside {
+  opacity: 0.55;
+}
+
+.selected {
+  box-shadow: inset 0 0 0 2px var(--border);
+}
+
+.over {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.dayBtn {
+  align-self: flex-start;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dayBtn:hover {
+  background: var(--soft);
+}
+
+.todayNum {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.todayNum:hover {
+  background: var(--accent);
+}
+
+.dow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.chips {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chipWrap {
+  min-width: 0;
+  border-radius: 8px;
+  touch-action: manipulation;
+  cursor: grab;
+}
+
+.chipWrap:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.dragging {
+  opacity: 0.35;
+}
+
+.chip {
+  min-width: 0;
+  min-height: 26px;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgb(80 40 20 / 8%);
+}
+
+.chip.done .chipTitle {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.overlay {
+  max-width: 220px;
+  cursor: grabbing;
+  box-shadow: 0 12px 30px rgb(40 20 10 / 25%);
+}
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.chipTime {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.chipTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week .chipTitle {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.more {
+  align-self: flex-start;
+  min-height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dots {
+  display: none;
+}
+
+/* ---------- Agenda of the selected day ---------- */
+.agenda {
+  flex: 1 1 280px;
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.agendaHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agendaHead h2 {
+  flex-grow: 1;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.agendaAdd {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.agendaList {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+}
+
+.agendaItem {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.agendaItem input {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.agendaLink {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.agendaTitle {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.agendaItem.done .agendaTitle {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.agendaMeta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Phones: the month shows dots; the day's tasks are listed below. */
+@media (max-width: 860px) {
+  .calendar {
+    padding: 10px;
+  }
+
+  .weekdays,
+  .grid {
+    gap: 3px;
+  }
+
+  .calendar:not(.week) .cell {
+    min-height: 56px;
+    padding: 2px;
+    align-items: center;
+  }
+
+  .calendar:not(.week) .chips {
+    display: none;
+  }
+
+  .calendar:not(.week) .dayBtn {
+    align-self: center;
+    padding: 0;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+  }
+
+  .dots {
+    display: block;
+    color: var(--accent);
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .week .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .week .cell {
+    min-height: 0;
+  }
+
+  .week .dots {
+    display: none;
+  }
+}

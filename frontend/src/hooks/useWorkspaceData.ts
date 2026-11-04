@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { ProjectInput, Task, TaskFilters, TaskInput } from '../api/types'
+import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus } from '../api/types'
 import { workspaceApi } from '../api/workspace'
 import { useMe } from './useAuth'
 
@@ -109,6 +109,49 @@ export function useUpdateTask() {
       refreshWorkspace(client, ws)
     },
   })
+}
+
+/**
+ * Kanban: drops a card in a column at an index. Board lists (sort=position)
+ * are reordered right away; everything is refetched afterwards.
+ */
+export function useMoveTask() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status, index }: { id: number; status: TaskStatus; index: number }) =>
+      workspaceApi.moveTask(id, status.id, index),
+    onMutate: async ({ id, status, index }) => {
+      await client.cancelQueries({ queryKey: keys.all(ws) })
+      const snapshot = client.getQueriesData({ queryKey: keys.all(ws) })
+      client.setQueriesData<Task[]>(
+        { queryKey: ['ws', ws, 'tasks'], predicate: (q) => (q.queryKey[3] as TaskFilters | undefined)?.sort === 'position' },
+        (tasks) => (tasks ? moveInList(tasks, id, status, index) : tasks),
+      )
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot.forEach(([key, data]) => client.setQueryData(key, data))
+    },
+    onSettled: () => refreshWorkspace(client, ws),
+  })
+}
+
+/** Pure reorder used by the optimistic update (exported for tests). */
+export function moveInList(tasks: Task[], id: number, status: TaskStatus, index: number): Task[] {
+  const moving = tasks.find((t) => t.id === id)
+  if (!moving) return tasks
+  const updated: Task = {
+    ...moving,
+    status_id: status.id,
+    completed: status.is_done,
+    completed_at: status.is_done ? (moving.completed_at ?? new Date().toISOString()) : null,
+  }
+  const column = tasks.filter((t) => t.status_id === status.id && t.id !== id)
+  column.splice(Math.min(index, column.length), 0, updated)
+  const renumbered = column.map((t, position) => ({ ...t, position }))
+  const others = tasks.filter((t) => t.status_id !== status.id && t.id !== id)
+  return [...others, ...renumbered]
 }
 
 export function useDeleteTask() {

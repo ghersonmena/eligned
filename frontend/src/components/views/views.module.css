@@ -1,0 +1,373 @@
+/* ---------- Shared header ---------- */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 260px;
+}
+
+.toolbar {
+  row-gap: 10px;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+.newTask {
+  height: 44px;
+  padding: 0 18px;
+}
+
+.tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.tab {
+  height: 36px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tab[aria-current='page'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgb(80 40 20 / 8%);
+}
+
+.navGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.roundBtn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.todayBtn {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scale {
+  display: flex;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.scale button {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scale button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ---------- Kanban ---------- */
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 1fr);
+  gap: 14px;
+  align-items: start;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+}
+
+.column {
+  min-height: 160px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: var(--radius-lg);
+  background: var(--soft);
+  scroll-snap-align: start;
+  transition: box-shadow 0.15s;
+}
+
+.columnOver {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.columnHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+}
+
+.columnHead h2 {
+  flex-grow: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.count {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.columnEmpty {
+  margin: 0;
+  padding: 18px 8px;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  color: var(--faint);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.addCard {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.addCard:hover {
+  color: var(--text);
+  border-color: var(--faint);
+}
+
+.sortable {
+  touch-action: manipulation;
+  border-radius: 18px;
+  cursor: grab;
+}
+
+.sortable:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.placeholder {
+  opacity: 0.35;
+}
+
+.card {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.cardDone .cardTitle {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.cardDragging {
+  cursor: grabbing;
+  transform: rotate(2deg);
+  box-shadow: 0 16px 40px rgb(40 20 10 / 25%);
+}
+
+.cardTop,
+.cardMeta,
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prio {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.chip {
+  min-width: 0;
+  padding: 4px 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moveBtn {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.moveBtn:hover {
+  color: var(--text);
+}
+
+.cardTitle {
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.cardTitle:hover {
+  text-decoration: underline;
+}
+
+.progress {
+  flex-grow: 1;
+  height: 6px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--soft);
+}
+
+.progressLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.cardMeta {
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.overdue {
+  color: var(--overdue);
+}
+
+.today {
+  color: var(--due-today);
+}
+
+.avatars {
+  display: flex;
+  padding-left: 8px;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  margin-left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--c-orange-bg);
+  color: var(--c-orange-fg);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+@media (max-width: 860px) {
+  /* One line of tabs that scrolls sideways if it doesn't fit. */
+  .tabs {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 0 11px;
+  }
+
+  .board {
+    grid-auto-columns: minmax(82vw, 1fr);
+    margin: 0 -16px;
+    padding: 0 16px 8px;
+    scroll-padding: 0 16px;
+  }
+
+  .newTask {
+    flex-grow: 1;
+  }
+}

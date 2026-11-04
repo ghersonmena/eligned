@@ -97,6 +97,10 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
 
 - REST JSON bajo `/api/v1`, documentada automáticamente (OpenAPI).
 - Recursos: `workspaces`, `projects`, `tasks`, `tasks/{id}/subtasks`, `comments`, `time-entries`, `reminders`, `goals`, `key-results`, `members`, `invitations`, `notifications`, `preferences`, `push-subscriptions`.
+- Vistas (fase 2):
+  - `GET workspaces/{id}/tasks` acepta `sort=position` (orden del Kanban), `done_since` (oculta las completadas antes de esa fecha) y `from` + `to` (tareas cuyo intervalo inicio–fecha límite toca ese rango; para calendario y cronograma).
+  - `POST tasks/{id}/move` con `status_id` y `position` (índice en la columna): mueve la tarjeta y renumera la columna. Soltarla en una columna "hecho" la completa.
+  - Regla: `start_at` no puede ser posterior a `due_at`. Las fechas de inicio son de día completo (00:00 local); las fechas límite sin hora, 23:59 local.
 - Permisos con **Policies** de Laravel por espacio de trabajo y rol.
 - Eventos en tiempo real por canal privado del espacio: `task.updated`, `comment.created`, `notification.created`.
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CreateTask;
+use App\Actions\MoveTask;
+use App\Http\Requests\MoveTaskRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
@@ -23,13 +25,25 @@ class TaskController extends Controller
     /**
      * Top-level tasks of a workspace.
      *
-     * Filters: project_id, status=open|completed|all (default open), assignee=me.
+     * Filters: project_id, status=open|completed|all (default open), assignee=me,
+     * done_since (with status=all: hides tasks completed before that date),
+     * from + to (tasks whose start..due span touches that range, for the
+     * calendar and the timeline) and sort=position (Kanban order).
      */
     public function index(Request $request, Workspace $workspace): AnonymousResourceCollection
     {
         Gate::authorize('view', $workspace);
 
+        $request->validate([
+            'status' => ['sometimes', 'in:open,completed,all'],
+            'sort' => ['sometimes', 'in:due,position'],
+            'done_since' => ['sometimes', 'date'],
+            'from' => ['sometimes', 'required_with:to', 'date'],
+            'to' => ['sometimes', 'required_with:from', 'date', 'after_or_equal:from'],
+        ]);
+
         $status = $request->query('status', 'open');
+        $byPosition = $request->query('sort') === 'position';
 
         $tasks = $workspace->tasks()
             ->whereNull('parent_id')
@@ -39,13 +53,24 @@ class TaskController extends Controller
             ->when($request->query('assignee') === 'me', fn (Builder $q) => $q->whereHas(
                 'assignees', fn (Builder $a) => $a->whereKey($request->user()->id),
             ))
+            ->when($request->filled('done_since'), fn (Builder $q) => $q->where(
+                fn (Builder $w) => $w->whereNull('completed_at')->orWhere('completed_at', '>=', $request->date('done_since')),
+            ))
+            ->when($request->filled('from'), fn (Builder $q) => $q
+                ->where(fn (Builder $w) => $w->whereNotNull('start_at')->orWhereNotNull('due_at'))
+                ->whereRaw('coalesce(start_at, due_at) <= ?', [$request->date('to')])
+                ->whereRaw('coalesce(due_at, start_at) >= ?', [$request->date('from')]))
             // Subtasks come along so lists can expand them in place.
             ->with(['project', 'assignees', 'subtasks'])
             ->withCount($this->counts())
             ->when(
-                $status === 'completed',
-                fn (Builder $q) => $q->latest('completed_at'),
-                fn (Builder $q) => $q->orderByRaw('due_at is null')->orderBy('due_at')->orderBy('priority')->orderBy('position'),
+                $byPosition,
+                fn (Builder $q) => $q->orderBy('position')->orderBy('id'),
+                fn (Builder $q) => $q->when(
+                    $status === 'completed',
+                    fn (Builder $q) => $q->latest('completed_at'),
+                    fn (Builder $q) => $q->orderByRaw('due_at is null')->orderBy('due_at')->orderBy('priority')->orderBy('position'),
+                ),
             )
             ->limit(self::LIST_LIMIT)
             ->get();
@@ -113,6 +138,18 @@ class TaskController extends Controller
         });
 
         return new TaskResource($this->loadDetail($task->refresh()));
+    }
+
+    /** Kanban: drop a card in a column at a given place. */
+    public function move(MoveTaskRequest $request, Task $task, MoveTask $moveTask): TaskResource
+    {
+        Gate::authorize('update', $task);
+        abort_if($task->parent_id !== null, 422, 'Las subtareas se ordenan dentro de su tarea.');
+
+        $status = $task->workspace->statuses->firstWhere('id', $request->integer('status_id'));
+        $moveTask->handle($task, $status, $request->integer('position'));
+
+        return new TaskResource($task->refresh()->load(['project', 'assignees', 'subtasks'])->loadCount($this->counts()));
     }
 
     public function destroy(Task $task): Response

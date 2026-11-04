@@ -4,6 +4,8 @@ import type { User } from './api/auth'
 import { AppLayout } from './components/AppLayout'
 import { GuestOnly, RequireUser } from './components/RouteGuards'
 import { NAV_ITEMS } from './navigation'
+import { BoardPage } from './pages/BoardPage'
+import { CalendarPage } from './pages/CalendarPage'
 import { CheckEmailPage } from './pages/CheckEmailPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { HomePage } from './pages/HomePage'
@@ -15,6 +17,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { TaskDetailPage } from './pages/TaskDetailPage'
 import { TaskNewPage } from './pages/TaskNewPage'
 import { TasksPage } from './pages/TasksPage'
+import { TimelinePage } from './pages/TimelinePage'
 
 const withUser = (render: (user: User) => ReactNode) => <RequireUser>{render}</RequireUser>
 
@@ -31,6 +34,9 @@ export const router = createBrowserRouter([
       { path: 'tareas', element: <TasksPage /> },
       { path: 'tareas/nueva', element: <TaskNewPage /> },
       { path: 'tareas/:id', element: <TaskDetailPage /> },
+      { path: 'tablero', element: <BoardPage /> },
+      { path: 'calendario', element: <CalendarPage /> },
+      { path: 'cronograma', element: <TimelinePage /> },
       { path: 'proyectos', element: <ProjectsPage /> },
       { path: 'proyectos/:id', element: <ProjectDetailPage /> },
       ...NAV_ITEMS.filter((item) => item.phase).map((item) => ({

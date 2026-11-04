@@ -43,6 +43,7 @@ Route::prefix('v1')->group(function () {
         Route::get('tasks/{task}', [TaskController::class, 'show']);
         Route::patch('tasks/{task}', [TaskController::class, 'update']);
         Route::delete('tasks/{task}', [TaskController::class, 'destroy']);
+        Route::post('tasks/{task}/move', [TaskController::class, 'move']);
         Route::post('tasks/{task}/subtasks', [TaskController::class, 'storeSubtask']);
         Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
         Route::delete('comments/{comment}', [CommentController::class, 'destroy']);

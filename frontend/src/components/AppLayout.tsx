@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import type { User } from '../api/auth'
 import { MOBILE_NAV_ITEMS, NAV_ITEMS } from '../navigation'
 import { useThemeStore } from '../theme/theme'
@@ -10,11 +10,19 @@ import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
 import styles from './layout.module.css'
 
+/** Board and timeline are views of "Mis tareas", reached from its tabs on phones. */
+function mobileActive(to: string, pathname: string): boolean {
+  if (to === '/') return pathname === '/'
+  if (to === '/tareas' && /^\/(tablero|cronograma)(\/|$)/.test(pathname)) return true
+  return pathname === to || pathname.startsWith(`${to}/`)
+}
+
 const today = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
 
 export function AppLayout({ user }: { user: User }) {
   const setPreference = useThemeStore((s) => s.setPreference)
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [todayLabel] = useState(() => today.format(new Date()))
 
   // The server copy of the theme wins when it differs (e.g. changed on another device).
@@ -65,10 +73,15 @@ export function AppLayout({ user }: { user: User }) {
 
       <nav className={styles.bottomNav} aria-label="Principal (móvil)">
         {MOBILE_NAV_ITEMS.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.to === '/'} className={styles.bottomLink}>
+          <Link
+            key={item.to}
+            to={item.to}
+            className={styles.bottomLink}
+            aria-current={mobileActive(item.to, pathname) ? 'page' : undefined}
+          >
             <Icon name={item.icon} size={22} />
             {item.label}
-          </NavLink>
+          </Link>
         ))}
       </nav>
     </div>

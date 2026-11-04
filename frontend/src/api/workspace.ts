@@ -44,6 +44,8 @@ export const workspaceApi = {
   createTask: (workspaceId: number, input: TaskInput) =>
     api<Wrapped<Task>>('POST', `/workspaces/${workspaceId}/tasks`, input).then(unwrap),
   updateTask: (id: number, input: TaskInput) => api<Wrapped<Task>>('PATCH', `/tasks/${id}`, input).then(unwrap),
+  moveTask: (id: number, statusId: number, position: number) =>
+    api<Wrapped<Task>>('POST', `/tasks/${id}/move`, { status_id: statusId, position }).then(unwrap),
   deleteTask: (id: number) => api<void>('DELETE', `/tasks/${id}`),
   createSubtask: (taskId: number, input: TaskInput) =>
     api<Wrapped<Task>>('POST', `/tasks/${taskId}/subtasks`, input).then(unwrap),

@@ -76,6 +76,13 @@ export interface TaskFilters {
   status?: 'open' | 'completed' | 'all'
   project_id?: number
   assignee?: 'me'
+  /** Kanban order instead of due date. */
+  sort?: 'due' | 'position'
+  /** With status=all: leaves out tasks completed before this date. */
+  done_since?: string
+  /** Date range (ISO): tasks whose start..due span touches it. */
+  from?: string
+  to?: string
 }
 
 export interface ProjectInput {

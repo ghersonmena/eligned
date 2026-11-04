@@ -22,6 +22,7 @@ const PATHS = {
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   close: 'M6 6l12 12M18 6L6 18',
   back: 'M15 6l-6 6 6 6',
+  forward: 'M9 6l6 6-6 6',
   flag: 'M5 21V4h11l-2 4 2 4H5',
   archive: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4',
   edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
