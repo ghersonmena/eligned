@@ -31,6 +31,10 @@ class TaskResource extends JsonResource
             'completed' => $this->isCompleted(),
             'completed_at' => $this->completed_at,
             'position' => $this->position,
+            'board_position' => $this->board_position,
+            'parent' => $this->whenLoaded('parent', fn () => $this->parent
+                ? ['id' => $this->parent->id, 'title' => $this->parent->title]
+                : null),
             'project' => $this->whenLoaded('project', fn () => $this->project
                 ? ['id' => $this->project->id, 'name' => $this->project->name, 'color' => $this->project->color]
                 : null),

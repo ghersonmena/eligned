@@ -14,6 +14,7 @@ import {
   useUpdateTask,
 } from '../hooks/useWorkspaceData'
 import { toTaskInput, valuesFromTask } from '../lib/taskForm'
+import { closesWithSubtasks, datesFromSubtasks } from '../lib/timeline'
 import { initials } from '../lib/initials'
 import styles from './detail.module.css'
 import pageStyles from './pages.module.css'
@@ -47,6 +48,7 @@ function TaskDetail({ task }: { task: Task }) {
   const navigate = useNavigate()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
+  const datesLocked = datesFromSubtasks(task)
 
   function remove() {
     const extra = task.subtasks_count ? ` y sus ${task.subtasks_count} subtareas` : ''
@@ -92,15 +94,23 @@ function TaskDetail({ task }: { task: Task }) {
         <h2 id="edit-title">Detalles</h2>
         <TaskForm
           // Remount when the status changes elsewhere (checkbox, subtasks) so the form never saves a stale status.
-          key={`${task.status_id}-${task.completed}`}
+          // Also when the dates follow a subtask that was just moved.
+          key={`${task.status_id}-${task.completed}-${datesLocked ? `${task.start_at}-${task.due_at}` : ''}`}
           initial={valuesFromTask(task)}
           submitLabel="Guardar cambios"
           showProject={!task.parent_id}
+          datesLocked={datesLocked}
+          completionLocked={closesWithSubtasks(task)}
           pending={updateTask.isPending}
           errorMessage={updateTask.isError ? 'No se pudieron guardar los cambios. Inténtalo de nuevo.' : undefined}
-          onSubmit={(values) =>
-            updateTask.mutateAsync({ id: task.id, input: toTaskInput(values, !task.parent_id) })
-          }
+          onSubmit={(values) => {
+            const input = toTaskInput(values, !task.parent_id)
+            if (datesLocked) {
+              delete input.start_at
+              delete input.due_at
+            }
+            return updateTask.mutateAsync({ id: task.id, input })
+          }}
         />
       </section>
 

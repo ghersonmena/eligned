@@ -8,7 +8,7 @@ import viewStyles from '../components/views/views.module.css'
 import { useTasks, useUpdateTask } from '../hooks/useWorkspaceData'
 import { chipStyle, dotColor } from '../lib/colors'
 import { addDays, daysBetween, endOfDay, startOfDay, startOfWeek } from '../lib/dates'
-import { datesAfterDrag, taskProgress, taskSpan, type DragMode } from '../lib/timeline'
+import { datesAfterDrag, datesFromSubtasks, taskProgress, taskSpan, type DragMode } from '../lib/timeline'
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
 import pageStyles from './pages.module.css'
 import styles from './timeline.module.css'
@@ -37,6 +37,8 @@ export function TimelinePage() {
   const [windowStart, setWindowStart] = useState(() => addDays(startOfWeek(today), -7))
   const [filters, setFilters] = useState<ViewFilterValues>(NO_FILTERS)
   const [closed, setClosed] = useState<Record<string, boolean>>({})
+  // Tasks whose subtasks are unfolded.
+  const [unfolded, setUnfolded] = useState<Set<number>>(() => new Set())
   const { dayWidth, days, step } = SCALES[scale]
   const windowEnd = addDays(windowStart, days - 1)
 
@@ -58,6 +60,16 @@ export function TimelinePage() {
     list.forEach((g) => g.tasks.sort((a, b) => (taskSpan(a)?.start.getTime() ?? 0) - (taskSpan(b)?.start.getTime() ?? 0)))
     return list.sort((a, b) => (a.key === 'none' ? 1 : b.key === 'none' ? -1 : a.name.localeCompare(b.name)))
   }, [query.data])
+
+  const parentIds = useMemo(() => (query.data ?? []).filter((t) => t.subtasks?.length).map((t) => t.id), [query.data])
+  const allUnfolded = parentIds.length > 0 && parentIds.every((id) => unfolded.has(id))
+
+  function toggle(id: number) {
+    const next = new Set(unfolded)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setUnfolded(next)
+  }
 
   const dayList = useMemo(() => Array.from({ length: days }, (_, i) => addDays(windowStart, i)), [windowStart, days])
   const months = useMemo(() => {
@@ -102,6 +114,16 @@ export function TimelinePage() {
             <button type="button" className={viewStyles.roundBtn} aria-label="Siguiente" onClick={() => setWindowStart(addDays(windowStart, step))}>
               <Icon name="forward" size={16} />
             </button>
+            {parentIds.length > 0 && (
+              <button
+                type="button"
+                className={viewStyles.todayBtn}
+                aria-pressed={allUnfolded}
+                onClick={() => setUnfolded(allUnfolded ? new Set() : new Set(parentIds))}
+              >
+                {allUnfolded ? 'Ocultar subtareas' : 'Ver subtareas'}
+              </button>
+            )}
             <div className={viewStyles.scale} role="group" aria-label="Escala">
               {(Object.keys(SCALES) as Scale[]).map((s) => (
                 <button key={s} type="button" aria-pressed={scale === s} onClick={() => setScale(s)}>
@@ -193,17 +215,62 @@ export function TimelinePage() {
                   </div>
                 </div>
                 {open &&
-                  g.tasks.map((t) => (
-                    <div key={t.id} className={styles.row}>
-                      <Link to={`/tareas/${t.id}`} className={`${styles.label} ${styles.taskLabel} ${t.completed ? styles.done : ''}`}>
-                        {t.title}
-                      </Link>
-                      <div className={styles.lane} style={gridBg}>
-                        <TodayLine offset={todayOffset} dayWidth={dayWidth} days={days} />
-                        <Bar task={t} windowStart={windowStart} dayWidth={dayWidth} />
+                  g.tasks.map((t) => {
+                    const subtasks = t.subtasks ?? []
+                    const isOpen = unfolded.has(t.id)
+                    return (
+                      <div key={t.id} role="group" aria-label={t.title}>
+                        <div className={styles.row}>
+                          <div className={`${styles.label} ${styles.taskLabel}`}>
+                            {subtasks.length > 0 ? (
+                              <button
+                                type="button"
+                                className={styles.fold}
+                                aria-expanded={isOpen}
+                                aria-label={`${isOpen ? 'Ocultar' : 'Ver'} las ${subtasks.length} subtareas de "${t.title}"`}
+                                onClick={() => toggle(t.id)}
+                              >
+                                <span className={isOpen ? styles.chev : `${styles.chev} ${styles.chevClosed}`}>
+                                  <Icon name="chevronDown" size={14} />
+                                </span>
+                                <span className={styles.foldCount}>{subtasks.length}</span>
+                              </button>
+                            ) : (
+                              <span className={styles.foldSpacer} aria-hidden="true" />
+                            )}
+                            <Link to={`/tareas/${t.id}`} className={`${styles.taskName} ${t.completed ? styles.done : ''}`}>
+                              {t.title}
+                            </Link>
+                          </div>
+                          <div className={styles.lane} style={gridBg}>
+                            <TodayLine offset={todayOffset} dayWidth={dayWidth} days={days} />
+                            <Bar task={t} color={g.color} windowStart={windowStart} dayWidth={dayWidth} />
+                          </div>
+                        </div>
+                        {isOpen &&
+                          subtasks.map((st) => (
+                            <div key={st.id} className={`${styles.row} ${styles.subRow}`}>
+                              <div className={`${styles.label} ${styles.subLabel}`}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M6 4v9a3 3 0 0 0 3 3h10M15 12l4 4-4 4" />
+                                </svg>
+                                <Link to={`/tareas/${st.id}`} className={`${styles.taskName} ${st.completed ? styles.done : ''}`}>
+                                  {st.title}
+                                </Link>
+                              </div>
+                              <div className={styles.lane} style={gridBg}>
+                                <TodayLine offset={todayOffset} dayWidth={dayWidth} days={days} />
+                                {taskSpan(st) ? (
+                                  <Bar task={st} color={g.color} windowStart={windowStart} dayWidth={dayWidth} />
+                                ) : (
+                                  <span className={styles.noDates}>Sin fechas</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
               </div>
             )
           })}
@@ -223,6 +290,9 @@ export function TimelinePage() {
         </span>
         <span>
           <span className={styles.legendToday} /> Hoy
+        </span>
+        <span>
+          <span className={styles.legendSummary} /> Tarea con subtareas: va de la primera a la última subtarea
         </span>
         <span>Arrastra una barra para moverla o sus bordes para cambiar las fechas. Las tareas sin fechas no aparecen aquí.</span>
         <span id="timeline-keys">
@@ -244,23 +314,35 @@ interface DragState {
   delta: number
 }
 
-/** A task bar (or a diamond when it only has a due date) that can be dragged and resized. */
-function Bar({ task, windowStart, dayWidth }: { task: Task; windowStart: Date; dayWidth: number }) {
+interface BarProps {
+  task: Task
+  /** Project color (subtasks inside a parent don't carry their project). */
+  color: ProjectColor
+  windowStart: Date
+  dayWidth: number
+}
+
+/**
+ * A task bar (or a diamond when it only has a due date) that can be dragged and
+ * resized. A task with dated subtasks gets a summary bar that follows them.
+ */
+function Bar({ task, color, windowStart, dayWidth }: BarProps) {
   const navigate = useNavigate()
   const updateTask = useUpdateTask()
   const [drag, setDrag] = useState<DragState | null>(null)
   const moved = useRef(false)
+  const pressX = useRef(0)
   const span = taskSpan(task)
   if (!span) return null
 
-  const isMarker = !task.start_at
+  const summary = datesFromSubtasks(task)
+  const isMarker = !task.start_at && !summary
   const startOffset = daysBetween(windowStart, span.start)
   const length = daysBetween(span.start, span.end) + 1
   const d = drag?.delta ?? 0
   const shownStart = startOffset + (drag?.mode === 'move' || drag?.mode === 'start' ? d : 0)
   const shownLength = length + (drag?.mode === 'end' ? d : drag?.mode === 'start' ? -d : 0)
   const pct = taskProgress(task)
-  const color = task.project?.color ?? 'slate'
 
   function save(mode: DragMode, delta: number) {
     const input = datesAfterDrag(task, mode, delta)
@@ -269,13 +351,16 @@ function Bar({ task, windowStart, dayWidth }: { task: Task; windowStart: Date; d
 
   function onPointerDown(e: PointerEvent<HTMLButtonElement>) {
     if (e.button !== 0) return
+    moved.current = false
+    pressX.current = e.clientX
+    if (summary) return
     const handle = (e.target as HTMLElement).dataset.handle as DragMode | undefined
     e.currentTarget.setPointerCapture(e.pointerId)
-    moved.current = false
     setDrag({ mode: handle ?? 'move', x0: e.clientX, delta: 0 })
   }
 
   function onPointerMove(e: PointerEvent<HTMLButtonElement>) {
+    if (summary && e.buttons === 1 && Math.abs(e.clientX - pressX.current) > 4) moved.current = true
     if (!drag) return
     const delta = Math.round((e.clientX - drag.x0) / dayWidth)
     if (Math.abs(e.clientX - drag.x0) > 4) moved.current = true
@@ -289,25 +374,27 @@ function Bar({ task, windowStart, dayWidth }: { task: Task; windowStart: Date; d
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    if (summary || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
     e.preventDefault()
     save(e.shiftKey ? 'end' : e.altKey ? 'start' : 'move', e.key === 'ArrowLeft' ? -1 : 1)
   }
 
-  const label = `${task.title}: ${task.start_at ? `del ${longDay.format(span.start)} al ` : 'vence el '}${longDay.format(span.end)}, ${pct}% de avance`
+  const label = `${task.parent_id ? 'Subtarea ' : ''}${task.title}: ${task.start_at ? `del ${longDay.format(span.start)} al ` : 'vence el '}${longDay.format(span.end)}, ${pct}% de avance${summary ? '. Sus fechas siguen a sus subtareas' : ''}`
   const width = Math.max(shownLength, 1) * dayWidth
 
   return (
     <button
       type="button"
-      className={`${isMarker ? styles.marker : styles.bar} ${drag ? styles.barDragging : ''} ${task.completed ? styles.barDone : ''}`}
+      className={[isMarker ? styles.marker : styles.bar, summary && styles.barSummary, drag && styles.barDragging, task.completed && styles.barDone]
+        .filter(Boolean)
+        .join(' ')}
       style={
         isMarker
           ? { left: shownStart * dayWidth + dayWidth / 2 - 11, borderColor: dotColor(color) }
           : { left: shownStart * dayWidth + 2, width: width - 4, ...chipStyle(color) }
       }
       aria-label={label}
-      aria-describedby="timeline-keys"
+      aria-describedby={summary ? undefined : 'timeline-keys'}
       title={label}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -321,9 +408,9 @@ function Bar({ task, windowStart, dayWidth }: { task: Task; windowStart: Date; d
       {!isMarker && (
         <>
           <span className={styles.fill} style={{ width: `${pct}%`, background: dotColor(color) }} aria-hidden="true" />
-          <span data-handle="start" className={`${styles.handle} ${styles.handleStart}`} aria-hidden="true" />
+          {!summary && <span data-handle="start" className={`${styles.handle} ${styles.handleStart}`} aria-hidden="true" />}
           {width >= 70 && <span className={styles.barText}>{pct}%</span>}
-          <span data-handle="end" className={`${styles.handle} ${styles.handleEnd}`} aria-hidden="true" />
+          {!summary && <span data-handle="end" className={`${styles.handle} ${styles.handleEnd}`} aria-hidden="true" />}
         </>
       )}
     </button>

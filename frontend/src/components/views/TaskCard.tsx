@@ -53,6 +53,17 @@ export function TaskCard({ task, next, dragging }: TaskCardProps) {
           </button>
         )}
       </div>
+      {task.parent && (
+        <span className={styles.parentTag} title={`Subtarea de "${task.parent.title}"`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M6 4v9a3 3 0 0 0 3 3h10M15 12l4 4-4 4" />
+          </svg>
+          <span className={styles.parentTagText}>
+            <span className="visually-hidden">Subtarea de </span>
+            {task.parent.title}
+          </span>
+        </span>
+      )}
       <Link to={`/tareas/${task.id}`} className={styles.cardTitle} draggable={false}>
         {task.title}
       </Link>

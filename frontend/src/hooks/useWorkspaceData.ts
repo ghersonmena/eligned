@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus } from '../api/types'
 import { workspaceApi } from '../api/workspace'
+import { spanFromSubtasks } from '../lib/timeline'
 import { useMe } from './useAuth'
 
 /**
@@ -89,10 +90,14 @@ export function useUpdateTask() {
     onMutate: async ({ id, input }) => {
       await client.cancelQueries({ queryKey: keys.all(ws) })
       const snapshot = client.getQueriesData({ queryKey: keys.all(ws) })
-      // Patches the task wherever it appears, including as a subtask inside a list or detail.
+      // Patches the task wherever it appears, including as a subtask inside a list
+      // or detail; a parent whose subtask changed follows its new span.
       const patch = (task: Task): Task => {
         const self = task.id === id ? { ...task, ...pickPatchable(input) } : task
-        return self.subtasks ? { ...self, subtasks: self.subtasks.map(patch) } : self
+        if (!self.subtasks) return self
+        const subtasks = self.subtasks.map(patch)
+        const span = self.subtasks.some((st) => st.id === id) ? spanFromSubtasks(subtasks) : null
+        return { ...self, subtasks, ...(span ?? {}) }
       }
 
       client.setQueriesData<unknown>({ queryKey: keys.all(ws) }, (data: unknown) => {
@@ -149,7 +154,7 @@ export function moveInList(tasks: Task[], id: number, status: TaskStatus, index:
   }
   const column = tasks.filter((t) => t.status_id === status.id && t.id !== id)
   column.splice(Math.min(index, column.length), 0, updated)
-  const renumbered = column.map((t, position) => ({ ...t, position }))
+  const renumbered = column.map((t, board_position) => ({ ...t, board_position }))
   const others = tasks.filter((t) => t.status_id !== status.id && t.id !== id)
   return [...others, ...renumbered]
 }

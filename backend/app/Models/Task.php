@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'workspace_id', 'project_id', 'parent_id', 'status_id', 'title', 'description',
-    'priority', 'start_at', 'due_at', 'position', 'completed_at', 'created_by',
+    'priority', 'start_at', 'due_at', 'position', 'board_position', 'completed_at', 'created_by',
 ])]
 class Task extends Model
 {
@@ -34,6 +34,7 @@ class Task extends Model
     {
         return [
             'priority' => 'integer',
+            'board_position' => 'integer',
             'start_at' => 'datetime',
             'due_at' => 'datetime',
             'completed_at' => 'datetime',
@@ -139,6 +140,36 @@ class Task extends Model
         if ($allDone !== $parent->isCompleted()) {
             $parent->setCompleted($allDone);
             $parent->save();
+        }
+    }
+
+    /** After a subtask's dates change (or it is added/removed), its parent's span follows. */
+    public function syncParentDates(): void
+    {
+        if ($this->parent_id) {
+            Task::find($this->parent_id)?->syncDatesFromSubtasks();
+        }
+    }
+
+    /**
+     * A task with dated subtasks spans them: it starts on the earliest subtask
+     * date and is due on the latest one. Without dated subtasks its own dates
+     * are kept as they are.
+     */
+    public function syncDatesFromSubtasks(): void
+    {
+        $subtasks = $this->subtasks()->get(['id', 'start_at', 'due_at']);
+        $starts = $subtasks->map(fn (Task $s) => $s->start_at ?? $s->due_at)->filter()->sortBy(fn ($d) => $d->getTimestamp());
+        $ends = $subtasks->map(fn (Task $s) => $s->due_at ?? $s->start_at)->filter()->sortBy(fn ($d) => $d->getTimestamp());
+
+        if ($starts->isEmpty()) {
+            return;
+        }
+
+        $this->start_at = $starts->first();
+        $this->due_at = $ends->last();
+        if ($this->isDirty(['start_at', 'due_at'])) {
+            $this->save();
         }
     }
 

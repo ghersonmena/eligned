@@ -6,6 +6,7 @@ import { useUpdateTask } from '../../hooks/useWorkspaceData'
 import { celebrate } from '../../lib/celebrate'
 import { chipStyle, priorityInfo } from '../../lib/colors'
 import { dueGroup, formatDue } from '../../lib/dates'
+import { closesWithSubtasks } from '../../lib/timeline'
 import { initials } from '../../lib/initials'
 import { Icon } from '../Icon'
 import styles from './tasks.module.css'
@@ -14,6 +15,15 @@ import styles from './tasks.module.css'
 export function CompleteCheckbox({ task, className }: { task: Task; className?: string }) {
   const { data: user } = useMe()
   const updateTask = useUpdateTask()
+
+  if (closesWithSubtasks(task)) {
+    const total = task.subtasks_count ?? task.subtasks?.length ?? 0
+    const done = task.subtasks_done_count ?? task.subtasks?.filter((st) => st.completed).length ?? 0
+    const why = `"${task.title}" se completa al cerrar sus subtareas (${done} de ${total} cerradas)`
+    return (
+      <input type="checkbox" className={className ?? styles.check} checked={task.completed} disabled aria-label={why} title={why} readOnly />
+    )
+  }
 
   return (
     <input

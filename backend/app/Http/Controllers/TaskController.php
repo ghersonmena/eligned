@@ -23,7 +23,8 @@ class TaskController extends Controller
     private const LIST_LIMIT = 500;
 
     /**
-     * Top-level tasks of a workspace.
+     * Top-level tasks of a workspace (with with_subtasks=1, subtasks too, each
+     * one with its parent's id and title).
      *
      * Filters: project_id, status=open|completed|all (default open), assignee=me,
      * done_since (with status=all: hides tasks completed before that date),
@@ -37,6 +38,7 @@ class TaskController extends Controller
         $request->validate([
             'status' => ['sometimes', 'in:open,completed,all'],
             'sort' => ['sometimes', 'in:due,position'],
+            'with_subtasks' => ['sometimes', 'boolean'],
             'done_since' => ['sometimes', 'date'],
             'from' => ['sometimes', 'required_with:to', 'date'],
             'to' => ['sometimes', 'required_with:from', 'date', 'after_or_equal:from'],
@@ -44,9 +46,10 @@ class TaskController extends Controller
 
         $status = $request->query('status', 'open');
         $byPosition = $request->query('sort') === 'position';
+        $withSubtasks = $request->boolean('with_subtasks');
 
         $tasks = $workspace->tasks()
-            ->whereNull('parent_id')
+            ->when(! $withSubtasks, fn (Builder $q) => $q->whereNull('parent_id'))
             ->when($request->filled('project_id'), fn (Builder $q) => $q->where('project_id', $request->integer('project_id')))
             ->when($status === 'open', fn (Builder $q) => $q->whereNull('completed_at'))
             ->when($status === 'completed', fn (Builder $q) => $q->whereNotNull('completed_at'))
@@ -62,10 +65,11 @@ class TaskController extends Controller
                 ->whereRaw('coalesce(due_at, start_at) >= ?', [$request->date('from')]))
             // Subtasks come along so lists can expand them in place.
             ->with(['project', 'assignees', 'subtasks'])
+            ->when($withSubtasks, fn (Builder $q) => $q->with('parent:id,title'))
             ->withCount($this->counts())
             ->when(
                 $byPosition,
-                fn (Builder $q) => $q->orderBy('position')->orderBy('id'),
+                fn (Builder $q) => $q->orderBy('board_position')->orderBy('id'),
                 fn (Builder $q) => $q->when(
                     $status === 'completed',
                     fn (Builder $q) => $q->latest('completed_at'),
@@ -126,6 +130,13 @@ class TaskController extends Controller
             }
 
             $completionChanged = $task->isDirty('completed_at');
+            // A task with subtasks is completed (or reopened) only through them.
+            abort_if(
+                $completionChanged && $task->subtasks()->exists(),
+                422,
+                'Esta tarea se completa al cerrar todas sus subtareas.',
+            );
+            $datesChanged = $task->isDirty(['start_at', 'due_at']);
             $task->save();
 
             if (array_key_exists('assignee_ids', $data)) {
@@ -135,21 +146,25 @@ class TaskController extends Controller
             if ($completionChanged) {
                 $task->syncParentCompletion();
             }
+            if ($datesChanged) {
+                // A subtask moves its parent's span; a parent with dated subtasks keeps theirs.
+                $task->parent_id ? $task->syncParentDates() : $task->syncDatesFromSubtasks();
+            }
         });
 
         return new TaskResource($this->loadDetail($task->refresh()));
     }
 
-    /** Kanban: drop a card in a column at a given place. */
+    /** Kanban: drop a card (task or subtask) in a column at a given place. */
     public function move(MoveTaskRequest $request, Task $task, MoveTask $moveTask): TaskResource
     {
         Gate::authorize('update', $task);
-        abort_if($task->parent_id !== null, 422, 'Las subtareas se ordenan dentro de su tarea.');
+        abort_if($task->subtasks()->exists(), 422, 'Una tarea con subtareas avanza con sus subtareas.');
 
         $status = $task->workspace->statuses->firstWhere('id', $request->integer('status_id'));
         $moveTask->handle($task, $status, $request->integer('position'));
 
-        return new TaskResource($task->refresh()->load(['project', 'assignees', 'subtasks'])->loadCount($this->counts()));
+        return new TaskResource($task->refresh()->load(['project', 'assignees', 'subtasks', 'parent:id,title'])->loadCount($this->counts()));
     }
 
     public function destroy(Task $task): Response
@@ -158,8 +173,9 @@ class TaskController extends Controller
 
         DB::transaction(function () use ($task) {
             $task->delete();
-            // Deleting the last open subtask can complete the parent.
+            // Deleting the last open subtask can complete the parent, and its span may shrink.
             $task->syncParentCompletion();
+            $task->syncParentDates();
         });
 
         return response()->noContent();

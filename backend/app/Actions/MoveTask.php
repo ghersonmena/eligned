@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\DB;
 class MoveTask
 {
     /**
-     * Puts a top-level task in a Kanban column at the given index (0 = top) and
-     * renumbers that column so positions stay consecutive.
+     * Puts a task (or subtask: they are cards too) in a Kanban column at the
+     * given index (0 = top) and renumbers that column so positions stay
+     * consecutive. Uses board_position, so the subtask order inside its parent
+     * (position) is untouched.
      */
     public function handle(Task $task, TaskStatus $status, int $index): Task
     {
@@ -20,10 +22,9 @@ class MoveTask
 
             $siblings = Task::query()
                 ->where('workspace_id', $task->workspace_id)
-                ->whereNull('parent_id')
                 ->where('status_id', $status->id)
                 ->whereKeyNot($task->id)
-                ->orderBy('position')
+                ->orderBy('board_position')
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->pluck('id')
@@ -31,12 +32,12 @@ class MoveTask
 
             array_splice($siblings, min($index, count($siblings)), 0, [$task->id]);
 
-            $task->position = array_search($task->id, $siblings, true);
+            $task->board_position = array_search($task->id, $siblings, true);
             $task->save();
 
             foreach ($siblings as $position => $id) {
                 if ($id !== $task->id) {
-                    Task::whereKey($id)->where('position', '!=', $position)->update(['position' => $position]);
+                    Task::whereKey($id)->where('board_position', '!=', $position)->update(['board_position' => $position]);
                 }
             }
 

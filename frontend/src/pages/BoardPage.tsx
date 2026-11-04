@@ -44,10 +44,12 @@ export function BoardPage() {
   const [filters, setFilters] = useState<ViewFilterValues>(NO_FILTERS)
   const [doneSince] = useState(() => addDays(startOfDay(new Date()), -DONE_DAYS).toISOString())
   const { data: statuses = [] } = useStatuses()
-  const board = useTasks({ ...toTaskFilters(filters), status: 'all', sort: 'position', done_since: doneSince })
+  const board = useTasks({ ...toTaskFilters(filters), status: 'all', sort: 'position', done_since: doneSince, with_subtasks: 1 })
   const moveTask = useMoveTask()
 
-  const tasks = useMemo(() => board.data ?? [], [board.data])
+  // A task with subtasks isn't a card of its own: its subtasks are, and it is
+  // completed when the last one is (so it can't be marked done on its own here).
+  const tasks = useMemo(() => (board.data ?? []).filter((t) => t.parent_id || !t.subtasks?.length), [board.data])
   const byId = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks])
   const serverColumns = useMemo(() => {
     const cols: Columns = Object.fromEntries(statuses.map((s) => [s.id, [] as number[]]))
@@ -246,7 +248,7 @@ function SortableCard({ task, next }: { task: Task; next?: { name: string; onMov
       {...attributes}
       {...listeners}
       aria-roledescription="tarjeta movible"
-      aria-label={task.title}
+      aria-label={task.parent ? `${task.title}, subtarea de ${task.parent.title}` : task.title}
     >
       <TaskCard task={task} next={next} />
     </div>

@@ -49,7 +49,12 @@ export interface Task {
   due_at: string | null
   completed: boolean
   completed_at: string | null
+  /** Order inside the parent task (subtasks) or in lists. */
   position: number
+  /** Order inside its Kanban column. */
+  board_position?: number
+  /** Only in lists asked for with_subtasks: the subtask's parent. */
+  parent?: { id: number; title: string } | null
   project?: { id: number; name: string; color: ProjectColor } | null
   assignees?: Member[]
   subtasks_count?: number
@@ -80,6 +85,8 @@ export interface TaskFilters {
   sort?: 'due' | 'position'
   /** With status=all: leaves out tasks completed before this date. */
   done_since?: string
+  /** 1: subtasks come as rows of their own too (board, calendar). */
+  with_subtasks?: 1
   /** Date range (ISO): tasks whose start..due span touches it. */
   from?: string
   to?: string

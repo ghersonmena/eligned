@@ -15,6 +15,10 @@ interface TaskFormProps {
   errorMessage?: string
   /** Subtasks inherit the parent's project, so the field is hidden. */
   showProject?: boolean
+  /** The dates come from the subtasks: shown, but not editable here. */
+  datesLocked?: boolean
+  /** Completed only through its subtasks: can't be moved into/out of a "done" status here. */
+  completionLocked?: boolean
   onSubmit: (values: TaskFormValues) => Promise<unknown>
   onCancel?: () => void
 }
@@ -23,7 +27,17 @@ interface TaskFormProps {
  * Full task form with an explicit "Guardar" button. Warns before leaving the
  * page with unsaved changes.
  */
-export function TaskForm({ initial, submitLabel, pending, errorMessage, showProject = true, onSubmit, onCancel }: TaskFormProps) {
+export function TaskForm({
+  initial,
+  submitLabel,
+  pending,
+  errorMessage,
+  showProject = true,
+  datesLocked = false,
+  completionLocked = false,
+  onSubmit,
+  onCancel,
+}: TaskFormProps) {
   const { data: statuses = [] } = useStatuses()
   const { data: projects = [] } = useProjects()
   const { data: members = [] } = useMembers()
@@ -33,6 +47,7 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
   const leavingAfterSave = useRef(false)
 
   const dirty = JSON.stringify(values) !== JSON.stringify(baseline)
+  const initialDone = statuses.find((s) => String(s.id) === initial.statusId)?.is_done ?? false
 
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
@@ -100,14 +115,23 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
       <div className={styles.grid}>
         <label className={styles.field}>
           Estado
-          <select value={values.statusId} onChange={(e) => set('statusId', e.target.value)}>
+          <select
+            value={values.statusId}
+            aria-describedby={completionLocked ? 'status-locked' : undefined}
+            onChange={(e) => set('statusId', e.target.value)}
+          >
             {!values.statusId && <option value="">Por hacer</option>}
             {statuses.map((s) => (
-              <option key={s.id} value={s.id}>
+              <option key={s.id} value={s.id} disabled={completionLocked && s.is_done !== initialDone}>
                 {s.name}
               </option>
             ))}
           </select>
+          {completionLocked && (
+            <span id="status-locked" className={styles.hint}>
+              Se completa al cerrar todas sus subtareas.
+            </span>
+          )}
         </label>
         <label className={styles.field}>
           Prioridad
@@ -141,6 +165,8 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
             type="date"
             className={styles.dateInput}
             aria-label="Día"
+            disabled={datesLocked}
+            aria-describedby={datesLocked ? 'dates-locked' : undefined}
             value={values.dueDate}
             onChange={(e) => setValues((v) => ({ ...v, dueDate: e.target.value, dueTime: e.target.value ? v.dueTime : '' }))}
           />
@@ -149,10 +175,10 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
             className={styles.timeInput}
             aria-label="Hora (opcional)"
             value={values.dueTime}
-            disabled={!values.dueDate}
+            disabled={!values.dueDate || datesLocked}
             onChange={(e) => set('dueTime', e.target.value)}
           />
-          {values.dueDate && (
+          {values.dueDate && !datesLocked && (
             <button
               type="button"
               className={styles.clear}
@@ -163,7 +189,14 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
             </button>
           )}
         </div>
-        <span className={styles.hint}>La hora es opcional: sin hora, la tarea vence al final del día.</span>
+        {datesLocked ? (
+          <span id="dates-locked" className={styles.hint}>
+            Las fechas se calculan con las subtareas: empieza con la primera y termina con la última. Cambia las fechas de
+            las subtareas para moverla.
+          </span>
+        ) : (
+          <span className={styles.hint}>La hora es opcional: sin hora, la tarea vence al final del día.</span>
+        )}
       </div>
 
       <div className={styles.field}>
@@ -174,19 +207,20 @@ export function TaskForm({ initial, submitLabel, pending, errorMessage, showProj
             type="date"
             className={styles.dateInput}
             value={values.startDate}
+            disabled={datesLocked}
             max={values.dueDate || undefined}
             aria-invalid={startAfterDue(values) ? true : undefined}
-            aria-describedby="start-hint"
+            aria-describedby={datesLocked ? 'dates-locked' : 'start-hint'}
             onChange={(e) => set('startDate', e.target.value)}
           />
-          {values.startDate && (
+          {values.startDate && !datesLocked && (
             <button type="button" className={styles.clear} onClick={() => set('startDate', '')}>
               <Icon name="close" size={16} />
               Quitar inicio
             </button>
           )}
         </div>
-        {startAfterDue(values) ? (
+        {datesLocked ? null : startAfterDue(values) ? (
           <span id="start-hint" className={styles.error}>
             El inicio no puede ser después de la fecha límite.
           </span>

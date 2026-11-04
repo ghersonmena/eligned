@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Task } from '../api/types'
 import { dayKey } from './dates'
-import { datesAfterDrag, taskProgress, taskSpan } from './timeline'
+import { datesAfterDrag, projectSpans, spanFromSubtasks, taskProgress, taskSpan } from './timeline'
 
 const local = (y: number, m: number, d: number, h = 0, min = 0) => new Date(y, m - 1, d, h, min).toISOString()
 
@@ -58,5 +58,40 @@ describe('taskProgress', () => {
     expect(taskProgress(task({ completed: true }))).toBe(100)
     expect(taskProgress(task({ subtasks_count: 4, subtasks_done_count: 1 }))).toBe(25)
     expect(taskProgress(task({}))).toBe(0)
+  })
+})
+
+describe('parent dates from subtasks', () => {
+  it('goes from the earliest subtask date to the latest one', () => {
+    expect(
+      spanFromSubtasks([
+        { start_at: '2026-11-10T06:00:00Z', due_at: '2026-11-12T05:59:00Z' },
+        { start_at: null, due_at: '2026-11-20T05:59:00Z' },
+        { start_at: '2026-11-08T06:00:00Z', due_at: null },
+        { start_at: null, due_at: null },
+      ]),
+    ).toEqual({ start_at: '2026-11-08T06:00:00Z', due_at: '2026-11-20T05:59:00Z' })
+  })
+
+  it('is null when no subtask has dates', () => {
+    expect(spanFromSubtasks([{ start_at: null, due_at: null }])).toBeNull()
+    expect(spanFromSubtasks([])).toBeNull()
+  })
+})
+
+describe('projectSpans', () => {
+  const project = (id: number, name: string) => ({ id, name, color: 'blue' as const })
+
+  it('joins every task of a project into one span, subtasks included', () => {
+    const spans = projectSpans([
+      task({ project: project(1, 'Casa'), start_at: local(2026, 11, 3), due_at: local(2026, 11, 5) }),
+      task({ project: project(1, 'Casa'), parent_id: 9, due_at: local(2026, 11, 12) }),
+      task({ project: project(2, 'Auto'), due_at: local(2026, 11, 1) }),
+      task({ project: null, due_at: local(2026, 11, 1) }),
+    ])
+    expect(spans.map((s) => [s.name, s.start.getDate(), s.end.getDate()])).toEqual([
+      ['Auto', 1, 1],
+      ['Casa', 3, 12],
+    ])
   })
 })

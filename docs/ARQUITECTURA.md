@@ -91,16 +91,17 @@ user_preferences        (tema claro/oscuro/sistema, confeti on/off, diseño del 
 external_links          (vínculos con sistemas externos; p. ej. ticket GLPI ↔ tarea)
 ```
 
-Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3), `due_at`, `start_at` (para Gantt), `estimate_minutes`, `position` (orden en Kanban), `completed_at`, `parent_id`, `project_id`, `created_by`.
+Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3), `due_at`, `start_at` (para Gantt), `estimate_minutes`, `position` (orden en listas y de las subtareas dentro de su tarea), `board_position` (orden en su columna del Kanban), `completed_at`, `parent_id`, `project_id`, `created_by`.
 
 ## 6. API
 
 - REST JSON bajo `/api/v1`, documentada automáticamente (OpenAPI).
 - Recursos: `workspaces`, `projects`, `tasks`, `tasks/{id}/subtasks`, `comments`, `time-entries`, `reminders`, `goals`, `key-results`, `members`, `invitations`, `notifications`, `preferences`, `push-subscriptions`.
 - Vistas (fase 2):
-  - `GET workspaces/{id}/tasks` acepta `sort=position` (orden del Kanban), `done_since` (oculta las completadas antes de esa fecha) y `from` + `to` (tareas cuyo intervalo inicio–fecha límite toca ese rango; para calendario y cronograma).
-  - `POST tasks/{id}/move` con `status_id` y `position` (índice en la columna): mueve la tarjeta y renumera la columna. Soltarla en una columna "hecho" la completa.
+  - `GET workspaces/{id}/tasks` acepta `with_subtasks=1` (las subtareas vienen también como filas propias, con `parent: {id, title}`; lo usan tablero y calendario), `sort=position` (orden del Kanban, por `board_position`), `done_since` (oculta las completadas antes de esa fecha) y `from` + `to` (tareas cuyo intervalo inicio–fecha límite toca ese rango; para calendario y cronograma).
+  - `POST tasks/{id}/move` con `status_id` y `position` (índice en la columna): mueve la tarjeta (tarea sin subtareas o subtarea; una tarea con subtareas no es tarjeta y devuelve 422) y renumera `board_position` de la columna sin tocar el orden de las subtareas dentro de su tarea. Soltarla en una columna "hecho" la completa; si era la última subtarea abierta, también se completa la tarea principal.
   - Regla: `start_at` no puede ser posterior a `due_at`. Las fechas de inicio son de día completo (00:00 local); las fechas límite sin hora, 23:59 local.
+  - Regla: una tarea con subtareas fechadas toma sus fechas de ellas: inicio = la fecha más temprana de sus subtareas, límite = la más tardía. Se recalcula al crear, editar o borrar una subtarea; si se editan las fechas de la tarea principal, se vuelven a calcular. Sin subtareas fechadas, la tarea conserva sus propias fechas.
 - Permisos con **Policies** de Laravel por espacio de trabajo y rol.
 - Eventos en tiempo real por canal privado del espacio: `task.updated`, `comment.created`, `notification.created`.
 

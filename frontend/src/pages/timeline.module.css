@@ -84,18 +84,87 @@
 }
 
 .taskLabel {
-  padding-left: 50px;
-  font-weight: 500;
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-  line-height: 46px;
+  padding-left: 16px;
+  gap: 4px;
 }
 
-.taskLabel:hover {
+.subLabel {
+  padding-left: 62px;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.subRow {
+  min-height: 40px;
+  background: var(--row);
+}
+
+.subRow .label {
+  background: var(--row);
+}
+
+.subRow .bar {
+  top: 7px;
+  height: 26px;
+}
+
+.subRow .marker {
+  top: 10px;
+}
+
+.fold {
+  min-width: 44px;
+  height: 36px;
+  padding: 0 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.fold:hover {
+  background: var(--soft);
+}
+
+.foldCount {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.foldSpacer {
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.taskName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskName:hover {
   text-decoration: underline;
+}
+
+.noDates {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .done {
@@ -199,6 +268,12 @@
   z-index: 3;
   cursor: grabbing;
   box-shadow: 0 8px 20px rgb(40 20 10 / 20%);
+}
+
+/* Follows its subtasks: not draggable, drawn as a bracket. */
+.barSummary {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px currentColor;
 }
 
 .barDone {
@@ -311,6 +386,13 @@
   transform: rotate(45deg);
 }
 
+.legendSummary {
+  width: 18px;
+  height: 10px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--muted);
+}
+
 .legendToday {
   width: 2px;
   height: 12px;
@@ -324,7 +406,11 @@
   }
 
   .taskLabel {
-    padding-left: 12px;
+    padding-left: 4px;
+  }
+
+  .subLabel {
+    padding-left: 20px;
   }
 
   .groupLabel .pct {
