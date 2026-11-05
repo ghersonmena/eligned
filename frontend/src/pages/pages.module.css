@@ -409,3 +409,24 @@
 .headerRow .buttonLink {
   padding: 0 18px;
 }
+
+.settingSelect {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--row);
+  color: var(--text);
+  font: inherit;
+}
+
+.settingInline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settingNote {
+  font-size: 13px;
+}

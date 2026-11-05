@@ -1,8 +1,14 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
+use App\Actions\SendTaskAlerts;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Artisan::command('alerts:send', function (SendTaskAlerts $alerts) {
+    $sent = $alerts->handle();
+    if ($sent) {
+        $this->info("{$sent} avisos enviados.");
+    }
+})->purpose('Envía recordatorios y avisos de tareas por vencer');
+
+Schedule::command('alerts:send')->everyMinute()->withoutOverlapping();

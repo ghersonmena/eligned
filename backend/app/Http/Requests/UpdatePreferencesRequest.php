@@ -18,6 +18,11 @@ class UpdatePreferencesRequest extends FormRequest
         return [
             'theme' => ['sometimes', Rule::enum(Theme::class)],
             'confetti' => ['sometimes', 'boolean'],
+            'timezone' => ['sometimes', 'timezone:all'],
+            'due_notice_minutes' => ['sometimes', 'nullable', 'integer', 'in:5,15,30,60,120,1440'],
+            'all_day_notice' => ['sometimes', 'boolean'],
+            'all_day_notice_time' => ['sometimes', 'date_format:H:i'],
+            'popups' => ['sometimes', 'boolean'],
         ];
     }
 }

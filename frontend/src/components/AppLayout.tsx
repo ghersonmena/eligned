@@ -6,6 +6,8 @@ import { useThemeStore } from '../theme/theme'
 import { Icon } from './Icon'
 import { Logo } from './Logo'
 import { SavingIndicator } from './SavingIndicator'
+import { useUpdatePreferences } from '../hooks/useAuth'
+import { NotificationBell } from './notifications/NotificationBell'
 import { TimerPill } from './time/TimerPill'
 import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
@@ -25,6 +27,15 @@ export function AppLayout({ user }: { user: User }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [todayLabel] = useState(() => today.format(new Date()))
+
+  // Alerts are computed on the server in the person's timezone: keep it in sync with this device.
+  const updatePreferences = useUpdatePreferences()
+  const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const savedZone = user.preferences.timezone
+  const { mutate: savePreferences } = updatePreferences
+  useEffect(() => {
+    if (deviceZone && savedZone !== deviceZone) savePreferences({ timezone: deviceZone })
+  }, [deviceZone, savedZone, savePreferences])
 
   // The server copy of the theme wins when it differs (e.g. changed on another device).
   useEffect(() => {
@@ -66,6 +77,7 @@ export function AppLayout({ user }: { user: User }) {
           <span className={styles.spacer} />
           <TimerPill />
           <SavingIndicator />
+          <NotificationBell />
           <ThemeToggle />
           <span className={styles.divider} />
           <UserMenu user={user} />

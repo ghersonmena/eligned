@@ -124,3 +124,21 @@ export interface TimeEntry {
   task?: { id: number; title: string; project: { name: string; color: ProjectColor } | null }
   can_delete: boolean
 }
+
+export interface AppNotification {
+  id: string
+  kind: 'reminder' | 'due_soon' | 'assigned' | 'commented'
+  task_id: number
+  title: string
+  body: string
+  read_at: string | null
+  created_at: string
+}
+
+export interface Reminder {
+  id: number
+  remind_at: string
+  /** Minutes before the due date (follows it), or null for a fixed moment. */
+  offset_minutes: number | null
+  sent: boolean
+}

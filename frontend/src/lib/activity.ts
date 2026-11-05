@@ -81,3 +81,16 @@ export function describeActivity(a: Activity): string[] {
 export function isAutomatic(a: Activity): boolean {
   return a.changes?.reason === 'subtasks' || !a.user
 }
+
+const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' })
+
+/** "hace 5 minutos", "ayer"… */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const minutes = Math.round((new Date(iso).getTime() - now) / 60_000)
+  if (Math.abs(minutes) < 1) return 'ahora'
+  if (Math.abs(minutes) < 60) return rtf.format(minutes, 'minute')
+  const hours = Math.round(minutes / 60)
+  if (Math.abs(hours) < 24) return rtf.format(hours, 'hour')
+  return rtf.format(Math.round(hours / 24), 'day')
+}
+

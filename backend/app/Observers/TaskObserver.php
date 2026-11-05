@@ -46,6 +46,11 @@ class TaskObserver
             return;
         }
 
+        // "Before the due date" reminders follow it.
+        if ($task->wasChanged('due_at')) {
+            $task->reminders()->whereNotNull('offset_minutes')->get()->each->followDueDate($task->due_at);
+        }
+
         // Finishing a task stops the timers running on it.
         if ($task->wasChanged('completed_at') && $task->completed_at !== null) {
             TimeEntry::running()->where('task_id', $task->id)->get()->each->stop();

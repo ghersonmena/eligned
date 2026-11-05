@@ -10,6 +10,8 @@ import type {
   TaskInput,
   TaskStatus,
   TimeEntry,
+  AppNotification,
+  Reminder,
 } from './types'
 
 interface Wrapped<T> {
@@ -53,6 +55,14 @@ export const workspaceApi = {
     api<Wrapped<Task>>('POST', `/tasks/${taskId}/subtasks`, input).then(unwrap),
 
   taskActivity: (id: number) => api<Wrapped<Activity[]>>('GET', `/tasks/${id}/activity`).then(unwrap),
+
+  notifications: () => api<{ data: AppNotification[]; unread_count: number }>('GET', '/notifications'),
+  readNotification: (id: string) => api<void>('POST', `/notifications/${id}/read`),
+  readAllNotifications: () => api<void>('POST', '/notifications/read-all'),
+  reminders: (taskId: number) => api<Wrapped<Reminder[]>>('GET', `/tasks/${taskId}/reminders`).then(unwrap),
+  addReminder: (taskId: number, input: { remind_at?: string; offset_minutes?: number }) =>
+    api<Wrapped<Reminder>>('POST', `/tasks/${taskId}/reminders`, input).then(unwrap),
+  deleteReminder: (id: number) => api<void>('DELETE', `/reminders/${id}`),
 
   timer: (since: string) =>
     api<{ data: TimeEntry | null; today_minutes: number }>('GET', `/timer?since=${encodeURIComponent(since)}`),

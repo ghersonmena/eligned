@@ -13,6 +13,7 @@ use App\Models\Activity;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Notifications\TaskAlert;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -148,6 +149,7 @@ class TaskController extends Controller
                 if ($synced['attached'] || $synced['detached']) {
                     $names = fn (array $ids) => User::whereKey($ids)->orderBy('name')->pluck('name')->all();
                     Activity::record($task, 'assigned', ['added' => $names($synced['attached']), 'removed' => $names($synced['detached'])]);
+                    TaskAlert::assigned($task, $synced['attached'], $request->user());
                 }
             }
 

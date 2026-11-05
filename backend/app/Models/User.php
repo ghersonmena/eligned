@@ -29,6 +29,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public const DEFAULT_PREFERENCES = [
         'theme' => Theme::System->value,
         'confetti' => true,
+        // IANA zone, set by the app from the browser; used for all-day alerts and texts.
+        'timezone' => 'America/Mexico_City',
+        // "Vence pronto" for tasks with a time: minutes before (null = off).
+        'due_notice_minutes' => 60,
+        // All-day tasks: a heads-up that morning at this local time.
+        'all_day_notice' => true,
+        'all_day_notice_time' => '09:00',
+        // Live popups inside the app.
+        'popups' => true,
     ];
 
     /**

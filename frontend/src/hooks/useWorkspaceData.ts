@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus, TimeEntry } from '../api/types'
+import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus, TimeEntry, AppNotification } from '../api/types'
 import { workspaceApi } from '../api/workspace'
 import { spanFromSubtasks } from '../lib/timeline'
 import { useMe } from './useAuth'
@@ -270,6 +270,55 @@ export function useDeleteTimeEntry() {
   return useMutation({
     mutationFn: (id: number) => workspaceApi.deleteTimeEntry(id),
     onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+/* ---------- Notifications and reminders ---------- */
+
+export const notificationsKey = (ws: number) => ['ws', ws, 'notifications'] as const
+
+export function useNotifications() {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: notificationsKey(ws), queryFn: () => workspaceApi.notifications(), refetchInterval: 60_000 })
+}
+
+export function useReadNotification() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string | 'all') => (id === 'all' ? workspaceApi.readAllNotifications() : workspaceApi.readNotification(id)),
+    onMutate: (id) => {
+      const now = new Date().toISOString()
+      client.setQueryData<{ data: AppNotification[]; unread_count: number }>(notificationsKey(ws), (old) => {
+        if (!old) return old
+        const data = old.data.map((n) => (id === 'all' || n.id === id ? { ...n, read_at: n.read_at ?? now } : n))
+        return { data, unread_count: data.filter((n) => !n.read_at).length }
+      })
+    },
+    onSettled: () => client.invalidateQueries({ queryKey: notificationsKey(ws) }),
+  })
+}
+
+export function useReminders(taskId: number) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: [...keys.task(ws, taskId), 'reminders'], queryFn: () => workspaceApi.reminders(taskId) })
+}
+
+export function useAddReminder(taskId: number) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { remind_at?: string; offset_minutes?: number }) => workspaceApi.addReminder(taskId, input),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.task(ws, taskId) }),
+  })
+}
+
+export function useDeleteReminder(taskId: number) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => workspaceApi.deleteReminder(id),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.task(ws, taskId) }),
   })
 }
 

@@ -4,7 +4,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\MeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\WorkspaceController;
@@ -49,6 +51,14 @@ Route::prefix('v1')->group(function () {
         Route::post('tasks/{task}/subtasks', [TaskController::class, 'storeSubtask']);
         Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
         Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
+
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+        Route::post('notifications/{id}/read', [NotificationController::class, 'read']);
+
+        Route::get('tasks/{task}/reminders', [ReminderController::class, 'index']);
+        Route::post('tasks/{task}/reminders', [ReminderController::class, 'store']);
+        Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy']);
 
         Route::get('timer', [TimeEntryController::class, 'current']);
         Route::post('timer/stop', [TimeEntryController::class, 'stop']);

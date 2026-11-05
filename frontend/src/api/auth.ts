@@ -5,6 +5,15 @@ export type ThemePreference = 'light' | 'dark' | 'system'
 export interface Preferences {
   theme: ThemePreference
   confetti: boolean
+  /** IANA zone of the user's device (kept in sync by the app). */
+  timezone: string
+  /** "Vence pronto" for tasks with a time: minutes before, or null (off). */
+  due_notice_minutes: number | null
+  /** All-day tasks: heads-up that morning at all_day_notice_time (HH:MM). */
+  all_day_notice: boolean
+  all_day_notice_time: string
+  /** Live popups inside the app. */
+  popups: boolean
 }
 
 export interface Workspace {

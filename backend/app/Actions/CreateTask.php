@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Notifications\TaskAlert;
 use Illuminate\Support\Facades\DB;
 
 class CreateTask
@@ -36,6 +37,7 @@ class CreateTask
 
             if (! empty($data['assignee_ids'])) {
                 $task->assignees()->sync($data['assignee_ids']);
+                TaskAlert::assigned($task, $data['assignee_ids'], $author);
             }
 
             // A new open subtask reopens a completed parent, and its dates widen the parent's span.
