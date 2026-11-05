@@ -4,10 +4,36 @@ export type Priority = 1 | 2 | 3
 
 export type ProjectColor = 'orange' | 'blue' | 'teal' | 'violet' | 'pink' | 'green' | 'amber' | 'slate'
 
+export type Role = 'owner' | 'admin' | 'member' | 'guest'
+
 export interface Member {
   id: number
   name: string
-  role?: 'owner' | 'admin' | 'member' | 'guest'
+  email?: string
+  role?: Role
+  joined_at?: string
+}
+
+export interface Invitation {
+  id: number
+  email: string
+  role: Exclude<Role, 'owner'>
+  inviter: { id: number; name: string } | null
+  expires_at: string
+  expired: boolean
+  /** Only right after creating or renewing it. */
+  link: string | null
+  created_at: string
+}
+
+/** What the invitation page shows before signing in. */
+export interface InvitationInfo {
+  workspace: string
+  inviter: string | null
+  email: string
+  role: Exclude<Role, 'owner'>
+  expired: boolean
+  accepted: boolean
 }
 
 export interface TaskStatus {

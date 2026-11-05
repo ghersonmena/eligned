@@ -8,6 +8,7 @@ import { Logo } from './Logo'
 import { SavingIndicator } from './SavingIndicator'
 import { useUpdatePreferences } from '../hooks/useAuth'
 import { useRealtime } from '../hooks/useRealtime'
+import { takePendingInvitation } from '../lib/pendingInvitation'
 import { NotificationBell } from './notifications/NotificationBell'
 import { Toasts } from './notifications/Toasts'
 import { TimerPill } from './time/TimerPill'
@@ -31,6 +32,12 @@ export function AppLayout({ user }: { user: User }) {
   const [todayLabel] = useState(() => today.format(new Date()))
 
   useRealtime(user)
+
+  // Back to an invitation opened before signing in.
+  useEffect(() => {
+    const token = takePendingInvitation()
+    if (token) navigate(`/invitacion/${token}`, { replace: true })
+  }, [navigate])
 
   // Alerts are computed on the server in the person's timezone: keep it in sync with this device.
   const updatePreferences = useUpdatePreferences()

@@ -81,6 +81,14 @@ class Workspace extends Model
         return $this->hasMany(Task::class);
     }
 
+    /**
+     * @return HasMany<WorkspaceInvitation, $this>
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(WorkspaceInvitation::class);
+    }
+
     public function addMember(User $user, WorkspaceRole $role): void
     {
         $this->members()->attach($user, ['role' => $role->value]);

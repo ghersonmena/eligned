@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tansta
 import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus, TimeEntry, AppNotification } from '../api/types'
 import { upperTask, workspaceApi } from '../api/workspace'
 import { spanFromSubtasks } from '../lib/timeline'
+import { currentWorkspace } from '../lib/workspace'
 import { useMe } from './useAuth'
 
 /**
@@ -21,7 +22,7 @@ export const keys = {
 /** The workspace the user is working in. For now, their first (personal) one. */
 export function useWorkspaceId(): number {
   const { data: user } = useMe()
-  const id = user?.workspaces[0]?.id
+  const id = user ? currentWorkspace(user)?.id : undefined
   if (!id) throw new Error('El usuario no tiene espacio de trabajo')
   return id
 }

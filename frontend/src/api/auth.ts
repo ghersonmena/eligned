@@ -14,6 +14,8 @@ export interface Preferences {
   all_day_notice_time: string
   /** Live popups inside the app. */
   popups: boolean
+  /** Workspace the app opens (null: the first one). */
+  current_workspace_id: number | null
 }
 
 export interface Workspace {

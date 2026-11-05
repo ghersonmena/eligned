@@ -4,6 +4,7 @@ import type { User } from '../api/auth'
 import type { AppNotification } from '../api/types'
 import { useToasts } from '../components/notifications/toasts'
 import { startRealtime } from '../lib/realtime'
+import { currentWorkspace } from '../lib/workspace'
 import { notificationsKey } from './useWorkspaceData'
 
 /**
@@ -14,7 +15,7 @@ import { notificationsKey } from './useWorkspaceData'
  */
 export function useRealtime(user: User) {
   const client = useQueryClient()
-  const ws = user.workspaces[0]?.id
+  const ws = currentWorkspace(user)?.id
   const popups = user.preferences.popups
 
   useEffect(() => {

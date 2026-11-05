@@ -1,0 +1,233 @@
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.renameForm {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.renameForm input {
+  min-width: 220px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.people {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.person,
+.invitation {
+  padding: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.person:last-child,
+.invitation:last-child {
+  border-bottom: 0;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-soft, var(--soft));
+  color: var(--accent-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.personText {
+  flex: 1 1 160px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.personText strong,
+.personText span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personText span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.you {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.roleSelect {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  font-weight: 600;
+}
+
+.roleTag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--soft);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.role_owner {
+  background: var(--c-orange-bg);
+  color: var(--c-orange-fg);
+}
+
+.role_admin {
+  background: var(--c-violet-bg);
+  color: var(--c-violet-fg);
+}
+
+.role_guest {
+  background: var(--c-slate-bg);
+  color: var(--c-slate-fg);
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--soft);
+  color: var(--text);
+}
+
+.roles {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.roles dt {
+  font-weight: 800;
+}
+
+.roles dd {
+  margin: 0;
+  color: var(--muted);
+}
+
+.inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linkBox {
+  margin-top: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-basis: 100%;
+  border-radius: 14px;
+  background: var(--soft);
+}
+
+.linkBox p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.linkBox small {
+  color: var(--muted);
+}
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+}
+
+.linkRow input {
+  flex-grow: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.invActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.smallButton {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.smallButton:hover {
+  border-color: var(--accent);
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -326,3 +326,56 @@
     animation-duration: 2.4s;
   }
 }
+
+/* Workspace switcher (user menu) */
+.menuGroup {
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border);
+}
+
+.menuLabel {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wsBadge {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--soft);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.wsName {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: left;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wsName small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wsCheck {
+  color: var(--accent-text);
+  font-weight: 800;
+}

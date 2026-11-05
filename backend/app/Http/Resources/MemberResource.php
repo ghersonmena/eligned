@@ -23,7 +23,9 @@ class MemberResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'email' => $this->email,
             'role' => $this->whenPivotLoaded('user_workspace', fn () => $this->pivot->role),
+            'joined_at' => $this->whenPivotLoaded('user_workspace', fn () => $this->pivot->created_at),
         ];
     }
 }

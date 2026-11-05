@@ -23,6 +23,14 @@ class UpdatePreferencesRequest extends FormRequest
             'all_day_notice' => ['sometimes', 'boolean'],
             'all_day_notice_time' => ['sometimes', 'date_format:H:i'],
             'popups' => ['sometimes', 'boolean'],
+            'current_workspace_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                fn (string $attribute, mixed $value, \Closure $fail) => $value === null
+                    || $this->user()->workspaces()->whereKey($value)->exists()
+                    || $fail('No perteneces a ese espacio.'),
+            ],
         ];
     }
 }

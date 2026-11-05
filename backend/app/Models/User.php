@@ -39,6 +39,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'all_day_notice_time' => '09:00',
         // Live popups inside the app.
         'popups' => true,
+        // Workspace the app opens (null: the first one, usually their personal space).
+        'current_workspace_id' => null,
     ];
 
     /**

@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,9 @@ Route::prefix('v1')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     });
 
+    // The invitation page greets people before they sign in or create an account.
+    Route::get('invitations/{token}', [TeamController::class, 'showInvitation'])->middleware('throttle:30,1');
+
     Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware('throttle:6,1')
         ->name('verification.verify');
@@ -41,7 +45,16 @@ Route::prefix('v1')->group(function () {
         Route::get('me', [MeController::class, 'show']);
         Route::patch('me/preferences', [MeController::class, 'updatePreferences']);
 
+        Route::post('invitations/{token}/accept', [TeamController::class, 'accept'])->middleware('throttle:10,1');
+        Route::post('invitations/{invitation}/renew', [TeamController::class, 'renew']);
+        Route::delete('invitations/{invitation}', [TeamController::class, 'revoke']);
+
         Route::prefix('workspaces/{workspace}')->group(function () {
+            Route::patch('/', [TeamController::class, 'rename']);
+            Route::patch('members/{user}', [TeamController::class, 'updateRole']);
+            Route::delete('members/{user}', [TeamController::class, 'removeMember']);
+            Route::get('invitations', [TeamController::class, 'invitations']);
+            Route::post('invitations', [TeamController::class, 'invite']);
             Route::get('statuses', [WorkspaceController::class, 'statuses']);
             Route::get('members', [WorkspaceController::class, 'members']);
             Route::get('projects', [ProjectController::class, 'index']);

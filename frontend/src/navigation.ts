@@ -18,7 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/cronograma', label: 'Cronograma', icon: 'timeline' },
   { to: '/proyectos', label: 'Proyectos / Etiquetas', shortLabel: 'Proyectos', icon: 'folder' },
   { to: '/metas', label: 'Metas', icon: 'goal', phase: 4 },
-  { to: '/equipo', label: 'Equipo', icon: 'team', phase: 4 },
+  { to: '/equipo', label: 'Equipo', icon: 'team' },
 ]
 
 /** Bottom bar on phones: the most used sections. */
