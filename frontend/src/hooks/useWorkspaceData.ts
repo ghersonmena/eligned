@@ -47,6 +47,12 @@ export function useTask(id: number) {
   return useQuery({ queryKey: keys.task(ws, id), queryFn: () => workspaceApi.task(id) })
 }
 
+/** History of a task (refreshes with everything else of the workspace). */
+export function useTaskActivity(id: number) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: [...keys.task(ws, id), 'activity'], queryFn: () => workspaceApi.taskActivity(id) })
+}
+
 export function useProjects() {
   const ws = useWorkspaceId()
   return useQuery({ queryKey: keys.projects(ws), queryFn: () => workspaceApi.projects(ws) })

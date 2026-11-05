@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Observers\TaskObserver;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,10 +16,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'workspace_id', 'project_id', 'parent_id', 'status_id', 'title', 'description',
     'priority', 'start_at', 'due_at', 'position', 'board_position', 'completed_at', 'created_by',
 ])]
+#[ObservedBy(TaskObserver::class)]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use HasFactory;
+
+    /**
+     * Why the next save happens when it's not a direct edit (e.g. "subtasks":
+     * completed or re-dated by its subtasks). Shown in the history.
+     */
+    public ?string $activityReason = null;
 
     public const PRIORITY_HIGH = 1;
 
@@ -90,6 +99,14 @@ class Task extends Model
     }
 
     /**
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    /**
      * @return HasMany<Comment, $this>
      */
     public function comments(): HasMany
@@ -139,6 +156,7 @@ class Task extends Model
 
         if ($allDone !== $parent->isCompleted()) {
             $parent->setCompleted($allDone);
+            $parent->activityReason = 'subtasks';
             $parent->save();
         }
     }
@@ -169,6 +187,7 @@ class Task extends Model
         $this->start_at = $starts->first();
         $this->due_at = $ends->last();
         if ($this->isDirty(['start_at', 'due_at'])) {
+            $this->activityReason = 'subtasks';
             $this->save();
         }
     }

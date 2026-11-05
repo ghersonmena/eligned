@@ -7,8 +7,11 @@ use App\Actions\MoveTask;
 use App\Http\Requests\MoveTaskRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\ActivityResource;
 use App\Http\Resources\TaskResource;
+use App\Models\Activity;
 use App\Models\Task;
+use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -140,7 +143,11 @@ class TaskController extends Controller
             $task->save();
 
             if (array_key_exists('assignee_ids', $data)) {
-                $task->assignees()->sync($data['assignee_ids']);
+                $synced = $task->assignees()->sync($data['assignee_ids']);
+                if ($synced['attached'] || $synced['detached']) {
+                    $names = fn (array $ids) => User::whereKey($ids)->orderBy('name')->pluck('name')->all();
+                    Activity::record($task, 'assigned', ['added' => $names($synced['attached']), 'removed' => $names($synced['detached'])]);
+                }
             }
 
             if ($completionChanged) {
@@ -165,6 +172,14 @@ class TaskController extends Controller
         $moveTask->handle($task, $status, $request->integer('position'));
 
         return new TaskResource($task->refresh()->load(['project', 'assignees', 'subtasks', 'parent:id,title'])->loadCount($this->counts()));
+    }
+
+    /** History of a task, newest first. */
+    public function activity(Task $task): AnonymousResourceCollection
+    {
+        Gate::authorize('view', $task);
+
+        return ActivityResource::collection($task->activities()->with('user:id,name')->latest('id')->limit(200)->get());
     }
 
     public function destroy(Task $task): Response

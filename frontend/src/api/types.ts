@@ -98,3 +98,14 @@ export interface ProjectInput {
   color?: ProjectColor
   archived?: boolean
 }
+
+export interface Activity {
+  id: number
+  event: 'created' | 'updated' | 'deleted' | 'commented' | 'subtask_added' | 'assigned' | 'time_logged'
+  task_id: number | null
+  subject: string | null
+  /** updated: field => [from, to] (description: null), plus reason; other events: their details. */
+  changes: Record<string, unknown> | null
+  user: { id: number; name: string } | null
+  created_at: string
+}

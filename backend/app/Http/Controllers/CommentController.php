@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
+use App\Models\Activity;
 use App\Models\Comment;
 use App\Models\Task;
 use Illuminate\Http\Response;
@@ -20,6 +21,8 @@ class CommentController extends Controller
             'user_id' => $request->user()->id,
             'body' => $request->validated('body'),
         ]);
+
+        Activity::record($task, 'commented', ['excerpt' => mb_strimwidth($comment->body, 0, 80, '…')]);
 
         return new CommentResource($comment->load('user'));
     }

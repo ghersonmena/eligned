@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Observers;
+
+use App\Models\Activity;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\TaskStatus;
+
+/** Writes the task history. Ordering fields (position, board_position) are not history. */
+class TaskObserver
+{
+    /** Fields whose changes show up in the history. */
+    private const TRACKED = ['title', 'description', 'priority', 'status_id', 'project_id', 'start_at', 'due_at', 'completed_at'];
+
+    public function created(Task $task): void
+    {
+        Activity::record($task, 'created');
+
+        if ($task->parent_id && ($parent = Task::find($task->parent_id))) {
+            Activity::record($parent, 'subtask_added', ['subtask' => $task->title]);
+        }
+    }
+
+    public function updated(Task $task): void
+    {
+        $changes = [];
+        foreach (self::TRACKED as $field) {
+            if (! $task->wasChanged($field)) {
+                continue;
+            }
+            $from = $task->getOriginal($field);
+            $to = $task->getAttribute($field);
+            $changes[$field] = match ($field) {
+                // Long text: only say it changed.
+                'description' => null,
+                'status_id' => [TaskStatus::find($from)?->name, TaskStatus::find($to)?->name],
+                'project_id' => [$from ? Project::find($from)?->name : null, $to ? Project::find($to)?->name : null],
+                'start_at', 'due_at', 'completed_at' => [$from?->toIso8601String(), $to?->toIso8601String()],
+                default => [$from, $to],
+            };
+        }
+
+        if ($changes === []) {
+            return;
+        }
+
+        if ($task->activityReason) {
+            $changes['reason'] = $task->activityReason;
+            $task->activityReason = null;
+        }
+
+        Activity::record($task, 'updated', $changes);
+    }
+
+    public function deleted(Task $task): void
+    {
+        Activity::record($task, 'deleted');
+    }
+}

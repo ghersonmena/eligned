@@ -1,5 +1,6 @@
 import { api } from './client'
 import type {
+  Activity,
   Comment,
   Member,
   Project,
@@ -49,6 +50,8 @@ export const workspaceApi = {
   deleteTask: (id: number) => api<void>('DELETE', `/tasks/${id}`),
   createSubtask: (taskId: number, input: TaskInput) =>
     api<Wrapped<Task>>('POST', `/tasks/${taskId}/subtasks`, input).then(unwrap),
+
+  taskActivity: (id: number) => api<Wrapped<Activity[]>>('GET', `/tasks/${id}/activity`).then(unwrap),
 
   addComment: (taskId: number, body: string) =>
     api<Wrapped<Comment>>('POST', `/tasks/${taskId}/comments`, { body }).then(unwrap),
