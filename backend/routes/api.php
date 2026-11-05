@@ -11,6 +11,7 @@ use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TimeEntryController;
+use App\Http\Controllers\WorkloadController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('members/{user}', [TeamController::class, 'updateRole']);
             Route::delete('members/{user}', [TeamController::class, 'removeMember']);
             Route::get('invitations', [TeamController::class, 'invitations']);
+            Route::get('workload', WorkloadController::class);
             Route::post('invitations', [TeamController::class, 'invite']);
             Route::get('statuses', [WorkspaceController::class, 'statuses']);
             Route::get('members', [WorkspaceController::class, 'members']);

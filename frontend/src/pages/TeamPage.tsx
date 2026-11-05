@@ -4,6 +4,7 @@ import type { User } from '../api/auth'
 import { ApiError } from '../api/client'
 import type { Invitation, Member, Role } from '../api/types'
 import { Icon } from '../components/Icon'
+import { WorkloadSection } from '../components/team/WorkloadSection'
 import { useInvitations, useInvite, useRemoveMember, useRenameWorkspace, useRenewInvitation, useRevokeInvitation, useSetRole } from '../hooks/useTeam'
 import { useMembers } from '../hooks/useWorkspaceData'
 import { initials } from '../lib/initials'
@@ -42,25 +43,28 @@ export function TeamPage({ user }: { user: User }) {
       </div>
 
       <div className={styles.layout}>
-        <section className={pageStyles.card} aria-labelledby="people-title">
-          <h2 id="people-title">
-            Personas <span className={pageStyles.count}>· {members.length}</span>
-          </h2>
-          {isPending && <p>Cargando…</p>}
-          <ul className={styles.people}>
-            {members.map((m) => (
-              <MemberRow key={m.id} member={m} me={user} myRole={myRole} />
-            ))}
-          </ul>
-          <dl className={styles.roles}>
-            {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-              <div key={r}>
-                <dt>{ROLE_LABELS[r]}</dt>
-                <dd>{ROLE_HINTS[r]}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        <div className={styles.side}>
+          <WorkloadSection meId={user.id} className={pageStyles.card} />
+          <section className={pageStyles.card} aria-labelledby="people-title">
+            <h2 id="people-title">
+              Personas <span className={pageStyles.count}>· {members.length}</span>
+            </h2>
+            {isPending && <p>Cargando…</p>}
+            <ul className={styles.people}>
+              {members.map((m) => (
+                <MemberRow key={m.id} member={m} me={user} myRole={myRole} />
+              ))}
+            </ul>
+            <dl className={styles.roles}>
+              {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
+                <div key={r}>
+                  <dt>{ROLE_LABELS[r]}</dt>
+                  <dd>{ROLE_HINTS[r]}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </div>
 
         {manager && (
           <div className={styles.side}>

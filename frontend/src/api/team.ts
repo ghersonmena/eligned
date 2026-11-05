@@ -1,6 +1,6 @@
 import type { Workspace } from './auth'
 import { api } from './client'
-import type { Invitation, InvitationInfo, Member, Role } from './types'
+import type { Invitation, InvitationInfo, Member, Role, Workload } from './types'
 
 interface Wrapped<T> {
   data: T
@@ -19,6 +19,9 @@ export const teamApi = {
   renew: (id: number, sendEmail: boolean) =>
     api<Wrapped<Invitation>>('POST', `/invitations/${id}/renew`, { send_email: sendEmail }).then(unwrap),
   revoke: (id: number) => api<void>('DELETE', `/invitations/${id}`),
+
+  workload: (ws: number, since: string) =>
+    api<{ data: Workload[]; unassigned: number }>('GET', `/workspaces/${ws}/workload?since=${encodeURIComponent(since)}`),
 
   invitationInfo: (token: string) => api<Wrapped<InvitationInfo>>('GET', `/invitations/${token}`).then(unwrap),
   accept: (token: string) => api<Wrapped<{ workspace_id: number }>>('POST', `/invitations/${token}/accept`).then(unwrap),

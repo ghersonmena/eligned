@@ -178,3 +178,14 @@ export interface Reminder {
   offset_minutes: number | null
   sent: boolean
 }
+
+/** Team workload: one row per member. */
+export interface Workload {
+  user: { id: number; name: string }
+  role: Role
+  open: number
+  overdue: number
+  this_week: number
+  done_since: number
+  minutes_since: number
+}
