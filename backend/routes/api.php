@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\GoalController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
@@ -56,6 +57,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('members/{user}', [TeamController::class, 'removeMember']);
             Route::get('invitations', [TeamController::class, 'invitations']);
             Route::get('workload', WorkloadController::class);
+            Route::get('goals', [GoalController::class, 'index']);
+            Route::post('goals', [GoalController::class, 'store']);
             Route::post('invitations', [TeamController::class, 'invite']);
             Route::get('statuses', [WorkspaceController::class, 'statuses']);
             Route::get('members', [WorkspaceController::class, 'members']);
@@ -78,6 +81,13 @@ Route::prefix('v1')->group(function () {
         Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
         Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
         Route::get('attachments/{attachment}', [CommentController::class, 'attachment']);
+
+        Route::get('goals/{goal}', [GoalController::class, 'show']);
+        Route::patch('goals/{goal}', [GoalController::class, 'update']);
+        Route::delete('goals/{goal}', [GoalController::class, 'destroy']);
+        Route::post('goals/{goal}/key-results', [GoalController::class, 'storeKeyResult']);
+        Route::patch('key-results/{keyResult}', [GoalController::class, 'updateKeyResult']);
+        Route::delete('key-results/{keyResult}', [GoalController::class, 'destroyKeyResult']);
 
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::post('notifications/read-all', [NotificationController::class, 'readAll']);

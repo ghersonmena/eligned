@@ -8,6 +8,8 @@ import { BoardPage } from './pages/BoardPage'
 import { CalendarPage } from './pages/CalendarPage'
 import { CheckEmailPage } from './pages/CheckEmailPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { GoalDetailPage } from './pages/GoalDetailPage'
+import { GoalsPage } from './pages/GoalsPage'
 import { HomePage } from './pages/HomePage'
 import { InvitationPage } from './pages/InvitationPage'
 import { LoginPage } from './pages/LoginPage'
@@ -43,6 +45,8 @@ export const router = createBrowserRouter([
       { path: 'cronograma', element: <TimelinePage /> },
       { path: 'proyectos', element: <ProjectsPage /> },
       { path: 'proyectos/:id', element: <ProjectDetailPage /> },
+      { path: 'metas', element: <GoalsPage /> },
+      { path: 'metas/:id', element: <GoalDetailPage /> },
       { path: 'equipo', element: withUser((user) => <TeamPage user={user} />) },
       ...NAV_ITEMS.filter((item) => item.phase).map((item) => ({
         path: item.to.slice(1),

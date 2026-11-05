@@ -1,0 +1,317 @@
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 5px solid;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card:hover {
+  box-shadow: 0 12px 30px rgb(40 20 10 / 14%);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cardTitle {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.cardTitle strong {
+  font-size: 16px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.health {
+  padding: 2px 10px;
+  border: 1.5px solid;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.miniKrs {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.miniKrs li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 10px;
+  font-size: 13px;
+}
+
+.miniTitle {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniValue {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.miniBar {
+  grid-column: 1 / -1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--soft);
+}
+
+.miniBar span,
+.krBar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.noKrs {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cardFoot {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.textarea {
+  min-height: 64px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.detailText {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.facts {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.facts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hint {
+  margin-top: -4px;
+  font-size: 13px;
+}
+
+.krList {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.kr {
+  padding: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.krTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.krPct {
+  font-weight: 800;
+}
+
+.krBar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--soft);
+}
+
+.krBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 13px;
+}
+
+.krValue {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.krProject {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.krUpdate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.krUpdate input {
+  width: 84px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  text-align: center;
+}
+
+.krUpdate button {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.krUpdate .krSave {
+  padding: 0 12px;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 13px;
+}
+
+.krTools {
+  margin-left: auto;
+  display: flex;
+}
+
+.krTools button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.krTools button:hover {
+  background: var(--soft);
+  color: var(--text);
+}
+
+.addKr {
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.krForm {
+  margin-top: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 16px;
+  background: var(--row);
+}
+
+.kindPicker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.kindPicker button {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kindPicker button[aria-checked='true'] {
+  border-color: var(--accent);
+}
+
+.kindPicker span {
+  font-size: 12px;
+  color: var(--muted);
+}

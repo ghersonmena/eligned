@@ -82,6 +82,14 @@ class Workspace extends Model
     }
 
     /**
+     * @return HasMany<Goal, $this>
+     */
+    public function goals(): HasMany
+    {
+        return $this->hasMany(Goal::class);
+    }
+
+    /**
      * @return HasMany<WorkspaceInvitation, $this>
      */
     public function invitations(): HasMany

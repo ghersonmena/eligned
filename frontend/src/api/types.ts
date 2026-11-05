@@ -189,3 +189,57 @@ export interface Workload {
   done_since: number
   minutes_since: number
 }
+
+export type GoalHealth = 'done' | 'late' | 'at_risk' | 'on_track' | 'no_dates'
+
+export interface KeyResult {
+  id: number
+  goal_id: number
+  title: string
+  kind: 'number' | 'tasks'
+  start_value: number
+  target_value: number
+  current_value: number
+  unit: string | null
+  project: { id: number; name: string; color: ProjectColor } | null
+  tasks: { done: number; total: number } | null
+  /** 0–100 */
+  progress: number
+}
+
+export interface Goal {
+  id: number
+  title: string
+  description: string | null
+  color: ProjectColor
+  owner: { id: number; name: string } | null
+  /** YYYY-MM-DD */
+  start_date: string | null
+  due_date: string | null
+  closed: boolean
+  /** 0–100, the average of its key results. */
+  progress: number
+  health: GoalHealth
+  key_results: KeyResult[]
+  created_at: string
+}
+
+export interface GoalInput {
+  title?: string
+  description?: string | null
+  color?: ProjectColor
+  owner_id?: number | null
+  start_date?: string | null
+  due_date?: string | null
+  closed?: boolean
+}
+
+export interface KeyResultInput {
+  title?: string
+  kind?: KeyResult['kind']
+  start_value?: number
+  target_value?: number
+  current_value?: number
+  unit?: string | null
+  project_id?: number | null
+}
