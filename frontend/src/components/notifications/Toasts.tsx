@@ -13,7 +13,7 @@ const LABEL: Record<Toast['kind'], string> = {
 
 const VISIBLE_MS = 9000
 
-/** Popups in the corner for notifications that arrive while the app is open. */
+/** Popups for notifications that arrive while the app is open (corner on desktop, top center on phones). */
 export function Toasts() {
   const toasts = useToasts((s) => s.toasts)
   return (

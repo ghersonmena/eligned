@@ -29,9 +29,19 @@ export interface Project {
   created_at: string
 }
 
+export interface Attachment {
+  id: number
+  name: string
+  mime: string
+  size: number
+  is_image: boolean
+  url: string
+}
+
 export interface Comment {
   id: number
   body: string
+  attachments?: Attachment[]
   author: { id: number; name: string } | null
   can_delete: boolean
   created_at: string

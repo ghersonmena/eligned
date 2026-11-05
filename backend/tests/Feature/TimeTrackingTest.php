@@ -3,7 +3,7 @@
 use App\Models\Task;
 use App\Models\User;
 
-it('runs one timer at a time and adds up the minutes', function () {
+it('runs several timers at once and adds up the minutes', function () {
     [$user, $workspace] = memberWithWorkspace();
     $a = Task::factory()->for($workspace)->create();
     $b = Task::factory()->for($workspace)->create();
@@ -11,21 +11,32 @@ it('runs one timer at a time and adds up the minutes', function () {
 
     $this->travelTo(now()->setTime(9, 0));
     $this->postJson("/api/v1/tasks/{$a->id}/timer")->assertCreated()->assertJsonPath('data.running', true);
-    $this->getJson('/api/v1/timer')->assertJsonPath('data.task.title', $a->title);
+    $this->getJson('/api/v1/timer')->assertJsonCount(1, 'data')->assertJsonPath('data.0.task.title', $a->title);
 
-    // Starting another one stops the first.
+    // Starting another one keeps the first running.
     $this->travel(25)->minutes();
     $this->postJson("/api/v1/tasks/{$b->id}/timer")->assertCreated();
-    $this->getJson("/api/v1/tasks/{$a->id}/time-entries")->assertJsonPath('total_minutes', 25);
+    // Starting the same one again does not open a second entry.
+    $this->postJson("/api/v1/tasks/{$a->id}/timer")->assertOk();
+    $this->getJson('/api/v1/timer')->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.task_id', $a->id)
+        ->assertJsonPath('data.1.task_id', $b->id);
 
+    // Stops only b.
     $this->travel(10)->minutes();
-    $this->postJson('/api/v1/timer/stop')->assertJsonPath('data.minutes', 10);
-    $this->getJson('/api/v1/timer?since='.urlencode(now()->startOfDay()->toIso8601String()))
-        ->assertJsonPath('data', null)
-        ->assertJsonPath('today_minutes', 35);
+    $this->postJson('/api/v1/timer/stop', ['task_id' => $b->id])
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.minutes', 10);
+    $this->getJson('/api/v1/timer')->assertJsonCount(1, 'data')->assertJsonPath('data.0.task_id', $a->id);
 
-    $this->getJson("/api/v1/tasks/{$a->id}")->assertJsonPath('data.tracked_minutes', 25);
-    expect($a->activities()->where('event', 'time_logged')->value('changes'))->toBe(['minutes' => 25]);
+    // Without task_id it stops everything.
+    $this->postJson('/api/v1/timer/stop')->assertJsonPath('data.0.minutes', 35);
+    $this->getJson('/api/v1/timer?since='.urlencode(now()->startOfDay()->toIso8601String()))
+        ->assertJsonCount(0, 'data')
+        ->assertJsonPath('today_minutes', 45);
+
+    $this->getJson("/api/v1/tasks/{$a->id}")->assertJsonPath('data.tracked_minutes', 35);
+    expect($a->activities()->where('event', 'time_logged')->value('changes'))->toBe(['minutes' => 35]);
 });
 
 it('stops the timer when the task is finished', function () {
@@ -36,7 +47,7 @@ it('stops the timer when the task is finished', function () {
     $this->travel(40)->minutes();
     $this->patchJson("/api/v1/tasks/{$task->id}", ['completed' => true])->assertOk();
 
-    $this->getJson('/api/v1/timer')->assertJsonPath('data', null);
+    $this->getJson('/api/v1/timer')->assertJsonCount(0, 'data');
     $this->getJson("/api/v1/tasks/{$task->id}/time-entries")->assertJsonPath('total_minutes', 40);
     $this->postJson("/api/v1/tasks/{$task->id}/timer")->assertStatus(422);
 });

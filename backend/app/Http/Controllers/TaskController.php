@@ -213,7 +213,7 @@ class TaskController extends Controller
 
     private function loadDetail(Task $task): Task
     {
-        $task->load(['project', 'assignees', 'subtasks.assignees', 'comments.user'])->loadCount($this->counts());
+        $task->load(['project', 'assignees', 'subtasks.assignees', 'comments.user', 'comments.attachments'])->loadCount($this->counts());
         $task->loadSum(['timeEntries as tracked_minutes' => fn (Builder $q) => $q->whereNotNull('ended_at')], 'minutes');
 
         return $task;

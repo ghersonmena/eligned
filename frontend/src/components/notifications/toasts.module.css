@@ -101,10 +101,47 @@
 }
 
 @media (max-width: 860px) {
-  /* Above the bottom navigation bar. */
+  /* Phones: floating at the top, centered, below the notch. */
   .stack {
-    right: 16px;
-    bottom: 96px;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(420px, calc(100vw - 24px));
+    transform: translateX(-50%);
+  }
+
+  .toast {
+    border-left-width: 0;
+    border-top: 4px solid var(--accent);
+    border-radius: 18px;
+    box-shadow:
+      0 18px 40px rgb(40 20 10 / 28%),
+      0 2px 6px rgb(40 20 10 / 12%);
+    animation-name: drop-in;
+  }
+
+  .reminder {
+    border-top-color: var(--c-violet-dot);
+  }
+
+  .due_soon {
+    border-top-color: var(--c-amber-dot);
+  }
+
+  .assigned {
+    border-top-color: var(--c-blue-dot);
+  }
+
+  .commented {
+    border-top-color: var(--c-teal-dot);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.97);
   }
 }
 

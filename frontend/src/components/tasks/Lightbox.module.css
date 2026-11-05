@@ -1,0 +1,172 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background: rgb(10 7 6 / 96%);
+  color: #fff;
+  animation: fade 0.15s ease-out;
+}
+
+.top,
+.bottom {
+  position: relative;
+  z-index: 2;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bottom {
+  padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  flex-direction: column;
+}
+
+.name {
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name strong {
+  margin-right: 6px;
+}
+
+.tool,
+.percent,
+.nav {
+  min-width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tool:hover,
+.percent:hover,
+.nav:hover {
+  background: rgb(255 255 255 / 22%);
+}
+
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.stage {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.image {
+  max-width: calc(100% - 24px);
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.08s linear;
+  pointer-events: none;
+}
+
+.zoomBar {
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+  border-radius: 18px;
+  background: rgb(0 0 0 / 40%);
+}
+
+.percent {
+  min-width: 64px;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.prev {
+  left: 12px;
+}
+
+.next {
+  right: 12px;
+}
+
+.strip {
+  max-width: 100%;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.stripItem {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: none;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.stripItem[aria-current='true'] {
+  border-color: #fff;
+  opacity: 1;
+}
+
+.stripItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Phones: swipe instead of side arrows. */
+  .nav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    animation: none;
+  }
+
+  .image {
+    transition: none;
+  }
+}

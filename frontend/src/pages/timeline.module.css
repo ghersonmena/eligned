@@ -23,7 +23,7 @@
 .label {
   position: sticky;
   left: 0;
-  z-index: 2;
+  z-index: 5;
   flex: 0 0 260px;
   box-sizing: border-box;
   min-width: 0;
@@ -176,6 +176,8 @@
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
+  /* Keeps bars, diamonds and lines (z-index inside) below the sticky task names. */
+  isolation: isolate;
 }
 
 .months,
@@ -416,4 +418,79 @@
   .groupLabel .pct {
     display: none;
   }
+}
+
+/* ---------- Completed tasks: due vs. finished ---------- */
+.markerGhost {
+  border-color: transparent !important;
+  background: transparent;
+}
+
+.mark,
+.link {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mark {
+  top: 23px;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 3px solid;
+  border-radius: 5px;
+  background: var(--ink);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.link {
+  top: 21px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.subRow .mark {
+  top: 20px;
+}
+
+.subRow .link {
+  top: 18px;
+}
+
+.dueMarkColor {
+  border-color: #9ca3af;
+}
+
+.doneMarkColor {
+  border-color: #22c55e;
+}
+
+.doneLateColor {
+  border-color: #f97316;
+}
+
+.linkEarly {
+  background: #22c55e;
+}
+
+.linkLate {
+  background: #eab308;
+}
+
+.legendMark {
+  width: 9px;
+  height: 9px;
+  box-sizing: border-box;
+  border: 2px solid;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+
+.legendLine {
+  width: 18px;
+  height: 4px;
+  margin-left: 4px;
+  border-radius: 2px;
 }

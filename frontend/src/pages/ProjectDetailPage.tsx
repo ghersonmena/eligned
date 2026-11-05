@@ -5,6 +5,7 @@ import { TaskGroups, TaskList } from '../components/tasks/TaskGroups'
 import taskStyles from '../components/tasks/tasks.module.css'
 import { useDeleteProject, useProject, useTasks, useUpdateProject } from '../hooks/useWorkspaceData'
 import { chipStyle } from '../lib/colors'
+import { ProjectForm } from './ProjectsPage'
 import styles from './projects.module.css'
 import pageStyles from './pages.module.css'
 
@@ -15,6 +16,7 @@ export function ProjectDetailPage() {
   const { data: project, isPending, isError } = useProject(projectId)
   const open = useTasks({ project_id: projectId, status: 'open' })
   const [showCompleted, setShowCompleted] = useState(false)
+  const [editing, setEditing] = useState(false)
   const completed = useTasks({ project_id: projectId, status: 'completed' }, showCompleted)
   const updateProject = useUpdateProject()
   const deleteProject = useDeleteProject()
@@ -24,7 +26,7 @@ export function ProjectDetailPage() {
     return (
       <section className={pageStyles.card}>
         <h2>No encontramos este proyecto</h2>
-        <Link to="/proyectos">Volver a proyectos</Link>
+        <Link to="/proyectos">Volver a Proyectos / Etiquetas</Link>
       </section>
     )
   }
@@ -40,7 +42,7 @@ export function ProjectDetailPage() {
   return (
     <>
       <nav aria-label="Ruta" className={styles.breadcrumb}>
-        <Link to="/proyectos">Proyectos</Link>
+        <Link to="/proyectos">Proyectos / Etiquetas</Link>
       </nav>
       <div className={styles.header}>
         <div className={styles.titleRow}>
@@ -53,6 +55,11 @@ export function ProjectDetailPage() {
           </div>
         </div>
         <div className={styles.formActions}>
+          {!editing && (
+            <button type="button" className={pageStyles.secondary} onClick={() => setEditing(true)}>
+              <Icon name="edit" size={18} /> Editar
+            </button>
+          )}
           <button
             type="button"
             className={pageStyles.secondary}
@@ -65,6 +72,8 @@ export function ProjectDetailPage() {
           </button>
         </div>
       </div>
+
+      {editing && <ProjectForm key={project.id} project={project} onDone={() => setEditing(false)} />}
 
       {project.archived && (
         <p className={styles.archivedNote} role="status">

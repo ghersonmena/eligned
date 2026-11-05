@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus, TimeEntry, AppNotification } from '../api/types'
-import { workspaceApi } from '../api/workspace'
+import { upperTask, workspaceApi } from '../api/workspace'
 import { spanFromSubtasks } from '../lib/timeline'
 import { useMe } from './useAuth'
 
@@ -99,7 +99,7 @@ export function useUpdateTask() {
       // Patches the task wherever it appears, including as a subtask inside a list
       // or detail; a parent whose subtask changed follows its new span.
       const patch = (task: Task): Task => {
-        const self = task.id === id ? { ...task, ...pickPatchable(input) } : task
+        const self = task.id === id ? { ...task, ...pickPatchable(upperTask(input)) } : task
         if (!self.subtasks) return self
         const subtasks = self.subtasks.map(patch)
         const span = self.subtasks.some((st) => st.id === id) ? spanFromSubtasks(subtasks) : null
@@ -191,7 +191,7 @@ export function useAddComment(taskId: number) {
   const ws = useWorkspaceId()
   const client = useQueryClient()
   return useMutation({
-    mutationFn: (body: string) => workspaceApi.addComment(taskId, body),
+    mutationFn: ({ body, files = [] }: { body: string; files?: File[] }) => workspaceApi.addComment(taskId, body, files),
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: keys.task(ws, taskId) })
     },
@@ -211,7 +211,7 @@ export function useDeleteComment(taskId: number) {
 
 /* ---------- Time tracking ---------- */
 
-/** Running timer of the signed-in user, and the minutes they logged today. */
+/** Running timers of the signed-in user (several can run at once), and the minutes they logged today. */
 export function useTimer() {
   const ws = useWorkspaceId()
   return useQuery({
@@ -237,8 +237,8 @@ export function useStartTimer() {
   return useMutation({
     mutationFn: (taskId: number) => workspaceApi.startTimer(taskId),
     onSuccess: (entry) => {
-      client.setQueryData<{ data: TimeEntry | null; today_minutes: number }>(['ws', ws, 'timer'], (old) => ({
-        data: entry,
+      client.setQueryData<{ data: TimeEntry[]; today_minutes: number }>(['ws', ws, 'timer'], (old) => ({
+        data: [...(old?.data ?? []).filter((e) => e.id !== entry.id), entry],
         today_minutes: old?.today_minutes ?? 0,
       }))
       refreshWorkspace(client, ws)
@@ -250,8 +250,15 @@ export function useStopTimer() {
   const ws = useWorkspaceId()
   const client = useQueryClient()
   return useMutation({
-    mutationFn: () => workspaceApi.stopTimer(),
-    onSuccess: () => refreshWorkspace(client, ws),
+    /** A task id stops only that timer; nothing stops them all. */
+    mutationFn: (taskId?: number) => workspaceApi.stopTimer(taskId),
+    onSuccess: (stopped) => {
+      const ids = new Set(stopped.map((e) => e.id))
+      client.setQueryData<{ data: TimeEntry[]; today_minutes: number }>(['ws', ws, 'timer'], (old) =>
+        old ? { ...old, data: old.data.filter((e) => !ids.has(e.id)) } : old,
+      )
+      refreshWorkspace(client, ws)
+    },
   })
 }
 

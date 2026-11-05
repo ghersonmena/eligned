@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Task } from '../api/types'
 import { dayKey } from './dates'
-import { datesAfterDrag, projectSpans, spanFromSubtasks, taskProgress, taskSpan } from './timeline'
+import { axisFrom, completionMarks, datesAfterDrag, datesAfterHourDrag, makeAxis, taskExtent, projectSpans, spanFromSubtasks, taskProgress, taskSpan } from './timeline'
 
 const local = (y: number, m: number, d: number, h = 0, min = 0) => new Date(y, m - 1, d, h, min).toISOString()
 
@@ -93,5 +93,78 @@ describe('projectSpans', () => {
       ['Auto', 1, 1],
       ['Casa', 3, 12],
     ])
+  })
+})
+
+describe('completionMarks', () => {
+  const windowStart = axisFrom(new Date(2026, 10, 1), 35, 40)
+
+  it('places the due and finished diamonds in the middle of their days', () => {
+    const marks = completionMarks(
+      { due_at: new Date(2026, 10, 3, 23, 59).toISOString(), completed_at: new Date(2026, 10, 5, 10, 0).toISOString() },
+      windowStart,
+    )
+    expect(marks).toEqual({ dueX: 2.5 * 40, doneX: 4.5 * 40, late: true })
+  })
+
+  it('finished early: before the due date', () => {
+    const marks = completionMarks(
+      { due_at: new Date(2026, 10, 6, 23, 59).toISOString(), completed_at: new Date(2026, 10, 4, 9, 0).toISOString() },
+      windowStart,
+    )
+    expect(marks).toEqual({ dueX: 5.5 * 40, doneX: 3.5 * 40, late: false })
+  })
+
+  it('same day: nudges the finished diamond so both show', () => {
+    const due = new Date(2026, 10, 2, 12, 0).toISOString()
+    expect(completionMarks({ due_at: due, completed_at: new Date(2026, 10, 2, 9, 0).toISOString() }, windowStart)?.doneX).toBe(60 - 16)
+    expect(completionMarks({ due_at: due, completed_at: new Date(2026, 10, 2, 15, 0).toISOString() }, windowStart)?.doneX).toBe(60 + 16)
+  })
+
+  it('nothing for open tasks; no due diamond without a due date', () => {
+    expect(completionMarks({ due_at: null, completed_at: null }, windowStart)).toBeNull()
+    expect(completionMarks({ due_at: null, completed_at: new Date(2026, 10, 2).toISOString() }, windowStart)?.dueX).toBeNull()
+  })
+})
+
+describe('scales', () => {
+  const anchor = new Date(2026, 10, 5, 15, 0) // Thursday
+
+  it('Día: one day of hours; Semana: Monday to Sunday; Mes: the weeks that touch the month', () => {
+    expect(makeAxis('dia', anchor, 1440)).toMatchObject({ days: 1, exact: true, stepWidth: 60 })
+    // Too narrow: columns keep a minimum width and the chart scrolls.
+    expect(makeAxis('dia', anchor, 300).stepWidth).toBe(48)
+    const week = makeAxis('semana', anchor, 980)
+    expect([week.start.getDate(), week.days]).toEqual([2, 7])
+    const month = makeAxis('mes', anchor)
+    // November 2026: Monday Oct 26 to Sunday Dec 6.
+    expect([month.start.getMonth(), month.start.getDate(), month.days]).toEqual([9, 26, 42])
+  })
+
+  it('Día places bars at their exact hours', () => {
+    const axis = makeAxis('dia', anchor, 1440)
+    const task = { start_at: new Date(2026, 10, 5, 9, 0).toISOString(), due_at: new Date(2026, 10, 5, 13, 30).toISOString() } as Task
+    expect(taskExtent(task, axis)).toEqual({ left: 9 * 60, right: 13.5 * 60 })
+    expect(completionMarks({ due_at: task.due_at, completed_at: new Date(2026, 10, 5, 11, 0).toISOString() }, axis)).toEqual({
+      dueX: 13.5 * 60,
+      doneX: 11 * 60,
+      late: false,
+    })
+  })
+
+  it('Semana snaps bars to whole days', () => {
+    const axis = makeAxis('semana', anchor, 980)
+    const task = { start_at: new Date(2026, 10, 3).toISOString(), due_at: new Date(2026, 10, 4, 23, 59).toISOString() } as Task
+    expect(taskExtent(task, axis)).toEqual({ left: 140, right: 3 * 140 })
+  })
+
+  it('drags by hours without crossing sides', () => {
+    const task = { start_at: new Date(2026, 10, 5, 9).toISOString(), due_at: new Date(2026, 10, 5, 12).toISOString() } as Task
+    expect(datesAfterHourDrag(task, 'move', 2)).toEqual({
+      start_at: new Date(2026, 10, 5, 11).toISOString(),
+      due_at: new Date(2026, 10, 5, 14).toISOString(),
+    })
+    expect(datesAfterHourDrag(task, 'end', -1)).toEqual({ due_at: new Date(2026, 10, 5, 11).toISOString() })
+    expect(datesAfterHourDrag(task, 'start', 3)).toBeNull()
   })
 })

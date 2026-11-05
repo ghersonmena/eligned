@@ -331,6 +331,8 @@ export function CalendarPage() {
             <form className={styles.quickAdd} onSubmit={addQuick}>
               <input
                 ref={quickRef}
+                className="caps"
+                autoCapitalize="characters"
                 value={quickTitle}
                 maxLength={255}
                 placeholder="Nueva tarea para este día"

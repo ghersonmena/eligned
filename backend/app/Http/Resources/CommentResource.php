@@ -22,6 +22,14 @@ class CommentResource extends JsonResource
             'id' => $this->id,
             'body' => $this->body,
             'author' => $this->user ? ['id' => $this->user->id, 'name' => $this->user->name] : null,
+            'attachments' => $this->whenLoaded('attachments', fn () => $this->attachments->map(fn ($a) => [
+                'id' => $a->id,
+                'name' => $a->name,
+                'mime' => $a->mime,
+                'size' => $a->size,
+                'is_image' => $a->isImage(),
+                'url' => "/api/v1/attachments/{$a->id}",
+            ])->values()),
             'can_delete' => $request->user()?->can('delete', $this->resource) ?? false,
             'created_at' => $this->created_at,
         ];

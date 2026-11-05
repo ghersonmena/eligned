@@ -1,15 +1,28 @@
 import { Link } from 'react-router'
+import type { TimeEntry } from '../../api/types'
 import { formatClock, useElapsed } from '../../hooks/useElapsed'
 import { useStopTimer, useTimer } from '../../hooks/useWorkspaceData'
 import styles from './time.module.css'
 
-/** Top bar: the running timer, visible on every page, with a stop button. */
+/** Top bar: every running timer, visible on every page, each with its stop button. */
 export function TimerPill() {
   const { data } = useTimer()
+  const entries = data?.data ?? []
+  if (entries.length === 0) return null
+
+  return (
+    <div className={`${styles.pills} ${entries.length > 1 ? styles.pillsMany : ''}`}>
+      {entries.map((e) => (
+        <Pill key={e.id} entry={e} />
+      ))}
+    </div>
+  )
+}
+
+function Pill({ entry }: { entry: TimeEntry }) {
   const stop = useStopTimer()
-  const entry = data?.data
-  const elapsed = useElapsed(entry?.started_at)
-  if (!entry || elapsed === null) return null
+  const elapsed = useElapsed(entry.started_at)
+  if (elapsed === null) return null
 
   return (
     <div className={styles.pill} role="status" aria-label={`Cronómetro en marcha: ${entry.task?.title ?? ''}`}>
@@ -18,7 +31,14 @@ export function TimerPill() {
         {entry.task?.title}
       </Link>
       <span className={styles.pillClock}>{formatClock(elapsed)}</span>
-      <button type="button" className={styles.stopSmall} aria-label="Detener cronómetro" title="Detener" onClick={() => stop.mutate()} disabled={stop.isPending}>
+      <button
+        type="button"
+        className={styles.stopSmall}
+        aria-label={`Detener cronómetro de "${entry.task?.title ?? ''}"`}
+        title="Detener"
+        onClick={() => stop.mutate(entry.task_id)}
+        disabled={stop.isPending}
+      >
         <span className={styles.square} aria-hidden="true" />
       </button>
     </div>

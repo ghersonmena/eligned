@@ -7,22 +7,43 @@ import { ViewHeader } from '../components/views/ViewHeader'
 import viewStyles from '../components/views/views.module.css'
 import { useTasks, useUpdateTask } from '../hooks/useWorkspaceData'
 import { chipStyle, dotColor } from '../lib/colors'
-import { addDays, daysBetween, endOfDay, startOfDay, startOfWeek } from '../lib/dates'
-import { datesAfterDrag, datesFromSubtasks, taskProgress, taskSpan, type DragMode } from '../lib/timeline'
+import { addDays, endOfDay, formatDone, startOfDay } from '../lib/dates'
+import {
+  completionMarks,
+  datesAfterDrag,
+  datesAfterHourDrag,
+  datesFromSubtasks,
+  makeAxis,
+  pointOf,
+  shiftAnchor,
+  taskExtent,
+  taskProgress,
+  taskSpan,
+  type Axis,
+  type DragMode,
+  type Scale,
+} from '../lib/timeline'
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
 import pageStyles from './pages.module.css'
 import styles from './timeline.module.css'
 
-type Scale = 'dia' | 'semana'
-const SCALES: Record<Scale, { label: string; dayWidth: number; days: number; step: number }> = {
-  dia: { label: 'Día', dayWidth: 44, days: 35, step: 7 },
-  semana: { label: 'Semana', dayWidth: 14, days: 7 * 16, step: 28 },
+const SCALE_LABELS: Record<Scale, string> = { dia: 'Día', semana: 'Semana', mes: 'Mes' }
+const SCALE_KEY = 'cronograma.escala'
+
+function savedScale(): Scale {
+  try {
+    const v = localStorage.getItem(SCALE_KEY)
+    return v === 'dia' || v === 'semana' || v === 'mes' ? v : 'semana'
+  } catch {
+    return 'semana'
+  }
 }
 
 const shortDay = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' })
 const longDay = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
 const monthName = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' })
-const DOW = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+const fullDay = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+const weekdayName = new Intl.DateTimeFormat('es', { weekday: 'long' })
 
 interface Group {
   key: string
@@ -32,15 +53,40 @@ interface Group {
 }
 
 export function TimelinePage() {
-  const [scale, setScale] = useState<Scale>('dia')
+  const [scale, setScaleState] = useState<Scale>(savedScale)
   const [today] = useState(() => startOfDay(new Date()))
-  const [windowStart, setWindowStart] = useState(() => addDays(startOfWeek(today), -7))
+  const [anchor, setAnchor] = useState(today)
   const [filters, setFilters] = useState<ViewFilterValues>(NO_FILTERS)
   const [closed, setClosed] = useState<Record<string, boolean>>({})
   // Tasks whose subtasks are unfolded.
   const [unfolded, setUnfolded] = useState<Set<number>>(() => new Set())
-  const { dayWidth, days, step } = SCALES[scale]
+  // Room for the dates: the chart minus the task names column (narrower on phones).
+  const chartRef = useRef<HTMLElement>(null)
+  const [available, setAvailable] = useState(0)
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart) return
+    const measure = () => {
+      const label = chart.querySelector<HTMLElement>(`.${styles.label}`)?.offsetWidth ?? 260
+      setAvailable(Math.max(0, chart.clientWidth - label))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(chart)
+    return () => observer.disconnect()
+  }, [])
+  const axis = useMemo(() => makeAxis(scale, anchor, available), [scale, anchor, available])
+  const { start: windowStart, days, dayWidth } = axis
   const windowEnd = addDays(windowStart, days - 1)
+
+  function setScale(next: Scale) {
+    setScaleState(next)
+    try {
+      localStorage.setItem(SCALE_KEY, next)
+    } catch {
+      // Private mode: the choice just isn't remembered.
+    }
+  }
 
   const query = useTasks({
     ...toTaskFilters(filters),
@@ -82,36 +128,51 @@ export function TimelinePage() {
     return out
   }, [dayList])
 
-  const laneWidth = days * dayWidth
-  const todayOffset = daysBetween(windowStart, today)
-  const chartRef = useRef<HTMLElement>(null)
+  const laneWidth = axis.width
+  // Width of a grid column: an hour, a day or a week.
+  const columnWidth = scale === 'dia' ? dayWidth / 24 : scale === 'semana' ? dayWidth : dayWidth * 7
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+  const todayX = now >= windowStart && now < addDays(windowEnd, 1) ? pointOf(axis, now) : null
 
-  // Opens with today in view (a couple of days of context on its left).
+  // Día opens around the current hour.
   useEffect(() => {
     const chart = chartRef.current
     if (!chart) return
-    const offset = daysBetween(windowStart, today)
-    chart.scrollLeft = offset >= 0 && offset < days ? Math.max(0, (offset - 2) * dayWidth) : 0
-  }, [windowStart, today, days, dayWidth])
+    chart.scrollLeft = scale === 'dia' && todayX !== null ? Math.max(0, todayX - columnWidth * 2) : 0
+    // Only when the window changes, not every minute.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scale, anchor])
   const gridBg = {
     width: laneWidth,
-    backgroundImage: `repeating-linear-gradient(90deg, transparent 0 ${(scale === 'dia' ? dayWidth : dayWidth * 7) - 1}px, var(--border) 0 ${scale === 'dia' ? dayWidth : dayWidth * 7}px)`,
+    backgroundImage: `repeating-linear-gradient(90deg, transparent 0 ${columnWidth - 1}px, var(--border) 0 ${columnWidth}px)`,
   }
+
+  const eyebrow =
+    scale === 'dia'
+      ? fullDay.format(windowStart)
+      : scale === 'semana'
+        ? `${shortDay.format(windowStart)} – ${shortDay.format(windowEnd)} ${windowEnd.getFullYear()}`
+        : monthName.format(anchor)
+  const stepLabel = scale === 'dia' ? 'día' : scale === 'semana' ? 'semana' : 'mes'
 
   return (
     <>
       <ViewHeader
-        eyebrow={`${shortDay.format(windowStart)} – ${shortDay.format(windowEnd)} ${windowEnd.getFullYear()}`}
+        eyebrow={eyebrow}
         title="Cronograma"
         aside={
           <div className={viewStyles.navGroup}>
-            <button type="button" className={viewStyles.roundBtn} aria-label="Anterior" onClick={() => setWindowStart(addDays(windowStart, -step))}>
+            <button type="button" className={viewStyles.roundBtn} aria-label={`${stepLabel[0].toUpperCase()}${stepLabel.slice(1)} anterior`} onClick={() => setAnchor(shiftAnchor(scale, anchor, -1))}>
               <Icon name="back" size={16} />
             </button>
-            <button type="button" className={viewStyles.todayBtn} onClick={() => setWindowStart(addDays(startOfWeek(today), -7))}>
+            <button type="button" className={viewStyles.todayBtn} onClick={() => setAnchor(today)}>
               Hoy
             </button>
-            <button type="button" className={viewStyles.roundBtn} aria-label="Siguiente" onClick={() => setWindowStart(addDays(windowStart, step))}>
+            <button type="button" className={viewStyles.roundBtn} aria-label={`${stepLabel[0].toUpperCase()}${stepLabel.slice(1)} siguiente`} onClick={() => setAnchor(shiftAnchor(scale, anchor, 1))}>
               <Icon name="forward" size={16} />
             </button>
             {parentIds.length > 0 && (
@@ -125,9 +186,9 @@ export function TimelinePage() {
               </button>
             )}
             <div className={viewStyles.scale} role="group" aria-label="Escala">
-              {(Object.keys(SCALES) as Scale[]).map((s) => (
+              {(Object.keys(SCALE_LABELS) as Scale[]).map((s) => (
                 <button key={s} type="button" aria-pressed={scale === s} onClick={() => setScale(s)}>
-                  {SCALES[s].label}
+                  {SCALE_LABELS[s]}
                 </button>
               ))}
             </div>
@@ -148,40 +209,65 @@ export function TimelinePage() {
             <div className={`${styles.label} ${styles.headLabel}`}>Tarea</div>
             <div className={styles.lane} style={{ width: laneWidth }}>
               <div className={styles.months}>
-                {months.map((m, i) => (
-                  <span key={i} style={{ width: m.span * dayWidth }}>
-                    {m.span * dayWidth >= 70 ? m.label : ''}
-                  </span>
-                ))}
+                {scale === 'dia' ? (
+                  <span style={{ width: laneWidth }}>{fullDay.format(windowStart)}</span>
+                ) : (
+                  months.map((m, i) => (
+                    <span key={i} style={{ width: m.span * dayWidth }}>
+                      {m.span * dayWidth >= 70 ? m.label : ''}
+                    </span>
+                  ))
+                )}
               </div>
               <div className={styles.days}>
-                {scale === 'dia'
-                  ? dayList.map((d, i) => (
-                      <span
-                        key={i}
-                        style={{ width: dayWidth }}
-                        className={[i === todayOffset && styles.isToday, (d.getDay() === 0 || d.getDay() === 6) && styles.weekend].filter(Boolean).join(' ')}
-                      >
-                        <small>{DOW[d.getDay()]}</small>
-                        {d.getDate()}
-                      </span>
-                    ))
-                  : dayList
-                      .filter((_, i) => i % 7 === 0)
-                      .map((d, i) => (
-                        <span key={i} style={{ width: dayWidth * 7 }}>
-                          {shortDay.format(d)}
+                {scale === 'dia' &&
+                  Array.from({ length: 24 }, (_, h) => (
+                    <span
+                      key={h}
+                      style={{ width: columnWidth }}
+                      className={todayX !== null && now.getHours() === h ? styles.isToday : undefined}
+                    >
+                      <small>{h < 12 ? 'a.m.' : 'p.m.'}</small>
+                      {String(h).padStart(2, '0')}:00
+                    </span>
+                  ))}
+                {scale === 'semana' &&
+                  dayList.map((d, i) => (
+                    <span
+                      key={i}
+                      style={{ width: dayWidth }}
+                      className={[d.getTime() === today.getTime() && styles.isToday, (d.getDay() === 0 || d.getDay() === 6) && styles.weekend]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <small>{weekdayName.format(d)}</small>
+                      {d.getDate()}
+                    </span>
+                  ))}
+                {scale === 'mes' &&
+                  dayList
+                    .filter((_, i) => i % 7 === 0)
+                    .map((d, i) => {
+                      const end = addDays(d, 6)
+                      const current = today >= d && today <= end
+                      return (
+                        <span key={i} style={{ width: columnWidth }} className={current ? styles.isToday : undefined}>
+                          <small>
+                            {shortDay.format(d)} – {shortDay.format(end)}
+                          </small>
+                          Semana {i + 1}
                         </span>
-                      ))}
+                      )
+                    })}
               </div>
             </div>
           </div>
 
           {groups.map((g) => {
             const open = !closed[g.key]
-            const spans = g.tasks.map(taskSpan).filter((s): s is NonNullable<typeof s> => !!s)
-            const gStart = Math.min(...spans.map((s) => daysBetween(windowStart, s.start)))
-            const gEnd = Math.max(...spans.map((s) => daysBetween(windowStart, s.end)))
+            const extents = g.tasks.map((t) => taskExtent(t, axis)).filter((e): e is NonNullable<typeof e> => !!e)
+            const gLeft = Math.max(0, Math.min(...extents.map((e) => e.left)))
+            const gRight = Math.min(laneWidth, Math.max(...extents.map((e) => e.right)))
             const pct = Math.round(g.tasks.reduce((sum, t) => sum + taskProgress(t), 0) / g.tasks.length)
             return (
               <div key={g.key} role="group" aria-label={g.name}>
@@ -205,13 +291,13 @@ export function TimelinePage() {
                     <span
                       className={styles.groupBar}
                       style={{
-                        left: Math.max(gStart, 0) * dayWidth,
-                        width: Math.max((Math.min(gEnd, days - 1) - Math.max(gStart, 0) + 1) * dayWidth, 4),
+                        left: gLeft,
+                        width: Math.max(gRight - gLeft, 4),
                         background: dotColor(g.color),
                       }}
                       aria-hidden="true"
                     />
-                    <TodayLine offset={todayOffset} dayWidth={dayWidth} days={days} />
+                    <TodayLine x={todayX} />
                   </div>
                 </div>
                 {open &&
@@ -243,8 +329,9 @@ export function TimelinePage() {
                             </Link>
                           </div>
                           <div className={styles.lane} style={gridBg}>
-                            <TodayLine offset={todayOffset} dayWidth={dayWidth} days={days} />
-                            <Bar task={t} color={g.color} windowStart={windowStart} dayWidth={dayWidth} />
+                            <TodayLine x={todayX} />
+                            <Bar task={t} color={g.color} axis={axis} />
+                            <Completion task={t} axis={axis} />
                           </div>
                         </div>
                         {isOpen &&
@@ -259,9 +346,12 @@ export function TimelinePage() {
                                 </Link>
                               </div>
                               <div className={styles.lane} style={gridBg}>
-                                <TodayLine offset={todayOffset} dayWidth={dayWidth} days={days} />
+                                <TodayLine x={todayX} />
                                 {taskSpan(st) ? (
-                                  <Bar task={st} color={g.color} windowStart={windowStart} dayWidth={dayWidth} />
+                                  <>
+                                    <Bar task={st} color={g.color} axis={axis} />
+                                    <Completion task={st} axis={axis} />
+                                  </>
                                 ) : (
                                   <span className={styles.noDates}>Sin fechas</span>
                                 )}
@@ -294,18 +384,52 @@ export function TimelinePage() {
         <span>
           <span className={styles.legendSummary} /> Tarea con subtareas: va de la primera a la última subtarea
         </span>
+        <span>
+          <span className={`${styles.legendMark} ${styles.dueMarkColor}`} /> Fecha límite de una tarea terminada
+        </span>
+        <span>
+          <span className={`${styles.legendMark} ${styles.doneMarkColor}`} /> Terminada a tiempo
+          <span className={`${styles.legendLine} ${styles.linkEarly}`} />
+        </span>
+        <span>
+          <span className={`${styles.legendMark} ${styles.doneLateColor}`} /> Terminada con retraso
+          <span className={`${styles.legendLine} ${styles.linkLate}`} />
+        </span>
         <span>Arrastra una barra para moverla o sus bordes para cambiar las fechas. Las tareas sin fechas no aparecen aquí.</span>
         <span id="timeline-keys">
-          Con teclado: flechas mueven la tarea un día; Mayús + flechas cambian la fecha límite; Alt + flechas cambian el inicio.
+          Con teclado: flechas mueven la tarea {scale === 'dia' ? 'una hora' : 'un día'}; Mayús + flechas cambian la fecha límite; Alt + flechas
+          cambian el inicio.
         </span>
       </div>
     </>
   )
 }
 
-function TodayLine({ offset, dayWidth, days }: { offset: number; dayWidth: number; days: number }) {
-  if (offset < 0 || offset >= days) return null
-  return <span className={styles.todayLine} style={{ left: offset * dayWidth + dayWidth / 2 }} aria-hidden="true" />
+/** Completed task: diamond of its due date, diamond of when it was finished, and the line between them. */
+function Completion({ task, axis }: { task: Task; axis: Axis }) {
+  const marks = completionMarks(task, axis)
+  if (!marks) return null
+  const { dueX, doneX, late } = marks
+  return (
+    <>
+      {dueX !== null && (
+        <>
+          <span
+            className={`${styles.link} ${late ? styles.linkLate : styles.linkEarly}`}
+            style={{ left: Math.min(dueX, doneX), width: Math.abs(doneX - dueX) }}
+            aria-hidden="true"
+          />
+          <span className={`${styles.mark} ${styles.dueMarkColor}`} style={{ left: dueX }} aria-hidden="true" />
+        </>
+      )}
+      <span className={`${styles.mark} ${late ? styles.doneLateColor : styles.doneMarkColor}`} style={{ left: doneX }} aria-hidden="true" />
+    </>
+  )
+}
+
+function TodayLine({ x }: { x: number | null }) {
+  if (x === null) return null
+  return <span className={styles.todayLine} style={{ left: x - 1 }} aria-hidden="true" />
 }
 
 interface DragState {
@@ -318,34 +442,35 @@ interface BarProps {
   task: Task
   /** Project color (subtasks inside a parent don't carry their project). */
   color: ProjectColor
-  windowStart: Date
-  dayWidth: number
+  axis: Axis
 }
 
 /**
  * A task bar (or a diamond when it only has a due date) that can be dragged and
  * resized. A task with dated subtasks gets a summary bar that follows them.
  */
-function Bar({ task, color, windowStart, dayWidth }: BarProps) {
+function Bar({ task, color, axis }: BarProps) {
   const navigate = useNavigate()
   const updateTask = useUpdateTask()
   const [drag, setDrag] = useState<DragState | null>(null)
   const moved = useRef(false)
   const pressX = useRef(0)
   const span = taskSpan(task)
-  if (!span) return null
+  const extent = taskExtent(task, axis)
+  if (!span || !extent) return null
 
   const summary = datesFromSubtasks(task)
   const isMarker = !task.start_at && !summary
-  const startOffset = daysBetween(windowStart, span.start)
-  const length = daysBetween(span.start, span.end) + 1
-  const d = drag?.delta ?? 0
-  const shownStart = startOffset + (drag?.mode === 'move' || drag?.mode === 'start' ? d : 0)
-  const shownLength = length + (drag?.mode === 'end' ? d : drag?.mode === 'start' ? -d : 0)
+  const unit = axis.stepWidth
+  const shift = (drag?.delta ?? 0) * unit
+  const shownLeft = extent.left + (drag?.mode === 'move' || drag?.mode === 'start' ? shift : 0)
+  const shownRight = extent.right + (drag?.mode === 'move' || drag?.mode === 'end' ? shift : 0)
+  // Diamond: its exact time on Día, the middle of its day otherwise.
+  const markerX = (task.due_at ? pointOf(axis, new Date(task.due_at)) : extent.left) + (drag?.mode === 'move' ? shift : 0)
   const pct = taskProgress(task)
 
   function save(mode: DragMode, delta: number) {
-    const input = datesAfterDrag(task, mode, delta)
+    const input = axis.exact ? datesAfterHourDrag(task, mode, delta) : datesAfterDrag(task, mode, delta)
     if (input) updateTask.mutate({ id: task.id, input })
   }
 
@@ -362,7 +487,7 @@ function Bar({ task, color, windowStart, dayWidth }: BarProps) {
   function onPointerMove(e: PointerEvent<HTMLButtonElement>) {
     if (summary && e.buttons === 1 && Math.abs(e.clientX - pressX.current) > 4) moved.current = true
     if (!drag) return
-    const delta = Math.round((e.clientX - drag.x0) / dayWidth)
+    const delta = Math.round((e.clientX - drag.x0) / unit)
     if (Math.abs(e.clientX - drag.x0) > 4) moved.current = true
     if (delta !== drag.delta) setDrag({ ...drag, delta })
   }
@@ -379,19 +504,29 @@ function Bar({ task, color, windowStart, dayWidth }: BarProps) {
     save(e.shiftKey ? 'end' : e.altKey ? 'start' : 'move', e.key === 'ArrowLeft' ? -1 : 1)
   }
 
-  const label = `${task.parent_id ? 'Subtarea ' : ''}${task.title}: ${task.start_at ? `del ${longDay.format(span.start)} al ` : 'vence el '}${longDay.format(span.end)}, ${pct}% de avance${summary ? '. Sus fechas siguen a sus subtareas' : ''}`
-  const width = Math.max(shownLength, 1) * dayWidth
+  const finished = task.completed_at
+    ? `. Terminada ${formatDone(task.completed_at)}${task.due_at ? (new Date(task.completed_at) > new Date(task.due_at) ? ', con retraso' : ', a tiempo') : ''}`
+    : ''
+  const label = `${task.parent_id ? 'Subtarea ' : ''}${task.title}: ${task.start_at ? `del ${longDay.format(span.start)} al ` : 'vence el '}${longDay.format(span.end)}, ${pct}% de avance${summary ? '. Sus fechas siguen a sus subtareas' : ''}${finished}`
+  const width = Math.max(shownRight - shownLeft, axis.exact ? 12 : axis.dayWidth)
 
   return (
     <button
       type="button"
-      className={[isMarker ? styles.marker : styles.bar, summary && styles.barSummary, drag && styles.barDragging, task.completed && styles.barDone]
+      className={[
+        isMarker ? styles.marker : styles.bar,
+        summary && styles.barSummary,
+        drag && styles.barDragging,
+        task.completed && styles.barDone,
+        // Its due-date diamond is drawn by <Completion>; this one stays only to be clicked.
+        isMarker && task.completed_at && styles.markerGhost,
+      ]
         .filter(Boolean)
         .join(' ')}
       style={
         isMarker
-          ? { left: shownStart * dayWidth + dayWidth / 2 - 11, borderColor: dotColor(color) }
-          : { left: shownStart * dayWidth + 2, width: width - 4, ...chipStyle(color) }
+          ? { left: markerX - 11, borderColor: dotColor(color) }
+          : { left: shownLeft + 2, width: width - 4, ...chipStyle(color) }
       }
       aria-label={label}
       aria-describedby={summary ? undefined : 'timeline-keys'}

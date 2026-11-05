@@ -62,7 +62,9 @@ export async function api<T>(method: Method, path: string, body?: unknown): Prom
   if (method !== 'GET') await ensureCsrfCookie()
 
   const headers: Record<string, string> = { Accept: 'application/json' }
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // FormData (file uploads) sets its own multipart Content-Type.
+  const isForm = body instanceof FormData
+  if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
   const xsrf = readCookie('XSRF-TOKEN')
   if (xsrf) headers['X-XSRF-TOKEN'] = xsrf
   if (socketId) headers['X-Socket-ID'] = socketId
@@ -71,7 +73,7 @@ export async function api<T>(method: Method, path: string, body?: unknown): Prom
     method,
     headers,
     credentials: 'same-origin',
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
   })
 
   if (response.status === 204) return undefined as T

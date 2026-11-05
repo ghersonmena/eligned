@@ -19,7 +19,7 @@ function todayInput() {
 export function TimeSection({ task }: { task: Task }) {
   const { data } = useTimeEntries(task.id)
   const { data: timer } = useTimer()
-  const running = timer?.data?.task_id === task.id ? timer.data : null
+  const running = timer?.data.find((e) => e.task_id === task.id) ?? null
   const elapsed = useElapsed(running?.started_at)
   const add = useAddTimeEntry(task.id)
   const remove = useDeleteTimeEntry()
@@ -86,7 +86,7 @@ export function TimeSection({ task }: { task: Task }) {
           </label>
           <label className={styles.noteField}>
             Nota (opcional)
-            <input type="text" maxLength={255} value={note} placeholder="¿Qué hiciste?" onChange={(e) => setNote(e.target.value)} />
+            <input type="text" className="caps" autoCapitalize="characters" maxLength={255} value={note} placeholder="¿Qué hiciste?" onChange={(e) => setNote(e.target.value)} />
           </label>
           <button type="submit" className={styles.save} disabled={minutes < 1 || minutes > 1440 || add.isPending}>
             {add.isPending ? 'Guardando…' : 'Guardar'}

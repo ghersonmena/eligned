@@ -16,6 +16,17 @@
 }
 
 /* ---------- Top bar pill ---------- */
+.pills {
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+}
+
+/* Several timers: narrower pills side by side. */
+.pillsMany .pill {
+  max-width: 240px;
+}
+
 .pill {
   min-width: 0;
   max-width: 360px;
@@ -308,6 +319,10 @@
   background: rgb(255 255 255 / 25%);
 }
 
+.cardRunning + .cardRunning {
+  margin-top: 8px;
+}
+
 .cardClock {
   font-size: 26px;
   font-weight: 800;
@@ -337,10 +352,16 @@
 }
 
 @media (max-width: 860px) {
-  .pill {
-    max-width: 100%;
+  /* Own row under the top bar; stacked when there are several. */
+  .pills {
     flex: 1 1 100%;
     order: 10;
+    flex-direction: column;
+  }
+
+  .pill,
+  .pillsMany .pill {
+    max-width: 100%;
   }
 }
 

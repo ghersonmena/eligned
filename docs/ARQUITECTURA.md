@@ -79,6 +79,7 @@ tasks ──< tasks (parent_id)                         (subtareas)
 tasks >──< users        (task_assignees)
 tasks >──< labels       (task_label)
 tasks ──< comments      (con menciones @)
+comments ──< comment_attachments (archivos en el disco privado, storage/app/private/attachments)
 tasks ──< attachments
 tasks ──< time_entries  (registro de tiempo: inicio, fin, duración, usuario)
 tasks ──< reminders     (fecha de disparo, canal, enviado)
@@ -104,7 +105,8 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
   - Regla: una tarea con subtareas fechadas toma sus fechas de ellas: inicio = la fecha más temprana de sus subtareas, límite = la más tardía. Se recalcula al crear, editar o borrar una subtarea; si se editan las fechas de la tarea principal, se vuelven a calcular. Sin subtareas fechadas, la tarea conserva sus propias fechas.
 - Tiempo y avisos (fase 3):
   - `GET tasks/{id}/activity`: historial de la tarea (quién hizo qué y cuándo). Lo escribe un observador del modelo `Task` y, aparte, comentarios, asignaciones, subtareas y tiempo. Cada cambio de campo guarda `[antes, después]`; los cambios automáticos (por subtareas) llevan `reason: subtasks`.
-  - Tiempo: `POST tasks/{id}/timer` inicia el cronómetro (detiene el que estuviera corriendo; uno por persona), `POST timer/stop`, `GET timer?since=` (cronómetro activo y minutos de hoy), `GET|POST tasks/{id}/time-entries` (registros y tiempo a mano), `DELETE time-entries/{id}` (solo su autor). Completar una tarea detiene su cronómetro. Las tareas traen `tracked_minutes`.
+  - Tiempo: `POST tasks/{id}/timer` inicia el cronómetro de esa tarea (puede haber varios corriendo a la vez; repetirlo no abre otro), `POST timer/stop` (con `task_id` detiene solo ese, sin él todos), `GET timer?since=` (cronómetros activos y minutos de hoy), `GET|POST tasks/{id}/time-entries` (registros y tiempo a mano), `DELETE time-entries/{id}` (solo su autor). Completar una tarea detiene su cronómetro. Las tareas traen `tracked_minutes`.
+  - Comentarios: `POST tasks/{id}/comments` acepta texto y/o hasta 5 archivos de 10 MB (`attachments[]`, multipart: imágenes, PDF, Office, texto, ZIP). `GET attachments/{id}` los sirve solo a miembros del espacio (imágenes en línea, lo demás como descarga). Borrar el comentario borra sus archivos.
   - Notificaciones: `GET notifications` (últimas 50 + `unread_count`), `POST notifications/{id}/read`, `POST notifications/read-all`. Tipos: `reminder`, `due_soon`, `assigned`, `commented`.
   - Recordatorios: `GET|POST tasks/{id}/reminders` con `remind_at` (momento fijo) u `offset_minutes` (antes del vencimiento; se mueve si cambia la fecha límite), `DELETE reminders/{id}`.
   - Avisos automáticos (`alerts:send`, cada minuto): recordatorios vencidos y "vence pronto" según las preferencias de cada persona (`due_notice_minutes` para tareas con hora; `all_day_notice` + `all_day_notice_time` para las de todo el día, en su `timezone`). Cada aviso automático sale una vez por fecha límite (`task_alerts`).

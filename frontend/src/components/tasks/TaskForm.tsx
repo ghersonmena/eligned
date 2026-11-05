@@ -97,7 +97,8 @@ export function TaskForm({
       <label className={styles.field}>
         Título
         <input
-          className={styles.titleInput}
+          className={`${styles.titleInput} caps`}
+          autoCapitalize="characters"
           value={values.title}
           maxLength={255}
           required
@@ -250,6 +251,8 @@ export function TaskForm({
         Descripción
         <textarea
           rows={4}
+          className="caps"
+          autoCapitalize="characters"
           placeholder="Agrega detalles, pasos o enlaces…"
           value={values.description}
           maxLength={20000}

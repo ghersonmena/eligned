@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type ClipboardEvent, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { ApiError } from '../api/client'
 import type { Task } from '../api/types'
 import { Icon } from '../components/Icon'
 import { TaskForm } from '../components/tasks/TaskForm'
@@ -7,6 +8,8 @@ import { ActivityList } from '../components/tasks/ActivityList'
 import { RemindersSection } from '../components/notifications/RemindersSection'
 import { TimeSection } from '../components/time/TimeSection'
 import { DoneStamp } from '../components/tasks/DoneStamp'
+import { AttachmentList, PendingFiles } from '../components/tasks/Attachments'
+import { ACCEPT, MAX_BYTES, MAX_FILES } from '../lib/attachments'
 import { CompleteCheckbox } from '../components/tasks/TaskRow'
 import { useMe } from '../hooks/useAuth'
 import {
@@ -215,6 +218,8 @@ function Subtasks({ task }: { task: Task }) {
         <input
           id="new-subtask"
           placeholder="Nueva subtarea"
+          className="caps"
+          autoCapitalize="characters"
           value={title}
           maxLength={255}
           onChange={(e) => setTitle(e.target.value)}
@@ -230,15 +235,49 @@ function Subtasks({ task }: { task: Task }) {
 function Comments({ task }: { task: Task }) {
   const { data: user } = useMe()
   const [body, setBody] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const [fileError, setFileError] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
   const addComment = useAddComment(task.id)
   const deleteComment = useDeleteComment(task.id)
   const comments = task.comments ?? []
+  const canSend = (body.trim() !== '' || files.length > 0) && !addComment.isPending
+
+  function addFiles(list: FileList | File[]) {
+    const incoming = [...list]
+    const tooBig = incoming.filter((f) => f.size > MAX_BYTES)
+    const ok = incoming.filter((f) => f.size <= MAX_BYTES)
+    const next = [...files, ...ok].slice(0, MAX_FILES)
+    setFiles(next)
+    if (tooBig.length) setFileError(`"${tooBig[0].name}" pesa más de 10 MB.`)
+    else if (files.length + ok.length > MAX_FILES) setFileError(`Puedes adjuntar hasta ${MAX_FILES} archivos por comentario.`)
+    else setFileError(null)
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault()
-    const trimmed = body.trim()
-    if (trimmed) addComment.mutate(trimmed, { onSuccess: () => setBody('') })
+    if (!canSend) return
+    addComment.mutate(
+      { body: body.trim(), files },
+      {
+        onSuccess: () => {
+          setBody('')
+          setFiles([])
+          setFileError(null)
+        },
+      },
+    )
   }
+
+  // Images pasted into the comment box are attached.
+  function onPaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const pasted = [...event.clipboardData.files]
+    if (pasted.length === 0) return
+    event.preventDefault()
+    addFiles(pasted)
+  }
+
+  const serverError = addComment.error instanceof ApiError ? Object.values(addComment.error.errors)[0]?.[0] ?? addComment.error.message : null
 
   return (
     <section className={pageStyles.card} aria-labelledby="comments-title">
@@ -255,7 +294,8 @@ function Comments({ task }: { task: Task }) {
                 <strong>{c.author?.id === user?.id ? 'Tú' : (c.author?.name ?? 'Usuario eliminado')}</strong> ·{' '}
                 {commentDate.format(new Date(c.created_at))}
               </span>
-              <p>{c.body}</p>
+              {c.body && <p>{c.body}</p>}
+              {c.attachments && c.attachments.length > 0 && <AttachmentList items={c.attachments} />}
             </div>
             {c.can_delete && (
               <button
@@ -263,7 +303,7 @@ function Comments({ task }: { task: Task }) {
                 className={styles.iconButton}
                 aria-label="Eliminar comentario"
                 disabled={deleteComment.isPending}
-                onClick={() => window.confirm('¿Eliminar este comentario?') && deleteComment.mutate(c.id)}
+                onClick={() => window.confirm('¿Eliminar este comentario y sus archivos?') && deleteComment.mutate(c.id)}
               >
                 <Icon name="trash" size={16} />
               </button>
@@ -271,20 +311,52 @@ function Comments({ task }: { task: Task }) {
           </li>
         ))}
       </ul>
+      <PendingFiles files={files} onRemove={(i) => setFiles(files.filter((_, j) => j !== i))} />
+      {(fileError || serverError) && (
+        <p className={pageStyles.error} role="alert">
+          {fileError ?? serverError}
+        </p>
+      )}
       <form className={styles.inlineForm} onSubmit={onSubmit}>
         <label className="visually-hidden" htmlFor="new-comment">
           Escribe un comentario
         </label>
+        <input
+          ref={fileInput}
+          type="file"
+          multiple
+          accept={ACCEPT}
+          className="visually-hidden"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(e) => {
+            if (e.target.files) addFiles(e.target.files)
+            e.target.value = ''
+          }}
+        />
+        <button
+          type="button"
+          className={styles.attachButton}
+          aria-label="Adjuntar fotos o archivos"
+          title="Adjuntar fotos o archivos"
+          disabled={files.length >= MAX_FILES}
+          onClick={() => fileInput.current?.click()}
+        >
+          <Icon name="clip" size={20} />
+        </button>
         <textarea
           id="new-comment"
           rows={2}
-          placeholder="Escribe un comentario…"
+          className="caps"
+          autoCapitalize="characters"
+          placeholder="Escribe un comentario o pega una imagen…"
           value={body}
           maxLength={5000}
           onChange={(e) => setBody(e.target.value)}
+          onPaste={onPaste}
         />
-        <button type="submit" disabled={!body.trim() || addComment.isPending}>
-          {addComment.isPending ? 'Enviando…' : 'Enviar'}
+        <button type="submit" disabled={!canSend}>
+          {addComment.isPending ? (files.length ? 'Subiendo…' : 'Enviando…') : 'Enviar'}
         </button>
       </form>
     </section>

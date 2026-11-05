@@ -26,6 +26,7 @@ const PATHS = {
   flag: 'M5 21V4h11l-2 4 2 4H5',
   archive: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4',
   edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+  clip: 'M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7',
 } as const
 
 export type IconName = keyof typeof PATHS

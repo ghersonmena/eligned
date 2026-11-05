@@ -100,7 +100,7 @@ export function AppLayout({ user }: { user: User }) {
             aria-current={mobileActive(item.to, pathname) ? 'page' : undefined}
           >
             <Icon name={item.icon} size={22} />
-            {item.label}
+            {item.shortLabel ?? item.label}
           </Link>
         ))}
       </nav>

@@ -13,36 +13,40 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/** Time tracking: one running timer per person, plus entries added by hand. */
+/** Time tracking: running timers (several at once are allowed), plus entries added by hand. */
 class TimeEntryController extends Controller
 {
     /**
-     * The signed-in user's running timer (or null) and the minutes they logged
-     * since `since` (the start of their local day, sent by the app).
+     * The signed-in user's running timers (oldest first) and the minutes they
+     * logged since `since` (the start of their local day, sent by the app).
      */
     public function current(Request $request): JsonResponse
     {
         $request->validate(['since' => ['sometimes', 'date']]);
         $userId = $request->user()->id;
-        $entry = TimeEntry::running()->where('user_id', $userId)->with('task.project')->first();
+        $entries = TimeEntry::running()->where('user_id', $userId)->with('task.project')->oldest('started_at')->get();
         $since = $request->date('since') ?? now()->startOfDay();
 
         return response()->json([
-            'data' => $entry ? new TimeEntryResource($entry) : null,
+            'data' => TimeEntryResource::collection($entries),
             'today_minutes' => (int) TimeEntry::where('user_id', $userId)->whereNotNull('ended_at')->where('started_at', '>=', $since)->sum('minutes'),
         ]);
     }
 
-    /** Starts a timer on a task, stopping the one that was running. */
+    /**
+     * Starts a timer on a task. Timers on other tasks keep running; starting
+     * one that is already running returns it unchanged.
+     */
     public function start(Request $request, Task $task): TimeEntryResource
     {
         Gate::authorize('update', $task);
         abort_if($task->isCompleted(), 422, 'La tarea ya está terminada.');
 
         $entry = DB::transaction(function () use ($request, $task) {
-            TimeEntry::running()->where('user_id', $request->user()->id)->lockForUpdate()->get()->each->stop();
+            $running = TimeEntry::running()->where('user_id', $request->user()->id)
+                ->where('task_id', $task->id)->lockForUpdate()->first();
 
-            return TimeEntry::create([
+            return $running ?? TimeEntry::create([
                 'workspace_id' => $task->workspace_id,
                 'task_id' => $task->id,
                 'user_id' => $request->user()->id,
@@ -55,12 +59,16 @@ class TimeEntryController extends Controller
         return new TimeEntryResource($entry->load('task.project'));
     }
 
+    /** Stops the timer of one task (`task_id`), or every running timer when it is left out. */
     public function stop(Request $request): JsonResponse
     {
-        $entry = TimeEntry::running()->where('user_id', $request->user()->id)->first();
-        $entry?->stop();
+        $request->validate(['task_id' => ['sometimes', 'integer']]);
+        $entries = TimeEntry::running()->where('user_id', $request->user()->id)
+            ->when($request->filled('task_id'), fn ($q) => $q->where('task_id', $request->integer('task_id')))
+            ->get();
+        $entries->each->stop();
 
-        return response()->json(['data' => $entry ? new TimeEntryResource($entry->load('task.project')) : null]);
+        return response()->json(['data' => TimeEntryResource::collection($entries->load('task.project'))]);
     }
 
     /** Entries of a task (newest first) and the total. */

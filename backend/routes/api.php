@@ -62,6 +62,7 @@ Route::prefix('v1')->group(function () {
         Route::post('tasks/{task}/subtasks', [TaskController::class, 'storeSubtask']);
         Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
         Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
+        Route::get('attachments/{attachment}', [CommentController::class, 'attachment']);
 
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::post('notifications/read-all', [NotificationController::class, 'readAll']);

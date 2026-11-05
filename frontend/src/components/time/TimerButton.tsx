@@ -2,12 +2,12 @@ import type { Task } from '../../api/types'
 import { useStartTimer, useStopTimer, useTimer } from '../../hooks/useWorkspaceData'
 import styles from './time.module.css'
 
-/** ▶ / ■ for one task. Starting it stops whatever else was running. */
+/** ▶ / ■ for one task. Other tasks' timers keep running. */
 export function TimerButton({ task, large = false }: { task: Task; large?: boolean }) {
   const { data } = useTimer()
   const start = useStartTimer()
   const stop = useStopTimer()
-  const running = data?.data?.task_id === task.id
+  const running = !!data?.data.some((e) => e.task_id === task.id)
   if (task.completed && !running) return null
   const busy = start.isPending || stop.isPending
 
@@ -17,7 +17,7 @@ export function TimerButton({ task, large = false }: { task: Task; large?: boole
         type="button"
         className={running ? styles.bigStop : styles.bigStart}
         disabled={busy}
-        onClick={() => (running ? stop.mutate() : start.mutate(task.id))}
+        onClick={() => (running ? stop.mutate(task.id) : start.mutate(task.id))}
       >
         {running ? <span className={styles.square} aria-hidden="true" /> : <span className={styles.play} aria-hidden="true" />}
         {running ? 'Detener cronómetro' : 'Iniciar cronómetro'}
@@ -32,7 +32,7 @@ export function TimerButton({ task, large = false }: { task: Task; large?: boole
       aria-label={running ? `Detener cronómetro de "${task.title}"` : `Iniciar cronómetro en "${task.title}"`}
       title={running ? 'Detener cronómetro' : 'Iniciar cronómetro'}
       disabled={busy}
-      onClick={() => (running ? stop.mutate() : start.mutate(task.id))}
+      onClick={() => (running ? stop.mutate(task.id) : start.mutate(task.id))}
     >
       {running ? <span className={styles.square} aria-hidden="true" /> : <span className={styles.play} aria-hidden="true" />}
     </button>

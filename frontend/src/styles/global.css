@@ -42,3 +42,12 @@ a {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Free text is kept in capitals (see lib/text.ts); hints stay as written. */
+.caps {
+  text-transform: uppercase;
+}
+
+.caps::placeholder {
+  text-transform: none;
+}
