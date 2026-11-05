@@ -321,6 +321,10 @@
   overflow-wrap: anywhere;
 }
 
+.doneLine {
+  margin: -6px 0 0;
+}
+
 .autoNote,
 .hintText {
   margin: 0;

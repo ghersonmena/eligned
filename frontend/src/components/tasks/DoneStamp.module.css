@@ -1,0 +1,24 @@
+.stamp {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  color: var(--c-green-fg);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.stamp svg {
+  flex-shrink: 0;
+}
+
+.onTime {
+  color: var(--c-green-fg);
+  font-weight: 600;
+}
+
+.late {
+  color: var(--c-amber-fg);
+  font-weight: 700;
+}

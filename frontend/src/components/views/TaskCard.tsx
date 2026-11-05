@@ -3,6 +3,7 @@ import type { Task } from '../../api/types'
 import { chipStyle, priorityInfo } from '../../lib/colors'
 import { dueGroup, formatDue } from '../../lib/dates'
 import { initials } from '../../lib/initials'
+import { DoneStamp } from '../tasks/DoneStamp'
 import { Icon } from '../Icon'
 import styles from './views.module.css'
 
@@ -77,9 +78,10 @@ export function TaskCard({ task, next, dragging }: TaskCardProps) {
           </span>
         </div>
       )}
-      {(task.due_at || !!task.comments_count || !!task.assignees?.length) && (
+      {(task.due_at || task.completed || !!task.comments_count || !!task.assignees?.length) && (
         <div className={styles.cardMeta}>
-          {task.due_at && (
+          {task.completed && <DoneStamp task={task} />}
+          {task.due_at && !task.completed && (
             <span className={`${styles.metaItem} ${group === 'overdue' ? styles.overdue : group === 'today' ? styles.today : ''}`}>
               <Icon name="calendar" size={14} />
               {formatDue(task.due_at)}

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import type { Task } from '../api/types'
 import { Icon } from '../components/Icon'
 import { TaskForm } from '../components/tasks/TaskForm'
+import { DoneStamp } from '../components/tasks/DoneStamp'
 import { CompleteCheckbox } from '../components/tasks/TaskRow'
 import { useMe } from '../hooks/useAuth'
 import {
@@ -86,6 +87,11 @@ function TaskDetail({ task }: { task: Task }) {
         <CompleteCheckbox task={task} className={styles.bigCheck} />
         <h1 className={`${styles.title} ${task.completed ? styles.titleDone : ''}`}>{task.title}</h1>
       </div>
+      {task.completed && (
+        <p className={styles.doneLine}>
+          <DoneStamp task={task} long />
+        </p>
+      )}
       {task.completed && task.subtasks_count ? (
         <p className={styles.autoNote}>Completada: todas sus subtareas están terminadas.</p>
       ) : null}
@@ -177,6 +183,7 @@ function Subtasks({ task }: { task: Task }) {
             <Link to={`/tareas/${s.id}`} className={s.completed ? styles.subtaskDone : undefined}>
               {s.title}
             </Link>
+            <DoneStamp task={s} />
             {deletingId === s.id ? (
               <span className={styles.inlineStatus} role="status">
                 <span className={styles.spinner} aria-hidden="true" /> Eliminando…

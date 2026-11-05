@@ -14,6 +14,7 @@ import { useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'r
 import { Link } from 'react-router'
 import type { Task } from '../api/types'
 import { Icon } from '../components/Icon'
+import { DoneStamp } from '../components/tasks/DoneStamp'
 import { CompleteCheckbox } from '../components/tasks/TaskRow'
 import { ViewFilters } from '../components/views/ViewFilters'
 import { ViewHeader } from '../components/views/ViewHeader'
@@ -360,6 +361,7 @@ export function CalendarPage() {
                         {t.project && ` · ${t.project.name}`}
                       </span>
                       {t.parent && <span className={styles.agendaParent}>Subtarea de {t.parent.title}</span>}
+                      <DoneStamp task={t} />
                     </Link>
                   </li>
                 ))}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dueGroup, formatDue, fromInputs, toDateInput, toTimeInput } from './dates'
+import { dueGroup, finishedLate, formatDone, formatDue, fromInputs, toDateInput, toTimeInput } from './dates'
 
 const now = new Date(2026, 9, 30, 9, 0) // viernes 30 oct 2026, 9:00
 const local = (d: number, h = 23, m = 59, month = 9) => new Date(2026, month, d, h, m).toISOString()
@@ -35,5 +35,21 @@ describe('date inputs', () => {
     const iso = fromInputs('2026-11-02', '14:30')!
     expect(toDateInput(iso)).toBe('2026-11-02')
     expect(toTimeInput(iso)).toBe('14:30')
+  })
+})
+
+describe('finished tasks', () => {
+  const now = new Date(2026, 10, 4, 18, 0)
+
+  it('always shows the time it was finished', () => {
+    expect(formatDone(new Date(2026, 10, 4, 14, 32).toISOString(), now)).toMatch(/^hoy 14:32$/)
+    expect(formatDone(new Date(2026, 10, 3, 9, 5).toISOString(), now)).toMatch(/^ayer 09:05$/)
+  })
+
+  it('is late only after the due moment', () => {
+    const dayOnly = new Date(2026, 10, 4, 23, 59).toISOString()
+    expect(finishedLate({ due_at: dayOnly, completed_at: new Date(2026, 10, 4, 22, 0).toISOString() })).toBe(false)
+    expect(finishedLate({ due_at: dayOnly, completed_at: new Date(2026, 10, 5, 8, 0).toISOString() })).toBe(true)
+    expect(finishedLate({ due_at: null, completed_at: new Date().toISOString() })).toBe(false)
   })
 })

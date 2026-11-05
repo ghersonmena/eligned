@@ -7,6 +7,7 @@ import { celebrate } from '../../lib/celebrate'
 import { chipStyle, priorityInfo } from '../../lib/colors'
 import { dueGroup, formatDue } from '../../lib/dates'
 import { closesWithSubtasks } from '../../lib/timeline'
+import { DoneStamp } from './DoneStamp'
 import { initials } from '../../lib/initials'
 import { Icon } from '../Icon'
 import styles from './tasks.module.css'
@@ -66,6 +67,7 @@ export function TaskRow({ task, showProject = true }: { task: Task; showProject?
                 {formatDue(task.due_at)}
               </span>
             )}
+            <DoneStamp task={task} />
             {!!task.comments_count && (
               <span className={styles.metaItem}>
                 <Icon name="comment" size={14} />
@@ -113,6 +115,11 @@ export function TaskRow({ task, showProject = true }: { task: Task; showProject?
               <CompleteCheckbox task={st} />
               <Link to={`/tareas/${st.id}`} className={styles.rowMain}>
                 <span className={styles.rowTitle}>{st.title}</span>
+                {st.completed && (
+                  <span className={styles.meta}>
+                    <DoneStamp task={st} />
+                  </span>
+                )}
                 {st.due_at && !st.completed && (
                   <span className={styles.meta}>
                     <span className={styles.metaItem}>

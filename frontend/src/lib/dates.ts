@@ -64,6 +64,22 @@ export function formatDue(dueAt: string, now = new Date()): string {
   return `${dayMonth.format(due)}${clock}`
 }
 
+/** When a task was finished, always with the time: "Hoy 14:32", "Ayer 09:10", "lun, 3 nov 18:00"… */
+export function formatDone(completedAt: string, now = new Date()): string {
+  const done = new Date(completedAt)
+  const days = daysBetween(now, done)
+  const clock = time.format(done)
+  if (days === 0) return `hoy ${clock}`
+  if (days === -1) return `ayer ${clock}`
+  if (Math.abs(days) <= 7) return `${weekdayShort.format(done)} ${clock}`
+  return `${dayMonth.format(done)} ${clock}`
+}
+
+/** Finished after its due date (a day-only date counts until 23:59 of that day). */
+export function finishedLate(task: { due_at: string | null; completed_at: string | null }): boolean {
+  return !!task.due_at && !!task.completed_at && new Date(task.completed_at).getTime() > new Date(task.due_at).getTime()
+}
+
 /** Value for <input type="date"> (local day) from an API date. */
 export function toDateInput(dueAt: string | null): string {
   if (!dueAt) return ''
