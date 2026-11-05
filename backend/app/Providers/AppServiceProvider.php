@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\LiveUpdates;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\ServiceProvider;
@@ -13,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LiveUpdates::class);
     }
 
     /**
@@ -21,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Announce the changes of this request/command once it is done.
+        $this->app->terminating(fn () => $this->app->make(LiveUpdates::class)->flush());
+
         VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
             return (new MailMessage)
                 ->subject('Confirma tu correo')

@@ -37,6 +37,19 @@ function readCookie(name: string): string | null {
 
 let csrfReady: Promise<void> | null = null
 
+/** Websocket id of this tab: the API then skips echoing our own changes back to us. */
+let socketId: string | null = null
+export function setSocketId(id: string | null) {
+  socketId = id
+}
+
+/** XSRF header value for requests made outside this wrapper (websocket auth). */
+export function xsrfToken(): string | null {
+  return readCookie('XSRF-TOKEN')
+}
+
+export { ensureCsrfCookie }
+
 function ensureCsrfCookie(): Promise<void> {
   if (readCookie('XSRF-TOKEN')) return Promise.resolve()
   csrfReady ??= fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' }).then(() => undefined)
@@ -52,6 +65,7 @@ export async function api<T>(method: Method, path: string, body?: unknown): Prom
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   const xsrf = readCookie('XSRF-TOKEN')
   if (xsrf) headers['X-XSRF-TOKEN'] = xsrf
+  if (socketId) headers['X-Socket-ID'] = socketId
 
   const response = await fetch(`${API_PREFIX}${path}`, {
     method,

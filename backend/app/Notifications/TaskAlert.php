@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
@@ -48,7 +49,13 @@ class TaskAlert extends Notification implements ShouldQueue
      */
     public function via(User $notifiable): array
     {
-        return ['database'];
+        // database: the bell; broadcast: the live popup and badge.
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(User $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 
     /**

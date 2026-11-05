@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
 import { authApi, type LoginInput, type Preferences, type RegisterInput, type User } from '../api/auth'
+import { stopRealtime } from '../lib/realtime'
 
 const ME_KEY = ['me'] as const
 
@@ -39,6 +40,7 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
+      stopRealtime()
       queryClient.setQueryData(ME_KEY, null)
       queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' })
     },

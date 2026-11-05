@@ -116,6 +116,22 @@ export function SettingsPage({ user }: { user: User }) {
             </button>
           </div>
         </div>
+        <div className={styles.row}>
+          <span>
+            <strong>Avisos emergentes</strong>
+            <small>Muestra cada aviso en una ventanita mientras usas la app.</small>
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={user.preferences.popups}
+            aria-label="Avisos emergentes"
+            className={styles.switch}
+            onClick={() => updatePreferences.mutate({ popups: !user.preferences.popups })}
+          >
+            <span />
+          </button>
+        </div>
         <p className={styles.settingNote}>Zona horaria: {user.preferences.timezone}</p>
       </section>
       <section className={styles.card}>

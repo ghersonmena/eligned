@@ -7,7 +7,9 @@ import { Icon } from './Icon'
 import { Logo } from './Logo'
 import { SavingIndicator } from './SavingIndicator'
 import { useUpdatePreferences } from '../hooks/useAuth'
+import { useRealtime } from '../hooks/useRealtime'
 import { NotificationBell } from './notifications/NotificationBell'
+import { Toasts } from './notifications/Toasts'
 import { TimerPill } from './time/TimerPill'
 import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
@@ -27,6 +29,8 @@ export function AppLayout({ user }: { user: User }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [todayLabel] = useState(() => today.format(new Date()))
+
+  useRealtime(user)
 
   // Alerts are computed on the server in the person's timezone: keep it in sync with this device.
   const updatePreferences = useUpdatePreferences()
@@ -84,6 +88,8 @@ export function AppLayout({ user }: { user: User }) {
         </header>
         <Outlet />
       </div>
+
+      <Toasts />
 
       <nav className={styles.bottomNav} aria-label="Principal (móvil)">
         {MOBILE_NAV_ITEMS.map((item) => (

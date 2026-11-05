@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TimeEntry;
+use App\Support\LiveUpdates;
 
 /** Writes the task history. Ordering fields (position, board_position) are not history. */
 class TaskObserver
@@ -25,6 +26,9 @@ class TaskObserver
 
     public function updated(Task $task): void
     {
+        // Also plain reorders (board), which are not history.
+        app(LiveUpdates::class)->touch($task->workspace_id, $task->id);
+
         $changes = [];
         foreach (self::TRACKED as $field) {
             if (! $task->wasChanged($field)) {

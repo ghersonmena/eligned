@@ -6,6 +6,7 @@ use App\Http\Resources\TimeEntryResource;
 use App\Models\Activity;
 use App\Models\Task;
 use App\Models\TimeEntry;
+use App\Support\LiveUpdates;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -48,6 +49,8 @@ class TimeEntryController extends Controller
                 'started_at' => now(),
             ]);
         });
+
+        app(LiveUpdates::class)->touch($task->workspace_id, $task->id);
 
         return new TimeEntryResource($entry->load('task.project'));
     }

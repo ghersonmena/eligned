@@ -13,6 +13,13 @@ use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Public settings the app needs before signing in (the websocket key is public by design).
+    Route::get('config', fn () => response()->json([
+        'realtime' => config('broadcasting.default') === 'reverb'
+            ? ['key' => config('broadcasting.connections.reverb.key')]
+            : null,
+    ]));
+
     Route::prefix('auth')->group(function () {
         Route::post('register', [AuthController::class, 'register'])->middleware('throttle:10,1');
         Route::post('login', [AuthController::class, 'login'])->middleware('throttle:6,1');

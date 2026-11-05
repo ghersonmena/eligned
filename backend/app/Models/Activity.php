@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\LiveUpdates;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,8 @@ class Activity extends Model
      */
     public static function record(Task $task, string $event, ?array $changes = null): self
     {
+        app(LiveUpdates::class)->touch($task->workspace_id, $task->exists ? $task->id : null);
+
         return self::create([
             'workspace_id' => $task->workspace_id,
             'task_id' => $task->exists ? $task->id : null,
