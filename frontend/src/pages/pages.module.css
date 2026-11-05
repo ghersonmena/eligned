@@ -246,13 +246,15 @@
   line-height: 1.5;
 }
 
-/* Home: the cards keep a fixed height; "Para hoy" scrolls inside. */
+/* Home: rows grow with their tallest card; list cards ("Para hoy") grow up to 420px and then scroll inside. */
 .homeGrid {
-  grid-auto-rows: 420px;
+  grid-auto-rows: minmax(220px, auto);
 }
 
 .cardToday {
+  max-height: 420px;
   min-height: 0;
+  box-sizing: border-box;
 }
 
 .cardToday > a {
@@ -281,10 +283,6 @@
 @media (max-width: 860px) {
   .homeGrid {
     grid-auto-rows: auto;
-  }
-
-  .cardToday {
-    height: 420px;
   }
 }
 

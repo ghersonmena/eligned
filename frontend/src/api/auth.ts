@@ -16,6 +16,15 @@ export interface Preferences {
   popups: boolean
   /** Workspace the app opens (null: the first one). */
   current_workspace_id: number | null
+  /** Home cards in order, each maybe hidden (null: default layout). */
+  home_layout: HomeCardSetting[] | null
+}
+
+export type HomeCardId = 'today' | 'tracker' | 'activity' | 'goals' | 'upcoming' | 'projects' | 'team'
+
+export interface HomeCardSetting {
+  id: HomeCardId
+  hidden: boolean
 }
 
 export interface Workspace {

@@ -20,6 +20,19 @@ export function useWorkload() {
   })
 }
 
+/** My day and week (home "Actividad" card). */
+export function useSummary() {
+  const ws = useWorkspaceId()
+  return useQuery({
+    queryKey: ['ws', ws, 'summary'],
+    queryFn: () => {
+      const day = new Date()
+      day.setHours(0, 0, 0, 0)
+      return teamApi.summary(ws, day.toISOString(), startOfWeek(day).toISOString())
+    },
+  })
+}
+
 function useTeamMutation<V, R>(fn: (ws: number, vars: V) => Promise<R>, refreshMe = false) {
   const ws = useWorkspaceId()
   const client = useQueryClient()

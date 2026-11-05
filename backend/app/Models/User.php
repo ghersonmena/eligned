@@ -41,7 +41,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'popups' => true,
         // Workspace the app opens (null: the first one, usually their personal space).
         'current_workspace_id' => null,
+        // Home cards in order, each maybe hidden (null: the default layout).
+        'home_layout' => null,
     ];
+
+    /** Cards the home page can show (see HomePage in the app). */
+    public const HOME_CARDS = ['today', 'tracker', 'activity', 'goals', 'upcoming', 'projects', 'team'];
 
     /**
      * Get the attributes that should be cast.

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\Theme;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +24,9 @@ class UpdatePreferencesRequest extends FormRequest
             'all_day_notice' => ['sometimes', 'boolean'],
             'all_day_notice_time' => ['sometimes', 'date_format:H:i'],
             'popups' => ['sometimes', 'boolean'],
+            'home_layout' => ['sometimes', 'nullable', 'array', 'max:20'],
+            'home_layout.*.id' => ['required', 'distinct', Rule::in(User::HOME_CARDS)],
+            'home_layout.*.hidden' => ['required', 'boolean'],
             'current_workspace_id' => [
                 'sometimes',
                 'nullable',

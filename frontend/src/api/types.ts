@@ -243,3 +243,14 @@ export interface KeyResultInput {
   unit?: string | null
   project_id?: number | null
 }
+
+/** Home "Actividad": my tasks and time today and this week. */
+export interface Summary {
+  done_today: number
+  pending_today: number
+  done_week: number
+  pending_week: number
+  overdue: number
+  minutes_today: number
+  minutes_week: number
+}

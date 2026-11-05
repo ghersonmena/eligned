@@ -9,6 +9,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TimeEntryController;
@@ -57,6 +58,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('members/{user}', [TeamController::class, 'removeMember']);
             Route::get('invitations', [TeamController::class, 'invitations']);
             Route::get('workload', WorkloadController::class);
+            Route::get('summary', SummaryController::class);
             Route::get('goals', [GoalController::class, 'index']);
             Route::post('goals', [GoalController::class, 'store']);
             Route::post('invitations', [TeamController::class, 'invite']);

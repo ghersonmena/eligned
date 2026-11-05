@@ -83,8 +83,8 @@ comments ──< comment_attachments (archivos en el disco privado, storage/app/
 tasks ──< attachments
 tasks ──< time_entries  (registro de tiempo: inicio, fin, duración, usuario)
 tasks ──< reminders     (fecha de disparo, canal, enviado)
-workspaces ──< goals ──< key_results  (valor actual / meta)
-goals >──< projects
+workspaces ──< workspace_invitations   (correo, rol, hash del token, vence)
+workspaces ──< goals ──< key_results  (número: inicial / meta / actual; o tareas de un proyecto)
 activity_log            (quién hizo qué y cuándo; alimenta el feed y el historial)
 notifications           (notificaciones dentro de la app; tabla estándar de Laravel)
 push_subscriptions      (navegadores/dispositivos suscritos a push)
@@ -103,6 +103,12 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
   - `POST tasks/{id}/move` con `status_id` y `position` (índice en la columna): mueve la tarjeta (tarea sin subtareas o subtarea; una tarea con subtareas no es tarjeta y devuelve 422) y renumera `board_position` de la columna sin tocar el orden de las subtareas dentro de su tarea. Soltarla en una columna "hecho" la completa; si era la última subtarea abierta, también se completa la tarea principal.
   - Regla: `start_at` no puede ser posterior a `due_at`. Las fechas de inicio son de día completo (00:00 local); las fechas límite sin hora, 23:59 local.
   - Regla: una tarea con subtareas fechadas toma sus fechas de ellas: inicio = la fecha más temprana de sus subtareas, límite = la más tardía. Se recalcula al crear, editar o borrar una subtarea; si se editan las fechas de la tarea principal, se vuelven a calcular. Sin subtareas fechadas, la tarea conserva sus propias fechas.
+- Equipo y metas (fase 4):
+  - Equipo: `PATCH workspaces/{id}` (nombre), `PATCH|DELETE workspaces/{id}/members/{user}` (rol, quitar o salir), `GET|POST workspaces/{id}/invitations`, `POST invitations/{id}/renew`, `DELETE invitations/{id}`. Público: `GET invitations/{token}`; con sesión: `POST invitations/{token}/accept` (solo con la cuenta del correo invitado). El token se guarda con hash y vence en 14 días; el correo es opcional (se puede compartir el enlace). El dueño nombra administradores; los administradores gestionan miembros e invitados; los invitados solo leen.
+  - Espacio actual: preferencia `current_workspace_id` (selector en el menú de la cuenta).
+  - `GET workspaces/{id}/workload?since=` (carga por persona) y `GET workspaces/{id}/summary?day_start=&week_start=` (mi día y semana, tarjeta Actividad).
+  - Metas: `GET|POST workspaces/{id}/goals` (`?closed=1` para las cerradas), `GET|PATCH|DELETE goals/{id}`, `POST goals/{id}/key-results`, `PATCH|DELETE key-results/{id}`. Resultados clave numéricos o por tareas de un proyecto; la meta promedia su avance y calcula su estado (a tiempo, en riesgo, atrasada, lograda).
+  - Inicio personalizable: preferencia `home_layout` (orden y tarjetas ocultas).
 - Tiempo y avisos (fase 3):
   - `GET tasks/{id}/activity`: historial de la tarea (quién hizo qué y cuándo). Lo escribe un observador del modelo `Task` y, aparte, comentarios, asignaciones, subtareas y tiempo. Cada cambio de campo guarda `[antes, después]`; los cambios automáticos (por subtareas) llevan `reason: subtasks`.
   - Tiempo: `POST tasks/{id}/timer` inicia el cronómetro de esa tarea (puede haber varios corriendo a la vez; repetirlo no abre otro), `POST timer/stop` (con `task_id` detiene solo ese, sin él todos), `GET timer?since=` (cronómetros activos y minutos de hoy), `GET|POST tasks/{id}/time-entries` (registros y tiempo a mano), `DELETE time-entries/{id}` (solo su autor). Completar una tarea detiene su cronómetro. Las tareas traen `tracked_minutes`.
