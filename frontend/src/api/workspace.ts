@@ -9,6 +9,7 @@ import type {
   TaskFilters,
   TaskInput,
   TaskStatus,
+  TimeEntry,
 } from './types'
 
 interface Wrapped<T> {
@@ -52,6 +53,16 @@ export const workspaceApi = {
     api<Wrapped<Task>>('POST', `/tasks/${taskId}/subtasks`, input).then(unwrap),
 
   taskActivity: (id: number) => api<Wrapped<Activity[]>>('GET', `/tasks/${id}/activity`).then(unwrap),
+
+  timer: (since: string) =>
+    api<{ data: TimeEntry | null; today_minutes: number }>('GET', `/timer?since=${encodeURIComponent(since)}`),
+  startTimer: (taskId: number) => api<Wrapped<TimeEntry>>('POST', `/tasks/${taskId}/timer`).then(unwrap),
+  stopTimer: () => api<{ data: TimeEntry | null }>('POST', '/timer/stop').then((r) => r.data),
+  timeEntries: (taskId: number) =>
+    api<{ data: TimeEntry[]; total_minutes: number }>('GET', `/tasks/${taskId}/time-entries`),
+  addTimeEntry: (taskId: number, input: { started_at: string; minutes: number; note: string | null }) =>
+    api<Wrapped<TimeEntry>>('POST', `/tasks/${taskId}/time-entries`, input).then(unwrap),
+  deleteTimeEntry: (id: number) => api<void>('DELETE', `/time-entries/${id}`),
 
   addComment: (taskId: number, body: string) =>
     api<Wrapped<Comment>>('POST', `/tasks/${taskId}/comments`, { body }).then(unwrap),

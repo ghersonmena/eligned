@@ -6,6 +6,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,5 +49,12 @@ Route::prefix('v1')->group(function () {
         Route::post('tasks/{task}/subtasks', [TaskController::class, 'storeSubtask']);
         Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
         Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
+
+        Route::get('timer', [TimeEntryController::class, 'current']);
+        Route::post('timer/stop', [TimeEntryController::class, 'stop']);
+        Route::post('tasks/{task}/timer', [TimeEntryController::class, 'start']);
+        Route::get('tasks/{task}/time-entries', [TimeEntryController::class, 'index']);
+        Route::post('tasks/{task}/time-entries', [TimeEntryController::class, 'store']);
+        Route::delete('time-entries/{timeEntry}', [TimeEntryController::class, 'destroy']);
     });
 });

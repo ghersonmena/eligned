@@ -6,7 +6,9 @@ import { useUpdateTask } from '../../hooks/useWorkspaceData'
 import { celebrate } from '../../lib/celebrate'
 import { chipStyle, priorityInfo } from '../../lib/colors'
 import { dueGroup, formatDue } from '../../lib/dates'
+import { formatMinutes } from '../../lib/activity'
 import { closesWithSubtasks } from '../../lib/timeline'
+import { TimerButton } from '../time/TimerButton'
 import { DoneStamp } from './DoneStamp'
 import { initials } from '../../lib/initials'
 import { Icon } from '../Icon'
@@ -41,7 +43,14 @@ export function CompleteCheckbox({ task, className }: { task: Task; className?: 
   )
 }
 
-export function TaskRow({ task, showProject = true }: { task: Task; showProject?: boolean }) {
+interface TaskRowProps {
+  task: Task
+  showProject?: boolean
+  /** ▶ button to time the task right from the list. */
+  showTimer?: boolean
+}
+
+export function TaskRow({ task, showProject = true, showTimer = false }: TaskRowProps) {
   const [expanded, setExpanded] = useState(false)
   const priority = priorityInfo(task.priority)
   const group = task.due_at && !task.completed ? dueGroup(task.due_at) : null
@@ -68,6 +77,15 @@ export function TaskRow({ task, showProject = true }: { task: Task; showProject?
               </span>
             )}
             <DoneStamp task={task} />
+            {!!task.tracked_minutes && (
+              <span className={styles.metaItem} aria-label={`${formatMinutes(task.tracked_minutes)} registrados`}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <circle cx="12" cy="13" r="8" />
+                  <path d="M12 9v4l2.5 2M10 2h4" />
+                </svg>
+                {formatMinutes(task.tracked_minutes)}
+              </span>
+            )}
             {!!task.comments_count && (
               <span className={styles.metaItem}>
                 <Icon name="comment" size={14} />
@@ -90,6 +108,7 @@ export function TaskRow({ task, showProject = true }: { task: Task; showProject?
             <Icon name="chevronDown" size={14} />
           </button>
         )}
+        {showTimer && <TimerButton task={task} />}
         <span
           className={styles.priority}
           style={{ background: priority.color }}

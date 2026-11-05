@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import type { User } from '../api/auth'
 import { TaskRow } from '../components/tasks/TaskRow'
 import taskStyles from '../components/tasks/tasks.module.css'
+import { TrackerCard } from '../components/time/TrackerCard'
 import { useTasks } from '../hooks/useWorkspaceData'
 import { celebrate } from '../lib/celebrate'
 import { dueGroup } from '../lib/dates'
@@ -38,17 +39,14 @@ export function HomePage({ user }: { user: User }) {
             <div className={styles.cardScroll} tabIndex={0} aria-label="Tareas para hoy">
               <ul className={taskStyles.list}>
                 {today.map((task) => (
-                  <TaskRow key={task.id} task={task} />
+                  <TaskRow key={task.id} task={task} showTimer />
                 ))}
               </ul>
             </div>
           )}
           <Link to="/tareas">Ver todas mis tareas</Link>
         </section>
-        <section className={`${styles.card} ${styles.cardTracker}`}>
-          <h2>Registro de tiempo</h2>
-          <p>El cronómetro de tareas llega en la fase 3.</p>
-        </section>
+        <TrackerCard className={`${styles.card} ${styles.cardTracker}`} />
         <section className={`${styles.card} ${styles.cardInk}`}>
           <h2>Logros</h2>
           <p>Así se celebra cada tarea completada.</p>

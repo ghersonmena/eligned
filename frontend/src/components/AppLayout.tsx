@@ -6,6 +6,7 @@ import { useThemeStore } from '../theme/theme'
 import { Icon } from './Icon'
 import { Logo } from './Logo'
 import { SavingIndicator } from './SavingIndicator'
+import { TimerPill } from './time/TimerPill'
 import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
 import styles from './layout.module.css'
@@ -63,6 +64,7 @@ export function AppLayout({ user }: { user: User }) {
             {todayLabel}
           </span>
           <span className={styles.spacer} />
+          <TimerPill />
           <SavingIndicator />
           <ThemeToggle />
           <span className={styles.divider} />

@@ -42,6 +42,7 @@ class TaskResource extends JsonResource
             'subtasks_count' => $this->whenCounted('subtasks'),
             'subtasks_done_count' => $this->whenCounted('done_subtasks'),
             'comments_count' => $this->whenCounted('comments'),
+            'tracked_minutes' => $this->when(isset($this->tracked_minutes) || array_key_exists('tracked_minutes', $this->resource->getAttributes()), fn () => (int) $this->tracked_minutes),
             'subtasks' => TaskResource::collection($this->whenLoaded('subtasks')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'created_at' => $this->created_at,

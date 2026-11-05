@@ -1,0 +1,351 @@
+/* ---------- Shared glyphs ---------- */
+.play {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid currentColor;
+  margin-left: 2px;
+}
+
+.square {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* ---------- Top bar pill ---------- */
+.pill {
+  min-width: 0;
+  max-width: 360px;
+  min-height: 40px;
+  padding: 0 4px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--tracker);
+  color: var(--tracker-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pulse {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.pillTask {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pillTask:hover {
+  text-decoration: underline;
+}
+
+.pillClock {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.stopSmall {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--tracker-text);
+  color: var(--tracker);
+  cursor: pointer;
+}
+
+/* ---------- Small ▶ button (rows) ---------- */
+.small {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.small:hover {
+  background: var(--accent-soft);
+}
+
+.smallRunning {
+  border-color: transparent;
+  background: var(--tracker);
+  color: var(--tracker-text);
+}
+
+/* ---------- Task detail section ---------- */
+.section {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.sectionHead h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.total {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.live {
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bigStart,
+.bigStop,
+.manualToggle,
+.save {
+  min-height: 44px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bigStart,
+.save {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.bigStop {
+  background: var(--tracker);
+  color: var(--tracker-text);
+}
+
+.manualToggle {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
+.save:disabled,
+.bigStart:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.manual {
+  padding: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  border-radius: 16px;
+  background: var(--row);
+}
+
+.manual label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.manual input {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.manual input[type='number'] {
+  width: 84px;
+}
+
+.noteField {
+  flex: 1 1 200px;
+}
+
+.error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.entries {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+}
+
+.entries li {
+  min-height: 48px;
+  padding: 4px 4px 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  background: var(--row);
+}
+
+.entryTime {
+  min-width: 72px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.entryMeta {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.entryNote {
+  color: var(--text);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.entryDelete {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.entryDelete:hover {
+  background: var(--soft);
+  color: #dc2626;
+}
+
+/* ---------- Home card ---------- */
+.cardToday {
+  margin: 0;
+}
+
+.cardBig {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cardRunning {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 25%);
+}
+
+.cardClock {
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.cardTask {
+  color: inherit;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.cardStop {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--tracker-text);
+  color: var(--tracker);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .pill {
+    max-width: 100%;
+    flex: 1 1 100%;
+    order: 10;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+}

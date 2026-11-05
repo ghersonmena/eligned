@@ -99,6 +99,14 @@ class Task extends Model
     }
 
     /**
+     * @return HasMany<TimeEntry, $this>
+     */
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class);
+    }
+
+    /**
      * @return HasMany<Activity, $this>
      */
     public function activities(): HasMany

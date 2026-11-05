@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskStatus;
+use App\Models\TimeEntry;
 
 /** Writes the task history. Ordering fields (position, board_position) are not history. */
 class TaskObserver
@@ -43,6 +44,11 @@ class TaskObserver
 
         if ($changes === []) {
             return;
+        }
+
+        // Finishing a task stops the timers running on it.
+        if ($task->wasChanged('completed_at') && $task->completed_at !== null) {
+            TimeEntry::running()->where('task_id', $task->id)->get()->each->stop();
         }
 
         if ($task->activityReason) {

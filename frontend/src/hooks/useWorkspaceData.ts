@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus } from '../api/types'
+import type { ProjectInput, Task, TaskFilters, TaskInput, TaskStatus, TimeEntry } from '../api/types'
 import { workspaceApi } from '../api/workspace'
 import { spanFromSubtasks } from '../lib/timeline'
 import { useMe } from './useAuth'
@@ -206,6 +206,70 @@ export function useDeleteComment(taskId: number) {
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: keys.task(ws, taskId) })
     },
+  })
+}
+
+/* ---------- Time tracking ---------- */
+
+/** Running timer of the signed-in user, and the minutes they logged today. */
+export function useTimer() {
+  const ws = useWorkspaceId()
+  return useQuery({
+    queryKey: ['ws', ws, 'timer'],
+    queryFn: () => {
+      const midnight = new Date()
+      midnight.setHours(0, 0, 0, 0)
+      return workspaceApi.timer(midnight.toISOString())
+    },
+    // Another device may start or stop it.
+    refetchInterval: 60_000,
+  })
+}
+
+export function useTimeEntries(taskId: number) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: [...keys.task(ws, taskId), 'time'], queryFn: () => workspaceApi.timeEntries(taskId) })
+}
+
+export function useStartTimer() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (taskId: number) => workspaceApi.startTimer(taskId),
+    onSuccess: (entry) => {
+      client.setQueryData<{ data: TimeEntry | null; today_minutes: number }>(['ws', ws, 'timer'], (old) => ({
+        data: entry,
+        today_minutes: old?.today_minutes ?? 0,
+      }))
+      refreshWorkspace(client, ws)
+    },
+  })
+}
+
+export function useStopTimer() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () => workspaceApi.stopTimer(),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useAddTimeEntry(taskId: number) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { started_at: string; minutes: number; note: string | null }) => workspaceApi.addTimeEntry(taskId, input),
+    onSuccess: () => refreshWorkspace(client, ws),
+  })
+}
+
+export function useDeleteTimeEntry() {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => workspaceApi.deleteTimeEntry(id),
+    onSuccess: () => refreshWorkspace(client, ws),
   })
 }
 

@@ -4,6 +4,7 @@ import type { Task } from '../api/types'
 import { Icon } from '../components/Icon'
 import { TaskForm } from '../components/tasks/TaskForm'
 import { ActivityList } from '../components/tasks/ActivityList'
+import { TimeSection } from '../components/time/TimeSection'
 import { DoneStamp } from '../components/tasks/DoneStamp'
 import { CompleteCheckbox } from '../components/tasks/TaskRow'
 import { useMe } from '../hooks/useAuth'
@@ -121,6 +122,7 @@ function TaskDetail({ task }: { task: Task }) {
         />
       </section>
 
+      <TimeSection task={task} />
       {!task.parent_id && <Subtasks task={task} />}
       <Comments task={task} />
       <ActivityList taskId={task.id} />

@@ -60,6 +60,8 @@ export interface Task {
   subtasks_count?: number
   subtasks_done_count?: number
   comments_count?: number
+  /** Minutes logged with the timer or by hand. */
+  tracked_minutes?: number
   subtasks?: Task[]
   comments?: Comment[]
   created_at: string
@@ -108,4 +110,17 @@ export interface Activity {
   changes: Record<string, unknown> | null
   user: { id: number; name: string } | null
   created_at: string
+}
+
+export interface TimeEntry {
+  id: number
+  task_id: number
+  started_at: string
+  ended_at: string | null
+  minutes: number
+  running: boolean
+  note: string | null
+  user?: { id: number; name: string }
+  task?: { id: number; title: string; project: { name: string; color: ProjectColor } | null }
+  can_delete: boolean
 }
