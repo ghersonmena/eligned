@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 import type { ThemePreference, User } from '../api/auth'
+import { PushSettings } from '../components/notifications/PushSettings'
 import { useLogout, useUpdatePreferences } from '../hooks/useAuth'
 import { useThemeStore } from '../theme/theme'
 import styles from './pages.module.css'
@@ -132,6 +133,7 @@ export function SettingsPage({ user }: { user: User }) {
             <span />
           </button>
         </div>
+        <PushSettings />
         <p className={styles.settingNote}>Zona horaria: {user.preferences.timezone}</p>
       </section>
       <section className={styles.card}>

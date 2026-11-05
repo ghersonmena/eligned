@@ -8,6 +8,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 /**
  * Everything the app tells a person about a task: a reminder, "vence pronto",
@@ -49,8 +51,25 @@ class TaskAlert extends Notification implements ShouldQueue
      */
     public function via(User $notifiable): array
     {
-        // database: the bell; broadcast: the live popup and badge.
-        return ['database', 'broadcast'];
+        // database: the bell; broadcast: the live popup and badge;
+        // web push: devices where the person turned push on (even with the app closed).
+        return [
+            'database',
+            'broadcast',
+            ...($notifiable->pushSubscriptions()->exists() ? [WebPushChannel::class] : []),
+        ];
+    }
+
+    public function toWebPush(User $notifiable): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title($this->title)
+            ->body($this->body)
+            ->icon('/pwa-192x192.png')
+            ->badge('/pwa-64x64.png')
+            ->tag("task-{$this->taskId}-{$this->kind}")
+            ->data(['url' => "/tareas/{$this->taskId}"])
+            ->options(['TTL' => 3600 * 12]);
     }
 
     public function toBroadcast(User $notifiable): BroadcastMessage

@@ -57,7 +57,7 @@ todo_smart/
 | `app` | PHP-FPM con Laravel. |
 | `queue` | Worker de colas (recordatorios, correos, push). |
 | `scheduler` | `schedule:work`: revisa recordatorios y vencimientos cada minuto. |
-| `reverb` | Websockets. |
+| `reverb` | Websockets (puerto interno 8081, expuesto por nginx en `/app`). |
 | `postgres` | Base de datos. |
 | `redis` | Colas y caché. |
 | `vite` | Solo en desarrollo, para recarga en caliente del frontend. |
@@ -102,8 +102,17 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
   - `POST tasks/{id}/move` con `status_id` y `position` (índice en la columna): mueve la tarjeta (tarea sin subtareas o subtarea; una tarea con subtareas no es tarjeta y devuelve 422) y renumera `board_position` de la columna sin tocar el orden de las subtareas dentro de su tarea. Soltarla en una columna "hecho" la completa; si era la última subtarea abierta, también se completa la tarea principal.
   - Regla: `start_at` no puede ser posterior a `due_at`. Las fechas de inicio son de día completo (00:00 local); las fechas límite sin hora, 23:59 local.
   - Regla: una tarea con subtareas fechadas toma sus fechas de ellas: inicio = la fecha más temprana de sus subtareas, límite = la más tardía. Se recalcula al crear, editar o borrar una subtarea; si se editan las fechas de la tarea principal, se vuelven a calcular. Sin subtareas fechadas, la tarea conserva sus propias fechas.
+- Tiempo y avisos (fase 3):
+  - `GET tasks/{id}/activity`: historial de la tarea (quién hizo qué y cuándo). Lo escribe un observador del modelo `Task` y, aparte, comentarios, asignaciones, subtareas y tiempo. Cada cambio de campo guarda `[antes, después]`; los cambios automáticos (por subtareas) llevan `reason: subtasks`.
+  - Tiempo: `POST tasks/{id}/timer` inicia el cronómetro (detiene el que estuviera corriendo; uno por persona), `POST timer/stop`, `GET timer?since=` (cronómetro activo y minutos de hoy), `GET|POST tasks/{id}/time-entries` (registros y tiempo a mano), `DELETE time-entries/{id}` (solo su autor). Completar una tarea detiene su cronómetro. Las tareas traen `tracked_minutes`.
+  - Notificaciones: `GET notifications` (últimas 50 + `unread_count`), `POST notifications/{id}/read`, `POST notifications/read-all`. Tipos: `reminder`, `due_soon`, `assigned`, `commented`.
+  - Recordatorios: `GET|POST tasks/{id}/reminders` con `remind_at` (momento fijo) u `offset_minutes` (antes del vencimiento; se mueve si cambia la fecha límite), `DELETE reminders/{id}`.
+  - Avisos automáticos (`alerts:send`, cada minuto): recordatorios vencidos y "vence pronto" según las preferencias de cada persona (`due_notice_minutes` para tareas con hora; `all_day_notice` + `all_day_notice_time` para las de todo el día, en su `timezone`). Cada aviso automático sale una vez por fecha límite (`task_alerts`).
+  - Push: `POST push-subscriptions`, `POST push-subscriptions/delete`, `POST push-subscriptions/test`. Claves VAPID con `php artisan webpush:vapid`. `GET config` (público) entrega la clave de websockets y la clave pública de push.
 - Permisos con **Policies** de Laravel por espacio de trabajo y rol.
-- Eventos en tiempo real por canal privado del espacio: `task.updated`, `comment.created`, `notification.created`.
+- Tiempo real (Reverb, a través de nginx en `/app`; autorización en `POST /api/broadcasting/auth`):
+  - Canal `private-workspace.{id}`, evento `changed` con `task_ids`: se emite una vez al final de cada petición que cambió tareas (sin incluir a la pestaña que hizo el cambio, vía `X-Socket-ID`); las pantallas abiertas vuelven a pedir sus datos.
+  - Canal `private-App.Models.User.{id}`: cada notificación nueva (campana y aviso emergente).
 
 ## 7. Notificaciones y recordatorios
 

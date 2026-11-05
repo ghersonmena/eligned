@@ -6,6 +6,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimeEntryController;
@@ -17,6 +18,9 @@ Route::prefix('v1')->group(function () {
     Route::get('config', fn () => response()->json([
         'realtime' => config('broadcasting.default') === 'reverb'
             ? ['key' => config('broadcasting.connections.reverb.key')]
+            : null,
+        'push' => config('webpush.vapid.public_key')
+            ? ['public_key' => config('webpush.vapid.public_key')]
             : null,
     ]));
 
@@ -62,6 +66,10 @@ Route::prefix('v1')->group(function () {
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
         Route::post('notifications/{id}/read', [NotificationController::class, 'read']);
+
+        Route::post('push-subscriptions', [PushSubscriptionController::class, 'store']);
+        Route::post('push-subscriptions/delete', [PushSubscriptionController::class, 'destroy']);
+        Route::post('push-subscriptions/test', [PushSubscriptionController::class, 'test']);
 
         Route::get('tasks/{task}/reminders', [ReminderController::class, 'index']);
         Route::post('tasks/{task}/reminders', [ReminderController::class, 'store']);
