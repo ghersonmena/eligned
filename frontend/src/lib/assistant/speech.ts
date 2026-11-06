@@ -94,37 +94,117 @@ export function listen(handlers: {
 
 /* ---------- Talking ---------- */
 
-// Spanish voices that are women's, by the names browsers give them.
-const PREFERRED = /paulina|sabina|m[oó]nica|helena|laura|elvira|dalia|lupe|paloma|marisol|ximena|google español de estados unidos|google español/i
-
-let voice: SpeechSynthesisVoice | null | undefined
-
-function pickVoice(): SpeechSynthesisVoice | null {
-  const all = window.speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('es'))
-  const rank = (v: SpeechSynthesisVoice) =>
-    (v.lang === 'es-MX' ? 4 : v.lang === 'es-US' ? 3 : v.lang.startsWith('es-419') ? 2 : 0) + (PREFERRED.test(v.name) ? 5 : 0) + (v.localService ? 1 : 0)
-  return all.sort((a, b) => rank(b) - rank(a))[0] ?? null
+export interface VoiceLike {
+  name: string
+  lang: string
 }
 
-if (canSpeak()) {
-  window.speechSynthesis.addEventListener?.('voiceschanged', () => {
-    voice = pickVoice()
-  })
+/** Neural / downloaded voices sound almost human (Edge "Natural", Apple "Premium"/"Mejorada"…). */
+const NATURAL = /natural|neural|online|premium|mejorad|enhanced|siri|wavenet/i
+// Spanish women's voices, by the names browsers give them.
+const FEMALE = /dalia|paulina|sabina|m[oó]nica|helena|laura|elvira|dalia|lupe|paloma|marisol|ximena|elena|larissa|salom[eé]|catalina|camila|sof[ií]a|valentina|google español/i
+
+const COUNTRIES: Record<string, string> = {
+  MX: 'México',
+  US: 'Estados Unidos',
+  ES: 'España',
+  AR: 'Argentina',
+  CO: 'Colombia',
+  CL: 'Chile',
+  PE: 'Perú',
+  VE: 'Venezuela',
+  '419': 'Latinoamérica',
+}
+
+export const isNatural = (v: VoiceLike) => NATURAL.test(v.name)
+
+function rank(v: VoiceLike): number {
+  const lang = v.lang.replace('_', '-')
+  const region = lang === 'es-MX' ? 4 : lang === 'es-US' ? 3 : lang === 'es-419' ? 2 : lang === 'es-ES' ? 1 : 0
+  return (isNatural(v) ? 10 : 0) + region + (FEMALE.test(v.name) ? 2 : 0)
+}
+
+/** Spanish voices, the most natural and closest to Mexico first. */
+export function rankVoices<V extends VoiceLike>(voices: V[]): V[] {
+  return voices.filter((v) => v.lang.toLowerCase().startsWith('es')).sort((a, b) => rank(b) - rank(a) || a.name.localeCompare(b.name))
+}
+
+/** "Microsoft Dalia Online (Natural) - Spanish (Mexico)" → "Dalia · México". */
+export function voiceLabel(v: VoiceLike): string {
+  const name =
+    v.name
+      .replace(/^(Microsoft|Google|Apple)\s+/i, '')
+      .replace(/\s*-\s*Spanish.*$/i, '')
+      .replace(/\s*\((natural|enhanced|premium|mejorada)\)/gi, '')
+      .replace(/\s*online/i, '')
+      .trim() || v.name
+  const region = v.lang.replace('_', '-').split('-')[1]?.toUpperCase()
+  const country = region ? COUNTRIES[region] : undefined
+  return country && !name.toLowerCase().includes(country.toLowerCase()) ? `${name} · ${country}` : name
+}
+
+/* Per device: each device has its own voices. */
+const ENABLED_KEY = 'asistente.voz'
+const NAME_KEY = 'asistente.vozNombre'
+const RATE_KEY = 'asistente.velocidad'
+
+export interface VoiceSettings {
+  enabled: boolean
+  /** Chosen voice, or null for the best one available. */
+  name: string | null
+  rate: number
+}
+
+export function readVoiceSettings(): VoiceSettings {
+  try {
+    const rate = Number(localStorage.getItem(RATE_KEY))
+    return {
+      enabled: localStorage.getItem(ENABLED_KEY) !== 'off',
+      name: localStorage.getItem(NAME_KEY) || null,
+      rate: rate >= 0.6 && rate <= 1.6 ? rate : 1,
+    }
+  } catch {
+    return { enabled: true, name: null, rate: 1 }
+  }
+}
+
+export function saveVoiceSettings(next: Partial<VoiceSettings>) {
+  try {
+    if (next.enabled !== undefined) localStorage.setItem(ENABLED_KEY, next.enabled ? 'on' : 'off')
+    if (next.name !== undefined) {
+      if (next.name) localStorage.setItem(NAME_KEY, next.name)
+      else localStorage.removeItem(NAME_KEY)
+    }
+    if (next.rate !== undefined) localStorage.setItem(RATE_KEY, String(next.rate))
+  } catch {
+    // Storage blocked: the choice lasts until the page reloads.
+  }
+}
+
+export function spanishVoices(): SpeechSynthesisVoice[] {
+  return canSpeak() ? rankVoices(window.speechSynthesis.getVoices()) : []
+}
+
+/** The saved voice if this device has it, otherwise the best Spanish one. */
+function chosenVoice(name: string | null): SpeechSynthesisVoice | null {
+  const voices = spanishVoices()
+  return (name && voices.find((v) => v.name === name)) || voices[0] || null
 }
 
 /** Says `text` out loud; `onDone` runs when it finishes (or right away if it can't talk). */
-export function speak(text: string, onDone?: () => void) {
+export function speak(text: string, onDone?: () => void, override?: { name?: string | null; rate?: number }) {
   if (!canSpeak()) {
     onDone?.()
     return
   }
+  const settings = readVoiceSettings()
   const synth = window.speechSynthesis
   synth.cancel()
-  if (voice === undefined) voice = pickVoice()
+  const voice = chosenVoice(override?.name !== undefined ? override.name : settings.name)
   const u = new SpeechSynthesisUtterance(text)
   u.lang = voice?.lang ?? 'es-MX'
   if (voice) u.voice = voice
-  u.rate = 1.05
+  u.rate = override?.rate ?? settings.rate
   let done = false
   const finish = () => {
     if (done) return
@@ -133,7 +213,7 @@ export function speak(text: string, onDone?: () => void) {
     onDone?.()
   }
   // Some browsers never fire "end": don't stay waiting forever.
-  const guard = window.setTimeout(finish, 1500 + text.length * 90)
+  const guard = window.setTimeout(finish, 1500 + (text.length * 90) / u.rate)
   u.onend = finish
   u.onerror = finish
   synth.speak(u)

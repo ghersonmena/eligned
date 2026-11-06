@@ -1,0 +1,22 @@
+.voiceRow {
+  flex-wrap: wrap;
+}
+
+.voiceRow select {
+  max-width: 100%;
+}
+
+.rate {
+  width: 160px;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .voiceRow {
+    padding-bottom: 6px;
+  }
+
+  .voiceRow select {
+    width: 100%;
+  }
+}

@@ -5,7 +5,7 @@ import { useCreateTask, useTasks } from '../../hooks/useWorkspaceData'
 import { answerQuery } from '../../lib/assistant/answer'
 import { sayWhen } from '../../lib/assistant/describe'
 import { dueFrom, interpret, mergeDraft, parseAnswer, parseDraft, type Draft } from '../../lib/assistant/parse'
-import { canListen, canSpeak, listen, speak, stopSpeaking, type Listener } from '../../lib/assistant/speech'
+import { canListen, canSpeak, listen, readVoiceSettings, saveVoiceSettings, speak, stopSpeaking, type Listener } from '../../lib/assistant/speech'
 import { formatDue } from '../../lib/dates'
 import { upper } from '../../lib/text'
 import { Icon } from '../Icon'
@@ -22,16 +22,7 @@ interface Message {
   link?: { to: string; label: string }
 }
 
-const VOICE_KEY = 'asistente.voz'
 const EXAMPLES = 'Por ejemplo: «Recuérdame mañana a las 9 llamar a soporte» o «¿Qué tengo hoy?».'
-
-function readVoice(): boolean {
-  try {
-    return localStorage.getItem(VOICE_KEY) !== 'off'
-  } catch {
-    return true
-  }
-}
 
 const lower = (s: string) => s.toLocaleLowerCase('es')
 
@@ -48,7 +39,7 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
   const [listening, setListening] = useState(false)
   const [partial, setPartial] = useState('')
   const [typed, setTyped] = useState('')
-  const [voiceOn, setVoiceOn] = useState(readVoice)
+  const [voiceOn, setVoiceOn] = useState(() => readVoiceSettings().enabled)
   const createTask = useCreateTask()
   const { data: openTasks = [] } = useTasks({ status: 'open' }, open)
 
@@ -222,6 +213,10 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
   }
 
   function openPanel() {
+    // The voice may have been changed in Ajustes meanwhile.
+    const { enabled } = readVoiceSettings()
+    setVoiceOn(enabled)
+    voiceRef.current = enabled
     setOpen(true)
     if (messages.length === 0) {
       add('bot', canListen() ? `Hola, te escucho. ${EXAMPLES}` : `Hola. Tu navegador no me deja escuchar, pero puedes escribirme. ${EXAMPLES}`)
@@ -254,11 +249,7 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
     setVoiceOn(next)
     voiceRef.current = next
     if (!next) stopSpeaking()
-    try {
-      localStorage.setItem(VOICE_KEY, next ? 'on' : 'off')
-    } catch {
-      // Only a convenience.
-    }
+    saveVoiceSettings({ enabled: next })
   }
 
   return (
