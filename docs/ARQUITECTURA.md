@@ -130,6 +130,14 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
 2. Encola un trabajo por recordatorio en Redis.
 3. El `queue` envía por los canales que el usuario tenga activos: dentro de la app (base de datos + Reverb, que muestra la ventana emergente), push (Web Push) y correo (resumen diario).
 
+## 7.1 Asistente de voz
+
+- Botón redondo abajo a la derecha (en el celular, arriba de la barra inferior). Escucha con el reconocimiento de voz del navegador (`SpeechRecognition`, es-MX: Chrome, Edge, Safari, Android; no Firefox; en producción requiere HTTPS) y responde en voz alta con `speechSynthesis` (voz femenina en español si existe). También acepta texto escrito.
+- Entiende con reglas propias en español (`frontend/src/lib/assistant/parse.ts`), sin enviar nada a terceros: fechas (hoy, mañana, pasado mañana, días de la semana, "8 de noviembre", "24/12", "en 3 días", "la próxima semana"), horas ("a las 5 de la tarde", "5:30 p.m.", "17 hrs", "y media", "menos cuarto", "al mediodía", "en 2 horas") y el título sin las palabras de mando ("recuérdame que", "haz un recordatorio de"…).
+- Crear: siempre pregunta antes de guardar ("¿Guardo la tarea … para hoy a las 5 de la tarde?") y escucha la respuesta: "sí" la guarda; "no" cancela; "no, a las 6" corrige solo la hora (o el día) y vuelve a preguntar. Sin hora, la tarea es de todo el día. El aviso llega según las preferencias de "Vence pronto".
+- Consultar: "¿qué tengo hoy / mañana / esta semana?", "¿qué tengo atrasado?".
+- Pendiente (modo híbrido): cuando `interpret()` devuelve `unknown`, mandar la frase a un endpoint del servidor que use la API de Claude (clave solo en `.env`) y devuelva la misma estructura de intención.
+
 ## 8. PWA y uso sin conexión
 
 - **Fase 1**: la app se puede instalar, carga sin red y muestra los datos que ya tenía en caché.

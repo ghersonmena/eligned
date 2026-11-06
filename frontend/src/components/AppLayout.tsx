@@ -10,6 +10,8 @@ import { useUpdatePreferences } from '../hooks/useAuth'
 import { useRealtime } from '../hooks/useRealtime'
 import { takePendingInvitation } from '../lib/pendingInvitation'
 import { NotificationBell } from './notifications/NotificationBell'
+import { currentWorkspace } from '../lib/workspace'
+import { Assistant } from './assistant/Assistant'
 import { Toasts } from './notifications/Toasts'
 import { TimerPill } from './time/TimerPill'
 import { ThemeToggle } from './ThemeToggle'
@@ -97,6 +99,7 @@ export function AppLayout({ user }: { user: User }) {
       </div>
 
       <Toasts />
+      <Assistant canEdit={currentWorkspace(user)?.role !== 'guest'} />
 
       <nav className={styles.bottomNav} aria-label="Principal (móvil)">
         {MOBILE_NAV_ITEMS.map((item) => (

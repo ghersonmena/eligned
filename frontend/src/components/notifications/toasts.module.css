@@ -1,7 +1,8 @@
 .stack {
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  /* Above the assistant button. */
+  bottom: 100px;
   z-index: 50;
   width: min(360px, calc(100vw - 32px));
   display: flex;
