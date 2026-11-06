@@ -32,8 +32,10 @@ import {
   monthGrid,
   parseDayKey,
   shiftDays,
+  sortDayTasks,
   startOfDay,
   startOfWeek,
+  taskDayKey,
 } from '../lib/dates'
 import { datesFromSubtasks, projectSpans, type ProjectSpan } from '../lib/timeline'
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
@@ -49,16 +51,6 @@ const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const MAX_IN_CELL = 3
 
 /** The day a task shows on: its due day, or its start day when it has no due date. */
-function anchorOf(task: Task): string | null {
-  const iso = task.due_at ?? task.start_at
-  return iso ? dayKey(new Date(iso)) : null
-}
-
-function sortDayTasks(a: Task, b: Task) {
-  if (a.completed !== b.completed) return a.completed ? 1 : -1
-  return (a.due_at ?? '').localeCompare(b.due_at ?? '') || a.priority - b.priority
-}
-
 /** New dates when a task is dropped on another day (the span keeps its length). */
 function datesForDrop(task: Task, day: Date): { start_at?: string | null; due_at?: string | null } | null {
   const anchor = task.due_at ?? task.start_at
@@ -117,7 +109,7 @@ export function CalendarPage() {
   const byDay = useMemo(() => {
     const map = new Map<string, Task[]>()
     ;(query.data ?? []).forEach((t) => {
-      const key = anchorOf(t)
+      const key = taskDayKey(t)
       if (!key) return
       map.set(key, [...(map.get(key) ?? []), t])
     })

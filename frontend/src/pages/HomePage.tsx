@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { HomeCardId, HomeCardSetting, User } from '../api/auth'
 import { ActivityCard, GoalsCard, ProjectsCard, TeamCard, UpcomingCard } from '../components/home/HomeCards'
+import { AgendaCard, NotesCard } from '../components/home/PlannerCards'
 import { CommentsCard, PriorityCard, QuickAddCard, RhythmCard, StaleCard, TimeByProjectCard } from '../components/home/MoreCards'
 import homeStyles from '../components/home/home.module.css'
 import { TaskRow } from '../components/tasks/TaskRow'
@@ -22,7 +23,7 @@ function greetingFor(hour: number) {
 
 const CARD_CLASS = styles.card
 
-const CARDS: Record<HomeCardId, (ctx: { canEdit: boolean }) => ReactNode> = {
+const CARDS: Record<HomeCardId, (ctx: { canEdit: boolean; user: User }) => ReactNode> = {
   today: () => <TodayCard />,
   tracker: () => <TrackerCard className={`${CARD_CLASS} ${styles.cardTracker}`} />,
   activity: () => <ActivityCard className={CARD_CLASS} />,
@@ -36,6 +37,8 @@ const CARDS: Record<HomeCardId, (ctx: { canEdit: boolean }) => ReactNode> = {
   time: () => <TimeByProjectCard className={CARD_CLASS} />,
   stale: () => <StaleCard className={CARD_CLASS} />,
   comments: () => <CommentsCard className={CARD_CLASS} />,
+  notes: ({ user }) => <NotesCard className={CARD_CLASS} initial={user.preferences.home_note} />,
+  agenda: () => <AgendaCard className={CARD_CLASS} />,
 }
 
 export function HomePage({ user }: { user: User }) {
@@ -93,7 +96,7 @@ export function HomePage({ user }: { user: User }) {
             key={card.id}
             className={[homeStyles.slot, editing && homeStyles.editing, card.hidden && homeStyles.hidden].filter(Boolean).join(' ')}
           >
-            {CARDS[card.id]({ canEdit })}
+            {CARDS[card.id]({ canEdit, user })}
             {editing && (
               <div className={homeStyles.tools} role="group" aria-label={`Tarjeta ${label(card.id)}`}>
                 <button type="button" aria-label={`Subir ${label(card.id)}`} disabled={i === 0} onClick={() => change(moveCard(layout, card.id, -1))}>

@@ -14,6 +14,8 @@ export const HOME_CARDS: { id: HomeCardId; label: string }[] = [
   { id: 'time', label: 'Tiempo por proyecto' },
   { id: 'stale', label: 'Sin movimiento' },
   { id: 'comments', label: 'Comentarios recientes' },
+  { id: 'notes', label: 'Notas rápidas' },
+  { id: 'agenda', label: 'Agenda de la semana' },
 ]
 
 export const DEFAULT_LAYOUT: HomeCardSetting[] = HOME_CARDS.map((c) => ({ id: c.id, hidden: false }))

@@ -18,6 +18,8 @@ export interface Preferences {
   current_workspace_id: number | null
   /** Home cards in order, each maybe hidden (null: default layout). */
   home_layout: HomeCardSetting[] | null
+  /** "Notas rápidas" home card (max NOTE_MAX characters). */
+  home_note: string | null
 }
 
 export type HomeCardId =
@@ -34,6 +36,8 @@ export type HomeCardId =
   | 'time'
   | 'stale'
   | 'comments'
+  | 'notes'
+  | 'agenda'
 
 export interface HomeCardSetting {
   id: HomeCardId

@@ -37,6 +37,15 @@ it('summarizes my day and week, counting my tasks and personal ones', function (
     ]]);
 });
 
+it('keeps a personal note for the home page', function () {
+    [$me] = memberWithWorkspace();
+    $this->actingAs($me)->getJson('/api/v1/me')->assertJsonPath('data.preferences.home_note', null);
+    $this->patchJson('/api/v1/me/preferences', ['home_note' => "LLAMAR A TELMEX\n- FOLIO 123"])
+        ->assertJsonPath('data.preferences.home_note', "LLAMAR A TELMEX\n- FOLIO 123")
+        ->assertJsonPath('data.preferences.theme', 'system');
+    $this->patchJson('/api/v1/me/preferences', ['home_note' => str_repeat('a', 5001)])->assertJsonValidationErrors('home_note');
+});
+
 it('saves the home layout and rejects unknown cards', function () {
     [$me] = memberWithWorkspace();
     $layout = [['id' => 'goals', 'hidden' => false], ['id' => 'today', 'hidden' => false], ['id' => 'tracker', 'hidden' => true]];

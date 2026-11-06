@@ -181,3 +181,18 @@ export function formatTime(iso: string): string | null {
   const d = new Date(iso)
   return isAllDay(d) ? null : time.format(d)
 }
+
+/** Calendar day a task sits on: its due day, or its start day if it has no due date. */
+export function taskDayKey(task: { due_at: string | null; start_at: string | null }): string | null {
+  const iso = task.due_at ?? task.start_at
+  return iso ? dayKey(new Date(iso)) : null
+}
+
+/** Inside a day: open before done, then by time, then by priority. */
+export function sortDayTasks(
+  a: { completed: boolean; due_at: string | null; priority: number },
+  b: { completed: boolean; due_at: string | null; priority: number },
+) {
+  if (a.completed !== b.completed) return a.completed ? 1 : -1
+  return (a.due_at ?? '').localeCompare(b.due_at ?? '') || a.priority - b.priority
+}

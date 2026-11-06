@@ -27,6 +27,7 @@ class UpdatePreferencesRequest extends FormRequest
             'home_layout' => ['sometimes', 'nullable', 'array', 'max:20'],
             'home_layout.*.id' => ['required', 'distinct', Rule::in(User::HOME_CARDS)],
             'home_layout.*.hidden' => ['required', 'boolean'],
+            'home_note' => ['sometimes', 'nullable', 'string', 'max:'.User::HOME_NOTE_MAX],
             'current_workspace_id' => [
                 'sometimes',
                 'nullable',

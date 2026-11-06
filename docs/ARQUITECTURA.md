@@ -108,6 +108,7 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
   - Espacio actual: preferencia `current_workspace_id` (selector en el menú de la cuenta).
   - `GET workspaces/{id}/workload?since=` (carga por persona) y `GET workspaces/{id}/summary?day_start=&week_start=` (mi día y semana, tarjeta Actividad).
   - `GET workspaces/{id}/insights?since=&week_start=` (tarjetas extra del inicio): fechas en que terminé mis tareas (máx. 31 días; la app las agrupa por su día local para "Ritmo" y la racha), mis minutos de la semana por proyecto (las subtareas cuentan en el proyecto del padre), mis tareas abiertas sin cambios, comentarios ni tiempo en 14 días ("Sin movimiento") y los últimos comentarios de otras personas en tareas que tengo asignadas o que creé.
+  - Preferencia `home_note` (texto, máx. 5000): la tarjeta "Notas rápidas" del inicio; se guarda sola 0.8 s después de dejar de escribir, al salir del campo o al salir de la página. La tarjeta "Agenda" usa la misma consulta del calendario (`tasks?status=all&with_subtasks=1&from=&to=`).
   - Metas: `GET|POST workspaces/{id}/goals` (`?closed=1` para las cerradas), `GET|PATCH|DELETE goals/{id}`, `POST goals/{id}/key-results`, `PATCH|DELETE key-results/{id}`. Resultados clave numéricos o por tareas de un proyecto; la meta promedia su avance y calcula su estado (a tiempo, en riesgo, atrasada, lograda).
   - Inicio personalizable: preferencia `home_layout` (orden y tarjetas ocultas).
 - Tiempo y avisos (fase 3):
