@@ -34,7 +34,9 @@ it('sums each person\'s open, overdue, this week, finished and logged time', fun
     $since = now()->startOfWeek()->toIso8601String();
     $response = $this->actingAs($owner)->getJson("/api/v1/workspaces/{$workspace->id}/workload?since=".urlencode($since))->assertOk();
 
-    expect($response->json('data.0'))->toMatchArray([
+    // People come sorted by name and the owner's is random: find Ana's row.
+    $row = collect($response->json('data'))->firstWhere('user.id', $ana->id);
+    expect($row)->toMatchArray([
         'user' => ['id' => $ana->id, 'name' => 'Ana'],
         'open' => 4,
         'overdue' => 1,
