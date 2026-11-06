@@ -46,7 +46,10 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /** Cards the home page can show (see HomePage in the app). */
-    public const HOME_CARDS = ['today', 'tracker', 'activity', 'goals', 'upcoming', 'projects', 'team'];
+    public const HOME_CARDS = [
+        'today', 'tracker', 'activity', 'goals', 'upcoming', 'projects', 'team',
+        'quick', 'priority', 'rhythm', 'time', 'stale', 'comments',
+    ];
 
     /**
      * Get the attributes that should be cast.

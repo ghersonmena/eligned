@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { HomeCardId, HomeCardSetting, User } from '../api/auth'
 import { ActivityCard, GoalsCard, ProjectsCard, TeamCard, UpcomingCard } from '../components/home/HomeCards'
+import { CommentsCard, PriorityCard, QuickAddCard, RhythmCard, StaleCard, TimeByProjectCard } from '../components/home/MoreCards'
 import homeStyles from '../components/home/home.module.css'
 import { TaskRow } from '../components/tasks/TaskRow'
 import taskStyles from '../components/tasks/tasks.module.css'
@@ -9,6 +10,7 @@ import { TrackerCard } from '../components/time/TrackerCard'
 import { useUpdatePreferences } from '../hooks/useAuth'
 import { useTasks } from '../hooks/useWorkspaceData'
 import { dueGroup } from '../lib/dates'
+import { currentWorkspace } from '../lib/workspace'
 import { DEFAULT_LAYOUT, HOME_CARDS, moveCard, resolveLayout, toggleCard } from '../lib/homeLayout'
 import styles from './pages.module.css'
 
@@ -20,7 +22,7 @@ function greetingFor(hour: number) {
 
 const CARD_CLASS = styles.card
 
-const CARDS: Record<HomeCardId, () => ReactNode> = {
+const CARDS: Record<HomeCardId, (ctx: { canEdit: boolean }) => ReactNode> = {
   today: () => <TodayCard />,
   tracker: () => <TrackerCard className={`${CARD_CLASS} ${styles.cardTracker}`} />,
   activity: () => <ActivityCard className={CARD_CLASS} />,
@@ -28,12 +30,19 @@ const CARDS: Record<HomeCardId, () => ReactNode> = {
   upcoming: () => <UpcomingCard className={CARD_CLASS} />,
   projects: () => <ProjectsCard className={CARD_CLASS} />,
   team: () => <TeamCard className={CARD_CLASS} />,
+  quick: ({ canEdit }) => <QuickAddCard className={CARD_CLASS} canEdit={canEdit} />,
+  priority: () => <PriorityCard className={CARD_CLASS} />,
+  rhythm: () => <RhythmCard className={CARD_CLASS} />,
+  time: () => <TimeByProjectCard className={CARD_CLASS} />,
+  stale: () => <StaleCard className={CARD_CLASS} />,
+  comments: () => <CommentsCard className={CARD_CLASS} />,
 }
 
 export function HomePage({ user }: { user: User }) {
   const [hour] = useState(() => new Date().getHours())
   const firstName = user.name.split(' ')[0]
   const updatePreferences = useUpdatePreferences()
+  const canEdit = currentWorkspace(user)?.role !== 'guest'
   const [editing, setEditing] = useState(false)
   // Shown right away while it saves.
   const [draft, setDraft] = useState<HomeCardSetting[] | null>(null)
@@ -84,7 +93,7 @@ export function HomePage({ user }: { user: User }) {
             key={card.id}
             className={[homeStyles.slot, editing && homeStyles.editing, card.hidden && homeStyles.hidden].filter(Boolean).join(' ')}
           >
-            {CARDS[card.id]()}
+            {CARDS[card.id]({ canEdit })}
             {editing && (
               <div className={homeStyles.tools} role="group" aria-label={`Tarjeta ${label(card.id)}`}>
                 <button type="button" aria-label={`Subir ${label(card.id)}`} disabled={i === 0} onClick={() => change(moveCard(layout, card.id, -1))}>

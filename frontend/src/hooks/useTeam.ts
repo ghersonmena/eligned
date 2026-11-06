@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { teamApi } from '../api/team'
 import type { Role } from '../api/types'
-import { startOfWeek } from '../lib/dates'
+import { addDays, startOfWeek } from '../lib/dates'
+import { RHYTHM_DAYS } from '../lib/insights'
 import { keys, useWorkspaceId } from './useWorkspaceData'
 
 const invitationsKey = (ws: number) => ['ws', ws, 'invitations'] as const
@@ -29,6 +30,19 @@ export function useSummary() {
       const day = new Date()
       day.setHours(0, 0, 0, 0)
       return teamApi.summary(ws, day.toISOString(), startOfWeek(day).toISOString())
+    },
+  })
+}
+
+/** Rhythm, time per project, stale tasks and recent comments (extra home cards). */
+export function useInsights() {
+  const ws = useWorkspaceId()
+  return useQuery({
+    queryKey: ['ws', ws, 'insights'],
+    queryFn: () => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return teamApi.insights(ws, addDays(today, 1 - RHYTHM_DAYS).toISOString(), startOfWeek(today).toISOString())
     },
   })
 }

@@ -5,7 +5,7 @@ import { ProgressRing } from '../goals/ProgressRing'
 import { useGoals } from '../../hooks/useGoals'
 import { useSummary, useWorkload } from '../../hooks/useTeam'
 import { useProjects, useTasks } from '../../hooks/useWorkspaceData'
-import { formatMinutes } from '../../lib/activity'
+import { formatMinutes, formatMinutesShort } from '../../lib/activity'
 import { dotColor } from '../../lib/colors'
 import { dueGroup } from '../../lib/dates'
 import { HEALTH } from '../../lib/goals'
@@ -22,7 +22,7 @@ export function ActivityCard({ className }: { className: string }) {
   const rings = [
     { title: 'Hoy', value: pct(s.done_today, s.pending_today), label: `${s.done_today}/${s.done_today + s.pending_today}`, color: '#fb923c', note: 'terminadas' },
     { title: 'Semana', value: pct(s.done_week, s.pending_week), label: `${s.done_week}/${s.done_week + s.pending_week}`, color: '#2dd4bf', note: 'terminadas' },
-    { title: 'Tiempo', value: Math.round((s.minutes_today / 480) * 100), label: formatMinutes(s.minutes_today), color: '#fbbf24', note: 'de 8 h hoy' },
+    { title: 'Tiempo', value: Math.round((s.minutes_today / 480) * 100), label: formatMinutesShort(s.minutes_today), color: '#fbbf24', note: 'de 8 h hoy' },
   ]
   return (
     <section className={`${className} ${pageStyles.cardInk}`}>

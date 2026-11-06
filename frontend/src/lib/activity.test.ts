@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Activity } from '../api/types'
-import { describeActivity, formatMinutes } from './activity'
+import { describeActivity, formatMinutes, formatMinutesShort } from './activity'
 
 const entry = (event: Activity['event'], changes: Activity['changes'] = null): Activity => ({
   id: 1, event, task_id: 1, subject: 'x', changes, user: { id: 1, name: 'Ana' }, created_at: '',
@@ -30,5 +30,9 @@ describe('describeActivity', () => {
 describe('formatMinutes', () => {
   it('reads naturally', () => {
     expect([formatMinutes(5), formatMinutes(60), formatMinutes(125)]).toEqual(['5 min', '1 h', '2 h 5 min'])
+  })
+
+  it('has a short form for rings', () => {
+    expect([formatMinutesShort(45), formatMinutesShort(60), formatMinutesShort(105)]).toEqual(['45m', '1h', '1h 45m'])
   })
 })

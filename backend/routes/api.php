@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\InsightsController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
@@ -59,6 +60,7 @@ Route::prefix('v1')->group(function () {
             Route::get('invitations', [TeamController::class, 'invitations']);
             Route::get('workload', WorkloadController::class);
             Route::get('summary', SummaryController::class);
+            Route::get('insights', InsightsController::class);
             Route::get('goals', [GoalController::class, 'index']);
             Route::post('goals', [GoalController::class, 'store']);
             Route::post('invitations', [TeamController::class, 'invite']);

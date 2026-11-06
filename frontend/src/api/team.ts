@@ -1,6 +1,6 @@
 import type { Workspace } from './auth'
 import { api } from './client'
-import type { Invitation, InvitationInfo, Member, Role, Summary, Workload } from './types'
+import type { Insights, Invitation, InvitationInfo, Member, Role, Summary, Workload } from './types'
 
 interface Wrapped<T> {
   data: T
@@ -25,6 +25,9 @@ export const teamApi = {
 
   summary: (ws: number, dayStart: string, weekStart: string) =>
     api<Wrapped<Summary>>('GET', `/workspaces/${ws}/summary?day_start=${encodeURIComponent(dayStart)}&week_start=${encodeURIComponent(weekStart)}`).then(unwrap),
+
+  insights: (ws: number, since: string, weekStart: string) =>
+    api<Wrapped<Insights>>('GET', `/workspaces/${ws}/insights?since=${encodeURIComponent(since)}&week_start=${encodeURIComponent(weekStart)}`).then(unwrap),
 
   invitationInfo: (token: string) => api<Wrapped<InvitationInfo>>('GET', `/invitations/${token}`).then(unwrap),
   accept: (token: string) => api<Wrapped<{ workspace_id: number }>>('POST', `/invitations/${token}/accept`).then(unwrap),

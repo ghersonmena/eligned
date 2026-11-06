@@ -254,3 +254,19 @@ export interface Summary {
   minutes_today: number
   minutes_week: number
 }
+
+type ProjectRef = { id: number; name: string; color: ProjectColor }
+
+/** Extra home cards (GET workspaces/{ws}/insights). */
+export interface Insights {
+  /** When each of my tasks was finished since `since` (ISO). */
+  completed: string[]
+  /** My logged minutes this week, per project (null = no project). */
+  time_by_project: { project: ProjectRef | null; minutes: number }[]
+  /** My open tasks with no movement in `stale_days` days (oldest first, up to 6). */
+  stale: { id: number; title: string; project: ProjectRef | null; due_at: string | null; updated_at: string }[]
+  stale_count: number
+  stale_days: number
+  /** Latest comments other people left on my tasks. */
+  comments: { id: number; excerpt: string; author: { id: number; name: string } | null; task: { id: number; title: string }; created_at: string }[]
+}

@@ -20,7 +20,20 @@ export interface Preferences {
   home_layout: HomeCardSetting[] | null
 }
 
-export type HomeCardId = 'today' | 'tracker' | 'activity' | 'goals' | 'upcoming' | 'projects' | 'team'
+export type HomeCardId =
+  | 'today'
+  | 'tracker'
+  | 'activity'
+  | 'goals'
+  | 'upcoming'
+  | 'projects'
+  | 'team'
+  | 'quick'
+  | 'priority'
+  | 'rhythm'
+  | 'time'
+  | 'stale'
+  | 'comments'
 
 export interface HomeCardSetting {
   id: HomeCardId

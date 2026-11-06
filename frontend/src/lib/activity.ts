@@ -18,6 +18,14 @@ export function formatMinutes(minutes: number): string {
   return m ? `${h} h ${m} min` : `${h} h`
 }
 
+/** Short form for tight spots (inside a ring): "45m", "1h 45m". */
+export function formatMinutesShort(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = Math.round(minutes % 60)
+  if (!h) return `${m}m`
+  return m ? `${h}h ${m}m` : `${h}h`
+}
+
 type Pair = [unknown, unknown]
 
 /**
