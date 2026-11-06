@@ -29,13 +29,13 @@ export function resolveLayout(saved: HomeCardSetting[] | null | undefined): Home
   return [...kept, ...missing]
 }
 
-/** Moves a card one place up (-1) or down (+1). */
-export function moveCard(layout: HomeCardSetting[], id: HomeCardId, direction: -1 | 1): HomeCardSetting[] {
-  const i = layout.findIndex((c) => c.id === id)
-  const j = i + direction
-  if (i < 0 || j < 0 || j >= layout.length) return layout
+/** Puts a dragged card where another one was (the rest shift over). */
+export function moveCard(layout: HomeCardSetting[], id: HomeCardId, overId: HomeCardId): HomeCardSetting[] {
+  const from = layout.findIndex((c) => c.id === id)
+  const to = layout.findIndex((c) => c.id === overId)
+  if (from < 0 || to < 0 || from === to) return layout
   const next = [...layout]
-  ;[next[i], next[j]] = [next[j], next[i]]
+  next.splice(to, 0, ...next.splice(from, 1))
   return next
 }
 

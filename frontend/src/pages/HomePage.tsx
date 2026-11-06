@@ -1,4 +1,16 @@
-import { useState, type ReactNode } from 'react'
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { useState, type KeyboardEventHandler, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { HomeCardId, HomeCardSetting, User } from '../api/auth'
 import { ActivityCard, GoalsCard, ProjectsCard, TeamCard, UpcomingCard } from '../components/home/HomeCards'
@@ -57,6 +69,17 @@ export function HomePage({ user }: { user: User }) {
   }
 
   const visible = editing ? layout : layout.filter((c) => !c.hidden)
+
+  const sensors = useSensors(
+    // Mouse and touch apart: on phones a long press picks the card up and a swipe still scrolls.
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  function onDragEnd({ active, over }: DragEndEvent) {
+    if (over && active.id !== over.id) change(moveCard(layout, active.id as HomeCardId, over.id as HomeCardId))
+  }
   const label = (id: HomeCardId) => HOME_CARDS.find((c) => c.id === id)?.label ?? id
 
   return (
@@ -79,7 +102,7 @@ export function HomePage({ user }: { user: User }) {
           >
             {editing ? 'Listo' : 'Personalizar'}
           </button>
-          {editing && <p className={homeStyles.editHint}>Mueve las tarjetas con las flechas y oculta las que no uses. Se guarda solo.</p>}
+          {editing && <p className={homeStyles.editHint}>Arrastra las tarjetas para acomodarlas (en el celular, mantén presionada la tarjeta) y oculta las que no uses. Se guarda solo.</p>}
         </div>
       </div>
 
@@ -90,35 +113,65 @@ export function HomePage({ user }: { user: User }) {
         </section>
       )}
 
-      <div className={`${styles.grid} ${styles.homeGrid}`}>
-        {visible.map((card, i) => (
-          <div
-            key={card.id}
-            className={[homeStyles.slot, editing && homeStyles.editing, card.hidden && homeStyles.hidden].filter(Boolean).join(' ')}
-          >
-            {CARDS[card.id]({ canEdit, user })}
-            {editing && (
-              <div className={homeStyles.tools} role="group" aria-label={`Tarjeta ${label(card.id)}`}>
-                <button type="button" aria-label={`Subir ${label(card.id)}`} disabled={i === 0} onClick={() => change(moveCard(layout, card.id, -1))}>
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Bajar ${label(card.id)}`}
-                  disabled={i === visible.length - 1}
-                  onClick={() => change(moveCard(layout, card.id, 1))}
-                >
-                  ↓
-                </button>
-                <button type="button" aria-pressed={!card.hidden} onClick={() => change(toggleCard(layout, card.id))}>
-                  {card.hidden ? 'Mostrar' : 'Ocultar'}
-                </button>
-              </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={onDragEnd}
+        accessibility={{
+          screenReaderInstructions: { draggable: DRAG_HELP },
+          announcements: {
+            onDragStart: ({ active }) => `Tomaste la tarjeta ${label(active.id as HomeCardId)}.`,
+            onDragOver: ({ over }) => (over ? `Sobre el lugar de ${label(over.id as HomeCardId)}.` : 'Fuera del inicio.'),
+            onDragEnd: ({ over }) => (over ? `Tarjeta colocada en el lugar de ${label(over.id as HomeCardId)}.` : 'Movimiento cancelado.'),
+            onDragCancel: () => 'Movimiento cancelado.',
+          },
+        }}
+      >
+        <SortableContext items={visible.map((c) => c.id)} strategy={rectSortingStrategy}>
+          <div className={`${styles.grid} ${styles.homeGrid}`}>
+            {visible.map((card) =>
+              editing ? (
+                <SortableSlot key={card.id} card={card} label={label(card.id)} onToggle={() => change(toggleCard(layout, card.id))}>
+                  {CARDS[card.id]({ canEdit, user })}
+                </SortableSlot>
+              ) : (
+                <div key={card.id} className={homeStyles.slot}>
+                  {CARDS[card.id]({ canEdit, user })}
+                </div>
+              ),
             )}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
     </>
+  )
+}
+
+const DRAG_HELP =
+  'Para mover una tarjeta con el teclado, enfoca su botón de mover y pulsa espacio. Usa las flechas para llevarla a otro lugar y espacio otra vez para soltarla, o Escape para cancelar.'
+
+/** A card while "Personalizar" is on: drag it anywhere (long press on touch screens). */
+function SortableSlot({ card, label, onToggle, children }: { card: HomeCardSetting; label: string; onToggle: () => void; children: ReactNode }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: card.id })
+  // Mouse and touch grab the whole card; the keyboard uses the handle so "Ocultar" keeps working.
+  const { onKeyDown, ...grab } = (listeners ?? {}) as { onKeyDown?: KeyboardEventHandler } & Record<string, unknown>
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={[homeStyles.slot, homeStyles.editing, card.hidden && homeStyles.hidden, isDragging && homeStyles.dragging].filter(Boolean).join(' ')}
+      {...grab}
+    >
+      {children}
+      <div className={homeStyles.tools} role="group" aria-label={`Tarjeta ${label}`}>
+        <button ref={setActivatorNodeRef} type="button" className={homeStyles.handle} {...attributes} onKeyDown={onKeyDown} aria-label={`Mover ${label}`}>
+          <span aria-hidden="true">⠿</span> Mover
+        </button>
+        <button type="button" aria-pressed={!card.hidden} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onClick={onToggle}>
+          {card.hidden ? 'Mostrar' : 'Ocultar'}
+        </button>
+      </div>
+    </div>
   )
 }
 

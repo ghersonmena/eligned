@@ -51,3 +51,59 @@ a {
 .caps::placeholder {
   text-transform: none;
 }
+
+/* ---------- Theme change: sunrise / nightfall from the top-left corner ---------- */
+html.theme-switching::view-transition-old(root),
+html.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* The new theme is drawn on top and revealed by a growing circle (theme.ts). */
+html.theme-switching::view-transition-new(root) {
+  z-index: 1;
+}
+
+.theme-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  transform-origin: 0 0;
+  animation: theme-sky 1.6s ease-out forwards;
+}
+
+/* Sunrise: a warm golden glow from the corner. */
+.theme-sky[data-to='light'] {
+  background:
+    radial-gradient(circle at 0 0, rgb(255 214 102 / 70%) 0, rgb(251 146 60 / 38%) 22%, rgb(244 114 182 / 14%) 45%, transparent 70%);
+}
+
+/* Nightfall: deep blue with a violet edge. */
+.theme-sky[data-to='dark'] {
+  background:
+    radial-gradient(circle at 0 0, rgb(30 27 75 / 80%) 0, rgb(67 56 202 / 40%) 25%, rgb(124 58 237 / 16%) 48%, transparent 72%);
+}
+
+@keyframes theme-sky {
+  0% {
+    opacity: 1;
+    transform: scale(0.4);
+  }
+
+  55% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-sky {
+    display: none;
+  }
+}
