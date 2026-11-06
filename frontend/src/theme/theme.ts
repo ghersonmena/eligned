@@ -40,6 +40,10 @@ const darkQuery = () => window.matchMedia('(prefers-color-scheme: dark)')
 
 const REVEAL_MS = 1100
 
+let running: ViewTransition | null = null
+/** Theme the running animation is heading to (data-theme changes a moment later). */
+let target: string | undefined
+
 /**
  * Switches <html data-theme>. When the theme really changes (not on page
  * load), the new one spreads from the top-left corner like a sunrise (to
@@ -48,11 +52,16 @@ const REVEAL_MS = 1100
  */
 export function switchTheme(next: 'light' | 'dark') {
   const root = document.documentElement
-  const current = root.dataset.theme
+  const current = target ?? root.dataset.theme
   if (current === next) return
+  // A second tap mid-animation: finish the first one at once and start again.
+  running?.skipTransition()
   const canAnimate =
     current !== undefined && typeof document.startViewTransition === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (!canAnimate) {
+    running = null
+    target = undefined
+    root.classList.remove('theme-switching')
     root.dataset.theme = next
     return
   }
@@ -64,21 +73,25 @@ export function switchTheme(next: 'light' | 'dark') {
   sky.setAttribute('aria-hidden', 'true')
   sky.addEventListener('animationend', () => sky.remove())
 
+  // The circle is a CSS animation (global.css), so it is clipped from the very
+  // first frame; starting it from JS left a frame with the whole new theme
+  // showing (a white flash when going to light).
+  root.style.setProperty('--reveal-radius', `${Math.ceil(Math.hypot(window.innerWidth, window.innerHeight))}px`)
+  root.style.setProperty('--reveal-ms', `${REVEAL_MS}ms`)
   root.classList.add('theme-switching')
   const transition = document.startViewTransition(() => {
     root.dataset.theme = next
     document.body.append(sky)
   })
-  transition.ready
-    .then(() => {
-      const radius = Math.hypot(window.innerWidth, window.innerHeight)
-      root.animate(
-        { clipPath: ['circle(0px at 0 0)', `circle(${radius}px at 0 0)`] },
-        { duration: REVEAL_MS, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', pseudoElement: '::view-transition-new(root)' },
-      )
-    })
-    .catch(() => sky.remove())
-  transition.finished.finally(() => root.classList.remove('theme-switching'))
+  running = transition
+  target = next
+  transition.ready.catch(() => sky.remove())
+  transition.finished.finally(() => {
+    if (running !== transition) return
+    running = null
+    target = undefined
+    root.classList.remove('theme-switching')
+  })
 }
 
 /** Keeps <html data-theme> in sync with the preference and, for "system", with the OS. */
