@@ -4,6 +4,7 @@
 > recordatorios, registro de tiempo, metas y notificaciones. PWA para escritorio y celular; app móvil más adelante.
 
 - Arquitectura y hoja de ruta: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)
+- Producción (servidor, actualizar, respaldos): [docs/PRODUCCION.md](docs/PRODUCCION.md)
 - Licencia: [GNU AGPL-3.0](LICENSE)
 
 ## Estado
