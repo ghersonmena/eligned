@@ -40,7 +40,7 @@ Calendario y Gantt: se construyen sobre componentes propios con el estilo de los
 ## 3. Estructura del repositorio (monorepo)
 
 ```
-todo_smart/
+eligned/
 ├── backend/            # Laravel (API REST /api/v1, colas, scheduler, Reverb)
 ├── frontend/           # React + TS + Vite (PWA; luego Capacitor)
 ├── docker/             # Dockerfiles y configuración de nginx/php

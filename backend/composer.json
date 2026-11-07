@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "todo-smart/backend",
+    "name": "eligned/backend",
     "type": "project",
     "description": "API de eLigned (Laravel).",
     "license": "AGPL-3.0-or-later",
