@@ -33,6 +33,9 @@ services:
     build:
       context: .
       dockerfile: docker/production/php.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
 
   queue:
     <<: *php
