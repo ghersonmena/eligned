@@ -1,0 +1,16 @@
+# Keep secrets, dependencies and local data out of the production images.
+.git
+**/node_modules
+**/.env
+**/.env.*
+!backend/.env.example
+backend/vendor
+backend/storage/app/*
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*.php
+frontend/dist
+frontend/dev-dist
+notas

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Updates production to the latest main: pull, rebuild, restart, migrate.
+set -e
+cd "$(dirname "$0")/.."
+git pull --ff-only
+scripts/prod build
+scripts/prod up -d --remove-orphans
+scripts/prod exec -T app php artisan migrate --force
+scripts/prod ps

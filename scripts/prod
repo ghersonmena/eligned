@@ -1,0 +1,5 @@
+#!/bin/sh
+# docker compose for production, with the settings in backend/.env.
+# Examples: scripts/prod ps · scripts/prod logs -f app · scripts/prod exec app php artisan about
+cd "$(dirname "$0")/.." || exit 1
+exec docker compose -f docker-compose.prod.yml --env-file backend/.env "$@"

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Daily backup: database dump + uploaded files, kept 14 days.
+# Cron (crontab -e): 30 3 * * * $HOME/Development/eligned/scripts/backup
+set -e
+cd "$(dirname "$0")/.."
+DEST="${BACKUP_DIR:-$HOME/Development/eligned-respaldos}"
+STAMP=$(date +%Y%m%d_%H%M%S)
+mkdir -p "$DEST"
+scripts/prod exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --no-privileges' | gzip > "$DEST/eligned_$STAMP.sql.gz"
+scripts/prod exec -T app tar -C storage/app -cz private > "$DEST/archivos_$STAMP.tar.gz"
+find "$DEST" -name 'eligned_*.sql.gz' -mtime +14 -delete
+find "$DEST" -name 'archivos_*.tar.gz' -mtime +14 -delete
