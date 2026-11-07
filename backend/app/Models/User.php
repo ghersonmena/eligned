@@ -13,13 +13,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 #[Fillable(['name', 'email', 'password', 'preferences'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, HasPushSubscriptions, Notifiable;
 
     /**
      * Default values for each user preference.
@@ -29,6 +30,29 @@ class User extends Authenticatable implements MustVerifyEmail
     public const DEFAULT_PREFERENCES = [
         'theme' => Theme::System->value,
         'confetti' => true,
+        // IANA zone, set by the app from the browser; used for all-day alerts and texts.
+        'timezone' => 'America/Mexico_City',
+        // "Vence pronto" for tasks with a time: minutes before (null = off).
+        'due_notice_minutes' => 60,
+        // All-day tasks: a heads-up that morning at this local time.
+        'all_day_notice' => true,
+        'all_day_notice_time' => '09:00',
+        // Live popups inside the app.
+        'popups' => true,
+        // Workspace the app opens (null: the first one, usually their personal space).
+        'current_workspace_id' => null,
+        // Home cards in order, each maybe hidden (null: the default layout).
+        'home_layout' => null,
+        // "Notas rápidas" home card: a personal scratchpad.
+        'home_note' => null,
+    ];
+
+    public const HOME_NOTE_MAX = 5000;
+
+    /** Cards the home page can show (see HomePage in the app). */
+    public const HOME_CARDS = [
+        'today', 'tracker', 'activity', 'goals', 'upcoming', 'projects', 'team',
+        'quick', 'priority', 'rhythm', 'time', 'stale', 'comments', 'notes', 'agenda',
     ];
 
     /**

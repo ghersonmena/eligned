@@ -27,6 +27,8 @@ export default defineConfig({
         theme_color: '#C2410C',
       },
       workbox: {
+        // Push notification handlers (public/push-sw.js).
+        importScripts: ['push-sw.js'],
         navigateFallback: '/index.html',
         // API calls always go to the network; only the app shell is cached for now.
         navigateFallbackDenylist: [/^\/api\//, /^\/sanctum\//, /^\/up$/],

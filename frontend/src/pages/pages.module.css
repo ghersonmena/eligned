@@ -246,6 +246,46 @@
   line-height: 1.5;
 }
 
+/* Home: rows grow with their tallest card; list cards ("Para hoy") grow up to 420px and then scroll inside. */
+.homeGrid {
+  grid-auto-rows: minmax(220px, auto);
+}
+
+.cardToday {
+  max-height: 420px;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.cardToday > a {
+  margin-top: auto;
+}
+
+.count {
+  color: var(--faint);
+}
+
+.cardScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 -8px;
+  padding: 0 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.cardScroll:focus-visible {
+  outline: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 860px) {
+  .homeGrid {
+    grid-auto-rows: auto;
+  }
+}
+
 .cardTracker {
   background: var(--tracker);
   color: var(--tracker-text);
@@ -366,4 +406,30 @@
 
 .headerRow .buttonLink {
   padding: 0 18px;
+}
+
+.settingSelect {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--row);
+  color: var(--text);
+  font: inherit;
+}
+
+.settingInline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settingNote {
+  font-size: 13px;
+}
+
+.pushMessage {
+  color: var(--accent-text);
+  font-weight: 700;
 }

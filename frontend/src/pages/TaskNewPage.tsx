@@ -7,7 +7,10 @@ import { emptyTaskValues, toTaskInput } from '../lib/taskForm'
 import styles from './detail.module.css'
 import pageStyles from './pages.module.css'
 
-/** /tareas/nueva (optionally ?proyecto=ID to pre-select the project). */
+/**
+ * /tareas/nueva. Optional query params pre-fill the form: ?proyecto=ID,
+ * ?estado=ID (Kanban column) and ?fecha=YYYY-MM-DD (calendar day).
+ */
 export function TaskNewPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -16,6 +19,8 @@ export function TaskNewPage() {
   const [initial] = useState(() =>
     emptyTaskValues({
       projectId: params.get('proyecto') ?? '',
+      statusId: params.get('estado') ?? '',
+      dueDate: /^\d{4}-\d{2}-\d{2}$/.test(params.get('fecha') ?? '') ? (params.get('fecha') as string) : '',
       // New tasks are assigned to whoever creates them; it can be changed here.
       assigneeIds: user ? [user.id] : [],
     }),

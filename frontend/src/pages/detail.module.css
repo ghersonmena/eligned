@@ -31,6 +31,11 @@
   cursor: pointer;
 }
 
+.bigCheck:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .titleInput {
   flex-grow: 1;
   min-width: 0;
@@ -250,6 +255,17 @@
   cursor: pointer;
 }
 
+.inlineForm .attachButton {
+  width: 44px;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--soft);
+  color: var(--text);
+}
+
 .inlineForm button:disabled {
   opacity: 0.55;
   cursor: default;
@@ -314,6 +330,10 @@
   letter-spacing: -0.02em;
   line-height: 1.2;
   overflow-wrap: anywhere;
+}
+
+.doneLine {
+  margin: -6px 0 0;
 }
 
 .autoNote,

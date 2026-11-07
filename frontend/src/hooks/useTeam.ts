@@ -1,0 +1,70 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { teamApi } from '../api/team'
+import type { Role } from '../api/types'
+import { addDays, startOfWeek } from '../lib/dates'
+import { RHYTHM_DAYS } from '../lib/insights'
+import { keys, useWorkspaceId } from './useWorkspaceData'
+
+const invitationsKey = (ws: number) => ['ws', ws, 'invitations'] as const
+
+export function useInvitations(enabled: boolean) {
+  const ws = useWorkspaceId()
+  return useQuery({ queryKey: invitationsKey(ws), queryFn: () => teamApi.invitations(ws), enabled })
+}
+
+/** Open / overdue / this week per person, plus what they finished and logged since Monday. */
+export function useWorkload() {
+  const ws = useWorkspaceId()
+  return useQuery({
+    queryKey: ['ws', ws, 'workload'],
+    queryFn: () => teamApi.workload(ws, startOfWeek(new Date()).toISOString()),
+  })
+}
+
+/** My day and week (home "Actividad" card). */
+export function useSummary() {
+  const ws = useWorkspaceId()
+  return useQuery({
+    queryKey: ['ws', ws, 'summary'],
+    queryFn: () => {
+      const day = new Date()
+      day.setHours(0, 0, 0, 0)
+      return teamApi.summary(ws, day.toISOString(), startOfWeek(day).toISOString())
+    },
+  })
+}
+
+/** Rhythm, time per project, stale tasks and recent comments (extra home cards). */
+export function useInsights() {
+  const ws = useWorkspaceId()
+  return useQuery({
+    queryKey: ['ws', ws, 'insights'],
+    queryFn: () => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return teamApi.insights(ws, addDays(today, 1 - RHYTHM_DAYS).toISOString(), startOfWeek(today).toISOString())
+    },
+  })
+}
+
+function useTeamMutation<V, R>(fn: (ws: number, vars: V) => Promise<R>, refreshMe = false) {
+  const ws = useWorkspaceId()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: V) => fn(ws, vars),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: keys.members(ws) })
+      void client.invalidateQueries({ queryKey: invitationsKey(ws) })
+      if (refreshMe) void client.invalidateQueries({ queryKey: ['me'] })
+    },
+  })
+}
+
+export const useRenameWorkspace = () => useTeamMutation((ws, name: string) => teamApi.rename(ws, name), true)
+export const useSetRole = () =>
+  useTeamMutation((ws, v: { userId: number; role: Exclude<Role, 'owner'> }) => teamApi.setRole(ws, v.userId, v.role))
+export const useRemoveMember = () => useTeamMutation((ws, userId: number) => teamApi.removeMember(ws, userId), true)
+export const useInvite = () =>
+  useTeamMutation((ws, input: { email: string; role: Exclude<Role, 'owner'>; send_email: boolean }) => teamApi.invite(ws, input))
+export const useRenewInvitation = () => useTeamMutation((_ws, v: { id: number; sendEmail: boolean }) => teamApi.renew(v.id, v.sendEmail))
+export const useRevokeInvitation = () => useTeamMutation((_ws, id: number) => teamApi.revoke(id))

@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { Logo } from '../components/Logo'
 import { PasswordInput } from '../components/PasswordInput'
@@ -15,7 +15,9 @@ const FIELD_MESSAGES: Record<string, string> = {
 export function RegisterPage() {
   const navigate = useNavigate()
   const register = useRegister()
-  const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' })
+  const [params] = useSearchParams()
+  // Coming from an invitation: the address it was sent to.
+  const [form, setForm] = useState({ name: '', email: params.get('email') ?? '', password: '', password_confirmation: '' })
 
   const error = register.error instanceof ApiError ? register.error : null
   const fieldError = (field: string) => (error?.fieldError(field) ? FIELD_MESSAGES[field] : undefined)

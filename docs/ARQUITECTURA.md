@@ -57,7 +57,7 @@ todo_smart/
 | `app` | PHP-FPM con Laravel. |
 | `queue` | Worker de colas (recordatorios, correos, push). |
 | `scheduler` | `schedule:work`: revisa recordatorios y vencimientos cada minuto. |
-| `reverb` | Websockets. |
+| `reverb` | Websockets (puerto interno 8081, expuesto por nginx en `/app`). |
 | `postgres` | Base de datos. |
 | `redis` | Colas y caché. |
 | `vite` | Solo en desarrollo, para recarga en caliente del frontend. |
@@ -79,11 +79,12 @@ tasks ──< tasks (parent_id)                         (subtareas)
 tasks >──< users        (task_assignees)
 tasks >──< labels       (task_label)
 tasks ──< comments      (con menciones @)
+comments ──< comment_attachments (archivos en el disco privado, storage/app/private/attachments)
 tasks ──< attachments
 tasks ──< time_entries  (registro de tiempo: inicio, fin, duración, usuario)
 tasks ──< reminders     (fecha de disparo, canal, enviado)
-workspaces ──< goals ──< key_results  (valor actual / meta)
-goals >──< projects
+workspaces ──< workspace_invitations   (correo, rol, hash del token, vence)
+workspaces ──< goals ──< key_results  (número: inicial / meta / actual; o tareas de un proyecto)
 activity_log            (quién hizo qué y cuándo; alimenta el feed y el historial)
 notifications           (notificaciones dentro de la app; tabla estándar de Laravel)
 push_subscriptions      (navegadores/dispositivos suscritos a push)
@@ -91,20 +92,52 @@ user_preferences        (tema claro/oscuro/sistema, confeti on/off, diseño del 
 external_links          (vínculos con sistemas externos; p. ej. ticket GLPI ↔ tarea)
 ```
 
-Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3), `due_at`, `start_at` (para Gantt), `estimate_minutes`, `position` (orden en Kanban), `completed_at`, `parent_id`, `project_id`, `created_by`.
+Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3), `due_at`, `start_at` (para Gantt), `estimate_minutes`, `position` (orden en listas y de las subtareas dentro de su tarea), `board_position` (orden en su columna del Kanban), `completed_at`, `parent_id`, `project_id`, `created_by`.
 
 ## 6. API
 
 - REST JSON bajo `/api/v1`, documentada automáticamente (OpenAPI).
 - Recursos: `workspaces`, `projects`, `tasks`, `tasks/{id}/subtasks`, `comments`, `time-entries`, `reminders`, `goals`, `key-results`, `members`, `invitations`, `notifications`, `preferences`, `push-subscriptions`.
+- Vistas (fase 2):
+  - `GET workspaces/{id}/tasks` acepta `with_subtasks=1` (las subtareas vienen también como filas propias, con `parent: {id, title}`; lo usan tablero y calendario), `sort=position` (orden del Kanban, por `board_position`), `done_since` (oculta las completadas antes de esa fecha) y `from` + `to` (tareas cuyo intervalo inicio–fecha límite toca ese rango; para calendario y cronograma).
+  - `POST tasks/{id}/move` con `status_id` y `position` (índice en la columna): mueve la tarjeta (tarea sin subtareas o subtarea; una tarea con subtareas no es tarjeta y devuelve 422) y renumera `board_position` de la columna sin tocar el orden de las subtareas dentro de su tarea. Soltarla en una columna "hecho" la completa; si era la última subtarea abierta, también se completa la tarea principal.
+  - Regla: `start_at` no puede ser posterior a `due_at`. Las fechas de inicio son de día completo (00:00 local); las fechas límite sin hora, 23:59 local.
+  - Regla: una tarea con subtareas fechadas toma sus fechas de ellas: inicio = la fecha más temprana de sus subtareas, límite = la más tardía. Se recalcula al crear, editar o borrar una subtarea; si se editan las fechas de la tarea principal, se vuelven a calcular. Sin subtareas fechadas, la tarea conserva sus propias fechas.
+- Equipo y metas (fase 4):
+  - Equipo: `PATCH workspaces/{id}` (nombre), `PATCH|DELETE workspaces/{id}/members/{user}` (rol, quitar o salir), `GET|POST workspaces/{id}/invitations`, `POST invitations/{id}/renew`, `DELETE invitations/{id}`. Público: `GET invitations/{token}`; con sesión: `POST invitations/{token}/accept` (solo con la cuenta del correo invitado). El token se guarda con hash y vence en 14 días; el correo es opcional (se puede compartir el enlace). El dueño nombra administradores; los administradores gestionan miembros e invitados; los invitados solo leen.
+  - Espacio actual: preferencia `current_workspace_id` (selector en el menú de la cuenta).
+  - `GET workspaces/{id}/workload?since=` (carga por persona) y `GET workspaces/{id}/summary?day_start=&week_start=` (mi día y semana, tarjeta Actividad).
+  - `GET workspaces/{id}/insights?since=&week_start=` (tarjetas extra del inicio): fechas en que terminé mis tareas (máx. 31 días; la app las agrupa por su día local para "Ritmo" y la racha), mis minutos de la semana por proyecto (las subtareas cuentan en el proyecto del padre), mis tareas abiertas sin cambios, comentarios ni tiempo en 14 días ("Sin movimiento") y los últimos comentarios de otras personas en tareas que tengo asignadas o que creé.
+  - Preferencia `home_note` (texto, máx. 5000): la tarjeta "Notas rápidas" del inicio; se guarda sola 0.8 s después de dejar de escribir, al salir del campo o al salir de la página. La tarjeta "Agenda" usa la misma consulta del calendario (`tasks?status=all&with_subtasks=1&from=&to=`).
+  - Metas: `GET|POST workspaces/{id}/goals` (`?closed=1` para las cerradas), `GET|PATCH|DELETE goals/{id}`, `POST goals/{id}/key-results`, `PATCH|DELETE key-results/{id}`. Resultados clave numéricos o por tareas de un proyecto; la meta promedia su avance y calcula su estado (a tiempo, en riesgo, atrasada, lograda).
+  - Inicio personalizable: preferencia `home_layout` (orden y tarjetas ocultas).
+- Tiempo y avisos (fase 3):
+  - `GET tasks/{id}/activity`: historial de la tarea (quién hizo qué y cuándo). Lo escribe un observador del modelo `Task` y, aparte, comentarios, asignaciones, subtareas y tiempo. Cada cambio de campo guarda `[antes, después]`; los cambios automáticos (por subtareas) llevan `reason: subtasks`.
+  - Tiempo: `POST tasks/{id}/timer` inicia el cronómetro de esa tarea (puede haber varios corriendo a la vez; repetirlo no abre otro), `POST timer/stop` (con `task_id` detiene solo ese, sin él todos), `GET timer?since=` (cronómetros activos y minutos de hoy), `GET|POST tasks/{id}/time-entries` (registros y tiempo a mano), `DELETE time-entries/{id}` (solo su autor). Completar una tarea detiene su cronómetro. Las tareas traen `tracked_minutes`.
+  - Comentarios: `POST tasks/{id}/comments` acepta texto y/o hasta 5 archivos de 10 MB (`attachments[]`, multipart: imágenes, PDF, Office, texto, ZIP). `GET attachments/{id}` los sirve solo a miembros del espacio (imágenes en línea, lo demás como descarga). Borrar el comentario borra sus archivos.
+  - Notificaciones: `GET notifications` (últimas 50 + `unread_count`), `POST notifications/{id}/read`, `POST notifications/read-all`. Tipos: `reminder`, `due_soon`, `assigned`, `commented`.
+  - Recordatorios: `GET|POST tasks/{id}/reminders` con `remind_at` (momento fijo) u `offset_minutes` (antes del vencimiento; se mueve si cambia la fecha límite), `DELETE reminders/{id}`.
+  - Avisos automáticos (`alerts:send`, cada minuto): recordatorios vencidos y "vence pronto" según las preferencias de cada persona (`due_notice_minutes` para tareas con hora; `all_day_notice` + `all_day_notice_time` para las de todo el día, en su `timezone`). Cada aviso automático sale una vez por fecha límite (`task_alerts`).
+  - Push: `POST push-subscriptions`, `POST push-subscriptions/delete`, `POST push-subscriptions/test`. Claves VAPID con `php artisan webpush:vapid`. `GET config` (público) entrega la clave de websockets y la clave pública de push.
 - Permisos con **Policies** de Laravel por espacio de trabajo y rol.
-- Eventos en tiempo real por canal privado del espacio: `task.updated`, `comment.created`, `notification.created`.
+- Tiempo real (Reverb, a través de nginx en `/app`; autorización en `POST /api/broadcasting/auth`):
+  - Canal `private-workspace.{id}`, evento `changed` con `task_ids`: se emite una vez al final de cada petición que cambió tareas (sin incluir a la pestaña que hizo el cambio, vía `X-Socket-ID`); las pantallas abiertas vuelven a pedir sus datos.
+  - Canal `private-App.Models.User.{id}`: cada notificación nueva (campana y aviso emergente).
 
 ## 7. Notificaciones y recordatorios
 
 1. El `scheduler` revisa cada minuto los recordatorios y vencimientos pendientes.
 2. Encola un trabajo por recordatorio en Redis.
 3. El `queue` envía por los canales que el usuario tenga activos: dentro de la app (base de datos + Reverb, que muestra la ventana emergente), push (Web Push) y correo (resumen diario).
+
+## 7.1 Asistente de voz
+
+- Botón redondo abajo a la derecha (en el celular, arriba de la barra inferior). Escucha con el reconocimiento de voz del navegador (`SpeechRecognition`, es-MX: Chrome, Edge, Safari, Android; no Firefox; en producción requiere HTTPS) y responde en voz alta con `speechSynthesis` (voz femenina en español si existe). También acepta texto escrito.
+- Entiende con reglas propias en español (`frontend/src/lib/assistant/parse.ts`), sin enviar nada a terceros: fechas (hoy, mañana, pasado mañana, días de la semana, "8 de noviembre", "24/12", "en 3 días", "la próxima semana"), horas ("a las 5 de la tarde", "5:30 p.m.", "17 hrs", "y media", "menos cuarto", "al mediodía", "en 2 horas") y el título sin las palabras de mando ("recuérdame que", "haz un recordatorio de"…).
+- Crear: siempre pregunta antes de guardar ("¿Guardo la tarea … para hoy a las 5 de la tarde?") y escucha la respuesta: "sí" la guarda; "no" cancela; "no, a las 6" corrige solo la hora (o el día) y vuelve a preguntar. Sin hora, la tarea es de todo el día. El aviso llega según las preferencias de "Vence pronto".
+- Consultar: "¿qué tengo hoy / mañana / esta semana?", "¿qué tengo atrasado?".
+- Voz: prefiere las voces naturales del dispositivo (Edge "Natural", Apple "Premium"/"Mejorada"), luego las de México. En Ajustes → Asistente de voz se elige la voz, la velocidad y si responde en voz alta; se guarda por dispositivo (localStorage), porque cada uno tiene voces distintas. Voz en la nube (Azure/Google/ElevenLabs): pendiente, solo si se pide.
+- Pendiente (modo híbrido): cuando `interpret()` devuelve `unknown`, mandar la frase a un endpoint del servidor que use la API de Claude (clave solo en `.env`) y devuelva la misma estructura de intención.
 
 ## 8. PWA y uso sin conexión
 

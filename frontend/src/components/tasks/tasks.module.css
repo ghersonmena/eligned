@@ -172,6 +172,11 @@
   cursor: pointer;
 }
 
+.check:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .rowMain {
   flex: 1 1 auto;
   min-width: 0;

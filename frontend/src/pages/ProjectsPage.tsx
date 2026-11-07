@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import type { ProjectColor } from '../api/types'
+import type { Project, ProjectColor } from '../api/types'
 import { Icon } from '../components/Icon'
-import { useCreateProject, useProjects } from '../hooks/useWorkspaceData'
+import { useCreateProject, useProjects, useUpdateProject } from '../hooks/useWorkspaceData'
 import { chipStyle, dotColor, PROJECT_COLORS } from '../lib/colors'
 import styles from './projects.module.css'
 import pageStyles from './pages.module.css'
@@ -16,16 +16,16 @@ export function ProjectsPage() {
       <div className={styles.header}>
         <div>
           <span className={pageStyles.eyebrow}>{isPending ? 'Cargando…' : `${projects.length} activos`}</span>
-          <h1 className={pageStyles.pageTitle}>Proyectos</h1>
+          <h1 className={pageStyles.pageTitle}>Proyectos / Etiquetas</h1>
         </div>
         {!creating && (
           <button type="button" className={pageStyles.primary} onClick={() => setCreating(true)}>
-            + Nuevo proyecto
+            + Nuevo
           </button>
         )}
       </div>
 
-      {creating && <NewProjectForm onDone={() => setCreating(false)} />}
+      {creating && <ProjectForm onDone={() => setCreating(false)} />}
 
       {isError && (
         <p className={pageStyles.error} role="alert">
@@ -35,7 +35,7 @@ export function ProjectsPage() {
 
       {!isPending && projects.length === 0 && !creating && (
         <div className={styles.empty}>
-          <strong>Aún no tienes proyectos</strong>
+          <strong>Aún no tienes proyectos ni etiquetas</strong>
           <span>Agrupa tus tareas por proyecto: soporte, infraestructura, una migración…</span>
           <button type="button" className={pageStyles.primary} onClick={() => setCreating(true)}>
             Crear el primero
@@ -75,28 +75,31 @@ export function ProjectsPage() {
   )
 }
 
-export function NewProjectForm({ onDone }: { onDone: () => void }) {
+/** Creates a project, or edits one (name, description and color) when `project` is given. */
+export function ProjectForm({ project, onDone }: { project?: Project; onDone: () => void }) {
   const createProject = useCreateProject()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [color, setColor] = useState<ProjectColor>('orange')
+  const updateProject = useUpdateProject()
+  const [name, setName] = useState(project?.name ?? '')
+  const [description, setDescription] = useState(project?.description ?? '')
+  const [color, setColor] = useState<ProjectColor>(project?.color ?? 'orange')
+  const saving = project ? updateProject : createProject
 
   function onSubmit(event: FormEvent) {
     event.preventDefault()
     if (!name.trim()) return
-    createProject.mutate(
-      { name: name.trim(), description: description.trim() || null, color },
-      { onSuccess: onDone },
-    )
+    const input = { name: name.trim(), description: description.trim() || null, color }
+    if (project) updateProject.mutate({ id: project.id, input }, { onSuccess: onDone })
+    else createProject.mutate(input, { onSuccess: onDone })
   }
 
   return (
     <form className={`${pageStyles.card} ${styles.form}`} onSubmit={onSubmit}>
-      <h2>Nuevo proyecto</h2>
+      <h2>{project ? 'Editar proyecto / etiqueta' : 'Nuevo proyecto / etiqueta'}</h2>
       <label className={pageStyles.field}>
         Nombre
         <input
-          className={pageStyles.input}
+          className={`${pageStyles.input} caps`}
+          autoCapitalize="characters"
           value={name}
           maxLength={120}
           autoFocus
@@ -107,7 +110,8 @@ export function NewProjectForm({ onDone }: { onDone: () => void }) {
       <label className={pageStyles.field}>
         Descripción (opcional)
         <input
-          className={pageStyles.input}
+          className={`${pageStyles.input} caps`}
+          autoCapitalize="characters"
           value={description}
           maxLength={2000}
           onChange={(e) => setDescription(e.target.value)}
@@ -129,14 +133,20 @@ export function NewProjectForm({ onDone }: { onDone: () => void }) {
           </label>
         ))}
       </fieldset>
-      {createProject.isError && (
+      {saving.isError && (
         <p className={pageStyles.error} role="alert">
-          No se pudo crear el proyecto. Revisa el nombre e inténtalo de nuevo.
+          No se pudo guardar. Revisa el nombre e inténtalo de nuevo.
         </p>
       )}
       <div className={styles.formActions}>
-        <button type="submit" className={pageStyles.primary} disabled={!name.trim() || createProject.isPending}>
-          <Icon name="plus" size={18} /> Crear proyecto
+        <button type="submit" className={pageStyles.primary} disabled={!name.trim() || saving.isPending}>
+          {project ? (
+            'Guardar cambios'
+          ) : (
+            <>
+              <Icon name="plus" size={18} /> Crear
+            </>
+          )}
         </button>
         <button type="button" className={pageStyles.secondary} onClick={onDone}>
           Cancelar

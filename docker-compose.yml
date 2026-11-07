@@ -9,6 +9,7 @@ services:
     depends_on:
       - app
       - vite
+      - reverb
 
   app:
     build:
@@ -36,6 +37,15 @@ services:
   scheduler:
     image: todo-smart-php
     command: php artisan schedule:work
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - app
+
+  # Websockets for live updates and popups (reached by the browser through nginx at /app).
+  reverb:
+    image: todo-smart-php
+    command: php artisan reverb:start --host=0.0.0.0 --port=8081
     volumes:
       - ./backend:/var/www/html
     depends_on:

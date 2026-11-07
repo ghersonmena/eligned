@@ -17,7 +17,7 @@ it('returns the current user with default preferences', function () {
 
     $this->actingAs($user)->getJson('/api/v1/me')
         ->assertOk()
-        ->assertJsonPath('data.preferences', ['theme' => 'system', 'confetti' => true]);
+        ->assertJsonPath('data.preferences', User::DEFAULT_PREFERENCES);
 });
 
 it('updates only the preferences that are sent', function () {

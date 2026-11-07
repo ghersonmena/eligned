@@ -1,0 +1,602 @@
+.rings {
+  margin: 6px 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.ring strong {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.ring span {
+  font-size: 12px;
+  color: #c7b2a6;
+}
+
+.bars,
+.people {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  list-style: none;
+}
+
+.barLink,
+.people li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.people li {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.barLink:hover .barTitle {
+  text-decoration: underline;
+}
+
+.barTitle,
+.personName {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barPct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.barPct em {
+  color: #dc2626;
+  font-style: normal;
+}
+
+.bar {
+  grid-column: 1 / -1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--soft);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.more {
+  margin-top: auto;
+}
+
+/* ---------- Personalizar ---------- */
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.editBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.editHint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.slot {
+  position: relative;
+  min-height: 0;
+  display: flex;
+}
+
+.slot > section {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.editing > section {
+  outline: 2px dashed var(--accent);
+  outline-offset: 3px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hidden > section {
+  opacity: 0.35;
+}
+
+.tools {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px rgb(40 20 10 / 20%);
+}
+
+.tools button {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tools button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.note {
+  font-size: 12px;
+}
+
+/* ---------- Captura rápida ---------- */
+.quick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick input {
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.quick input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chips button[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.chips .chipUrgent[aria-pressed='true'] {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+
+.quickStatus {
+  min-height: 1.5em;
+  font-size: 13px;
+}
+
+/* ---------- Ritmo ---------- */
+.rhythmStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rhythmStats div {
+  display: flex;
+  flex-direction: column;
+}
+
+.rhythmStats strong {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.rhythmStats span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.up {
+  color: #16a34a;
+}
+
+.down {
+  color: #dc2626;
+}
+
+.columns {
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+  list-style: none;
+}
+
+.columns li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.columnTrack {
+  width: 100%;
+  max-width: 22px;
+  height: 84px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 6px;
+  background: var(--soft);
+}
+
+.columnTrack span {
+  width: 100%;
+  min-height: 0;
+  border-radius: 6px;
+  background: var(--accent);
+}
+
+/* The current week stands out a little. */
+.columns li:nth-child(-n + 7) .columnTrack span {
+  opacity: 0.55;
+}
+
+.columns small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.columnToday small {
+  color: var(--accent-text);
+}
+
+.columnToday .columnTrack {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* ---------- Sin movimiento / Comentarios ---------- */
+.feed,
+.comments {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  list-style: none;
+}
+
+.feed li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 10px;
+}
+
+.feedDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.feedTitle {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedTitle:hover {
+  text-decoration: underline;
+}
+
+.feedMeta {
+  grid-column: 2;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.comments li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.commentHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.commentHead span {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.commentTask {
+  display: block;
+  overflow: hidden;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card p.commentBody,
+.commentBody {
+  margin: 2px 0 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.barTitle a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.barTitle a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Notas rápidas ---------- */
+.noteArea {
+  flex: 1 1 auto;
+  min-height: 160px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.noteArea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.noteStatus {
+  font-size: 12px;
+}
+
+.card p.noteError,
+.noteError {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ---------- Agenda ---------- */
+.agendaHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.agendaRange {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.agendaNav {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.agendaNav button {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.weekDay {
+  min-width: 0;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--row);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.weekDay small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.weekDay strong {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.weekToday strong,
+.weekToday small {
+  color: #dc2626;
+}
+
+.weekDay[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.weekDay[aria-pressed='true'] small,
+.weekDay[aria-pressed='true'] strong {
+  color: inherit;
+}
+
+.weekDots {
+  height: 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.weekDots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.weekDay[aria-pressed='true'] .weekDots i {
+  box-shadow: 0 0 0 1px var(--on-accent);
+}
+
+.weekDots .dotDone {
+  opacity: 0.35;
+}
+
+.weekDots em {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.agendaDay {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.agendaDay::first-letter {
+  text-transform: uppercase;
+}
+
+/* Personalizar: cards are dragged around. */
+.editing {
+  cursor: grab;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.dragging {
+  z-index: 10;
+  cursor: grabbing;
+}
+
+.dragging > section {
+  box-shadow: 0 18px 40px rgb(40 20 10 / 28%);
+  transform: scale(1.02) rotate(-0.6deg);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.tools .handle {
+  cursor: grab;
+}
+
+.handle span {
+  font-size: 16px;
+}

@@ -14,7 +14,7 @@ export function LoginPage() {
   const [params] = useSearchParams()
   const login = useLogin()
   const { resend, feedback } = useResendFeedback()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => params.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
 

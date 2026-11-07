@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Notifications\TaskAlert;
 use Illuminate\Support\Facades\DB;
 
 class CreateTask
@@ -28,6 +29,7 @@ class CreateTask
                 'project_id' => $parent ? $parent->project_id : ($data['project_id'] ?? null),
                 'created_by' => $author->id,
                 'position' => (int) $workspace->tasks()->where('parent_id', $parent?->id)->max('position') + 1,
+                'board_position' => (int) $workspace->tasks()->where('status_id', $status->id)->max('board_position') + 1,
             ]);
             $task->setRelation('workspace', $workspace);
             $task->moveToStatus($status);
@@ -35,10 +37,12 @@ class CreateTask
 
             if (! empty($data['assignee_ids'])) {
                 $task->assignees()->sync($data['assignee_ids']);
+                TaskAlert::assigned($task, $data['assignee_ids'], $author);
             }
 
-            // A new open subtask reopens a completed parent.
+            // A new open subtask reopens a completed parent, and its dates widen the parent's span.
             $task->syncParentCompletion();
+            $task->syncParentDates();
 
             return $task;
         });

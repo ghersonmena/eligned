@@ -72,6 +72,7 @@
   min-width: 120px;
 }
 
+.dateInput:disabled,
 .timeInput:disabled {
   opacity: 0.5;
 }

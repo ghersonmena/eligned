@@ -31,6 +31,10 @@ class TaskResource extends JsonResource
             'completed' => $this->isCompleted(),
             'completed_at' => $this->completed_at,
             'position' => $this->position,
+            'board_position' => $this->board_position,
+            'parent' => $this->whenLoaded('parent', fn () => $this->parent
+                ? ['id' => $this->parent->id, 'title' => $this->parent->title]
+                : null),
             'project' => $this->whenLoaded('project', fn () => $this->project
                 ? ['id' => $this->project->id, 'name' => $this->project->name, 'color' => $this->project->color]
                 : null),
@@ -38,6 +42,7 @@ class TaskResource extends JsonResource
             'subtasks_count' => $this->whenCounted('subtasks'),
             'subtasks_done_count' => $this->whenCounted('done_subtasks'),
             'comments_count' => $this->whenCounted('comments'),
+            'tracked_minutes' => $this->when(isset($this->tracked_minutes) || array_key_exists('tracked_minutes', $this->resource->getAttributes()), fn () => (int) $this->tracked_minutes),
             'subtasks' => TaskResource::collection($this->whenLoaded('subtasks')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'created_at' => $this->created_at,

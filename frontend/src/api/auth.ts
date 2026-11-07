@@ -5,6 +5,43 @@ export type ThemePreference = 'light' | 'dark' | 'system'
 export interface Preferences {
   theme: ThemePreference
   confetti: boolean
+  /** IANA zone of the user's device (kept in sync by the app). */
+  timezone: string
+  /** "Vence pronto" for tasks with a time: minutes before, or null (off). */
+  due_notice_minutes: number | null
+  /** All-day tasks: heads-up that morning at all_day_notice_time (HH:MM). */
+  all_day_notice: boolean
+  all_day_notice_time: string
+  /** Live popups inside the app. */
+  popups: boolean
+  /** Workspace the app opens (null: the first one). */
+  current_workspace_id: number | null
+  /** Home cards in order, each maybe hidden (null: default layout). */
+  home_layout: HomeCardSetting[] | null
+  /** "Notas rápidas" home card (max NOTE_MAX characters). */
+  home_note: string | null
+}
+
+export type HomeCardId =
+  | 'today'
+  | 'tracker'
+  | 'activity'
+  | 'goals'
+  | 'upcoming'
+  | 'projects'
+  | 'team'
+  | 'quick'
+  | 'priority'
+  | 'rhythm'
+  | 'time'
+  | 'stale'
+  | 'comments'
+  | 'notes'
+  | 'agenda'
+
+export interface HomeCardSetting {
+  id: HomeCardId
+  hidden: boolean
 }
 
 export interface Workspace {

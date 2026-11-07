@@ -22,9 +22,15 @@ const PATHS = {
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   close: 'M6 6l12 12M18 6L6 18',
   back: 'M15 6l-6 6 6 6',
+  forward: 'M9 6l6 6-6 6',
   flag: 'M5 21V4h11l-2 4 2 4H5',
   archive: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4',
   edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+  mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6',
+  send: 'M4 12l16-8-6 16-2-7z',
+  volume: 'M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11',
+  mute: 'M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6',
+  clip: 'M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7',
 } as const
 
 export type IconName = keyof typeof PATHS
