@@ -11,7 +11,7 @@ import { initials } from '../lib/initials'
 import { canManage, currentWorkspace, roleHint, roleLabel } from '../lib/workspace'
 import pageStyles from './pages.module.css'
 import styles from './team.module.css'
-import { dateFormat } from '../lib/i18n'
+import { dateFormat, t } from '../lib/i18n'
 
 type InviteRole = Exclude<Role, 'owner'>
 const shortDate = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short' }).format(d) }
@@ -27,14 +27,14 @@ export function TeamPage({ user }: { user: User }) {
     <>
       <div className={styles.header}>
         <div>
-          <span className={pageStyles.eyebrow}>{workspace.personal ? 'Tu espacio personal' : 'Espacio de trabajo'}</span>
+          <span className={pageStyles.eyebrow}>{workspace.personal ? t('Tu espacio personal') : t('Espacio de trabajo')}</span>
           {renaming ? (
             <RenameForm name={workspace.name} onDone={() => setRenaming(false)} />
           ) : (
             <h1 className={pageStyles.pageTitle}>
               {workspace.name}
               {manager && (
-                <button type="button" className={styles.iconButton} aria-label="Cambiar el nombre del espacio" onClick={() => setRenaming(true)}>
+                <button type="button" className={styles.iconButton} aria-label={t('Cambiar el nombre del espacio')} onClick={() => setRenaming(true)}>
                   <Icon name="edit" size={18} />
                 </button>
               )}
@@ -48,9 +48,9 @@ export function TeamPage({ user }: { user: User }) {
           <WorkloadSection meId={user.id} className={pageStyles.card} />
           <section className={pageStyles.card} aria-labelledby="people-title">
             <h2 id="people-title">
-              Personas <span className={pageStyles.count}>· {members.length}</span>
+              {t('Personas')} <span className={pageStyles.count}>· {members.length}</span>
             </h2>
-            {isPending && <p>Cargando…</p>}
+            {isPending && <p>{t('Cargando…')}</p>}
             <ul className={styles.people}>
               {members.map((m) => (
                 <MemberRow key={m.id} member={m} me={user} myRole={myRole} />
@@ -89,12 +89,12 @@ function RenameForm({ name, onDone }: { name: string; onDone: () => void }) {
         if (value.trim()) rename.mutate(value.trim(), { onSuccess: onDone })
       }}
     >
-      <input className={pageStyles.input} aria-label="Nombre del espacio" value={value} maxLength={120} autoFocus onChange={(e) => setValue(e.target.value)} />
+      <input className={pageStyles.input} aria-label={t('Nombre del espacio')} value={value} maxLength={120} autoFocus onChange={(e) => setValue(e.target.value)} />
       <button type="submit" className={pageStyles.primary} disabled={!value.trim() || rename.isPending}>
-        Guardar
+        {t('Guardar')}
       </button>
       <button type="button" className={pageStyles.secondary} onClick={onDone}>
-        Cancelar
+        {t('Cancelar')}
       </button>
     </form>
   )
@@ -113,8 +113,8 @@ function MemberRow({ member, me, myRole }: { member: Member; me: User; myRole: R
 
   function onRemove() {
     const text = isMe
-      ? '¿Salir de este espacio? Dejarás de ver sus tareas.'
-      : `¿Quitar a ${member.name} del espacio? Dejará de ver sus tareas y de ser responsable de ellas.`
+      ? t('¿Salir de este espacio? Dejarás de ver sus tareas.')
+      : t('¿Quitar a {name} del espacio? Dejará de ver sus tareas y de ser responsable de ellas.', { name: member.name })
     if (!window.confirm(text)) return
     remove.mutate(member.id, { onSuccess: () => isMe && navigate('/') })
   }
@@ -127,7 +127,7 @@ function MemberRow({ member, me, myRole }: { member: Member; me: User; myRole: R
       <div className={styles.personText}>
         <strong>
           {member.name}
-          {isMe && <span className={styles.you}> (tú)</span>}
+          {isMe && <span className={styles.you}> {t('(tú)')}</span>}
         </strong>
         <span>{member.email}</span>
         {error instanceof ApiError && (
@@ -139,7 +139,7 @@ function MemberRow({ member, me, myRole }: { member: Member; me: User; myRole: R
       {canEdit ? (
         <select
           className={styles.roleSelect}
-          aria-label={`Rol de ${member.name}`}
+          aria-label={t('Rol de {name}', { name: member.name })}
           value={role}
           disabled={setRole.isPending}
           onChange={(e) => setRole.mutate({ userId: member.id, role: e.target.value as InviteRole })}
@@ -157,8 +157,8 @@ function MemberRow({ member, me, myRole }: { member: Member; me: User; myRole: R
         <button
           type="button"
           className={styles.iconButton}
-          aria-label={isMe ? 'Salir del espacio' : `Quitar a ${member.name}`}
-          title={isMe ? 'Salir del espacio' : 'Quitar del espacio'}
+          aria-label={isMe ? t('Salir del espacio') : t('Quitar a {name}', { name: member.name })}
+          title={isMe ? t('Salir del espacio') : t('Quitar del espacio')}
           disabled={remove.isPending}
           onClick={onRemove}
         >
@@ -192,10 +192,10 @@ function InviteCard({ isOwner }: { isOwner: boolean }) {
 
   return (
     <section className={pageStyles.card} aria-labelledby="invite-title">
-      <h2 id="invite-title">Invitar a alguien</h2>
+      <h2 id="invite-title">{t('Invitar a alguien')}</h2>
       <form className={styles.inviteForm} onSubmit={onSubmit}>
         <label className={pageStyles.field}>
-          Correo
+          {t('Correo')}
           <input
             className={pageStyles.input}
             type="email"
@@ -207,7 +207,7 @@ function InviteCard({ isOwner }: { isOwner: boolean }) {
           />
         </label>
         <label className={pageStyles.field}>
-          Rol
+          {t('Rol')}
           <select className={pageStyles.input} value={role} onChange={(e) => setRole(e.target.value as InviteRole)}>
             {(isOwner ? (['admin', 'member', 'guest'] as const) : (['member', 'guest'] as const)).map((r) => (
               <option key={r} value={r}>
@@ -218,7 +218,7 @@ function InviteCard({ isOwner }: { isOwner: boolean }) {
         </label>
         <label className={pageStyles.check}>
           <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
-          Enviarle la invitación por correo
+          {t('Enviarle la invitación por correo')}
         </label>
         {error && (
           <p className={pageStyles.error} role="alert">
@@ -226,13 +226,17 @@ function InviteCard({ isOwner }: { isOwner: boolean }) {
           </p>
         )}
         <button type="submit" className={pageStyles.primary} disabled={!email.trim() || invite.isPending}>
-          {invite.isPending ? 'Invitando…' : 'Invitar'}
+          {invite.isPending ? t('Invitando…') : t('Invitar')}
         </button>
       </form>
       {created?.link && (
         <LinkBox
           link={created.link}
-          note={sendEmail ? `Le enviamos un correo a ${created.email}. También puedes compartirle este enlace:` : `Comparte este enlace con ${created.email}:`}
+          note={
+            sendEmail
+              ? t('Le enviamos un correo a {email}. También puedes compartirle este enlace:', { email: created.email })
+              : t('Comparte este enlace con {email}:', { email: created.email })
+          }
         />
       )}
     </section>
@@ -245,7 +249,7 @@ function LinkBox({ link, note }: { link: string; note: string }) {
     <div className={styles.linkBox} role="status">
       <p>{note}</p>
       <div className={styles.linkRow}>
-        <input className={pageStyles.input} readOnly value={link} aria-label="Enlace de invitación" onFocus={(e) => e.target.select()} />
+        <input className={pageStyles.input} readOnly value={link} aria-label={t('Enlace de invitación')} onFocus={(e) => e.target.select()} />
         <button
           type="button"
           className={pageStyles.secondary}
@@ -256,10 +260,10 @@ function LinkBox({ link, note }: { link: string; note: string }) {
             })
           }
         >
-          {copied ? '¡Copiado!' : 'Copiar'}
+          {copied ? t('¡Copiado!') : t('Copiar')}
         </button>
       </div>
-      <small>Solo funciona para ese correo y vence en 14 días.</small>
+      <small>{t('Solo funciona para ese correo y vence en 14 días.')}</small>
     </div>
   )
 }
@@ -273,14 +277,14 @@ function PendingInvitations() {
 
   return (
     <section className={pageStyles.card} aria-labelledby="pending-title">
-      <h2 id="pending-title">Invitaciones pendientes</h2>
+      <h2 id="pending-title">{t('Invitaciones pendientes')}</h2>
       <ul className={styles.people}>
         {invitations.map((inv) => (
           <li key={inv.id} className={styles.invitation}>
             <div className={styles.personText}>
               <strong>{inv.email}</strong>
               <span>
-                {roleLabel(inv.role)} · {inv.expired ? 'venció' : `vence el ${shortDate.format(new Date(inv.expires_at))}`}
+                {roleLabel(inv.role)} · {inv.expired ? t('venció') : t('vence el {date}', { date: shortDate.format(new Date(inv.expires_at)) })}
               </span>
             </div>
             <div className={styles.invActions}>
@@ -290,7 +294,7 @@ function PendingInvitations() {
                 disabled={renew.isPending}
                 onClick={() => renew.mutate({ id: inv.id, sendEmail: false }, { onSuccess: setFresh })}
               >
-                Nuevo enlace
+                {t('Nuevo enlace')}
               </button>
               <button
                 type="button"
@@ -298,18 +302,18 @@ function PendingInvitations() {
                 disabled={renew.isPending}
                 onClick={() => renew.mutate({ id: inv.id, sendEmail: true }, { onSuccess: setFresh })}
               >
-                Reenviar correo
+                {t('Reenviar correo')}
               </button>
               <button
                 type="button"
                 className={styles.iconButton}
-                aria-label={`Cancelar la invitación de ${inv.email}`}
-                onClick={() => window.confirm(`¿Cancelar la invitación de ${inv.email}?`) && revoke.mutate(inv.id)}
+                aria-label={t('Cancelar la invitación de {email}', { email: inv.email })}
+                onClick={() => window.confirm(t('¿Cancelar la invitación de {email}?', { email: inv.email })) && revoke.mutate(inv.id)}
               >
                 <Icon name="trash" size={18} />
               </button>
             </div>
-            {fresh?.id === inv.id && fresh.link && <LinkBox link={fresh.link} note="El enlace anterior ya no funciona. Este es el nuevo:" />}
+            {fresh?.id === inv.id && fresh.link && <LinkBox link={fresh.link} note={t('El enlace anterior ya no funciona. Este es el nuevo:')} />}
           </li>
         ))}
       </ul>

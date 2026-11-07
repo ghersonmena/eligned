@@ -36,7 +36,7 @@ export function TaskDetailPage() {
   if (isPending) {
     return (
       <p className={styles.loading} role="status">
-        <span className={styles.spinner} aria-hidden="true" /> Cargando tarea…
+        <span className={styles.spinner} aria-hidden="true" /> {t('Cargando tarea…')}
       </p>
     )
   }
@@ -72,7 +72,7 @@ function TaskDetail({ task }: { task: Task }) {
     <div className={styles.layout}>
       {deleteTask.isPending && (
         <div className={styles.overlay} role="status">
-          <span className={styles.spinner} aria-hidden="true" /> Eliminando tarea…
+          <span className={styles.spinner} aria-hidden="true" /> {t('Eliminando tarea…')}
         </div>
       )}
 

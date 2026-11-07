@@ -8,6 +8,7 @@ import { chipStyle } from '../lib/colors'
 import { ProjectForm } from './ProjectsPage'
 import styles from './projects.module.css'
 import pageStyles from './pages.module.css'
+import { t } from '../lib/i18n'
 
 export function ProjectDetailPage() {
   const { id } = useParams()
@@ -21,19 +22,19 @@ export function ProjectDetailPage() {
   const updateProject = useUpdateProject()
   const deleteProject = useDeleteProject()
 
-  if (isPending) return <p className={pageStyles.eyebrow}>Cargando proyecto…</p>
+  if (isPending) return <p className={pageStyles.eyebrow}>{t('Cargando proyecto…')}</p>
   if (isError || !project) {
     return (
       <section className={pageStyles.card}>
-        <h2>No encontramos este proyecto</h2>
-        <Link to="/proyectos">Volver a Proyectos / Etiquetas</Link>
+        <h2>{t('No encontramos este proyecto')}</h2>
+        <Link to="/proyectos">{t('Volver a Proyectos / Etiquetas')}</Link>
       </section>
     )
   }
 
   function remove() {
     if (!project) return
-    if (!window.confirm(`¿Eliminar el proyecto "${project.name}"? Sus tareas se conservan, solo quedan sin proyecto.`)) return
+    if (!window.confirm(t('¿Eliminar el proyecto "{name}"? Sus tareas se conservan, solo quedan sin proyecto.', { name: project.name }))) return
     deleteProject.mutate(project.id, { onSuccess: () => navigate('/proyectos') })
   }
 
@@ -41,8 +42,8 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <nav aria-label="Ruta" className={styles.breadcrumb}>
-        <Link to="/proyectos">Proyectos / Etiquetas</Link>
+      <nav aria-label={t('Ruta')} className={styles.breadcrumb}>
+        <Link to="/proyectos">{t('Proyectos / Etiquetas')}</Link>
       </nav>
       <div className={styles.header}>
         <div className={styles.titleRow}>
@@ -57,7 +58,7 @@ export function ProjectDetailPage() {
         <div className={styles.formActions}>
           {!editing && (
             <button type="button" className={pageStyles.secondary} onClick={() => setEditing(true)}>
-              <Icon name="edit" size={18} /> Editar
+              <Icon name="edit" size={18} /> {t('Editar')}
             </button>
           )}
           <button
@@ -65,10 +66,10 @@ export function ProjectDetailPage() {
             className={pageStyles.secondary}
             onClick={() => updateProject.mutate({ id: project.id, input: { archived: !project.archived } })}
           >
-            <Icon name="archive" size={18} /> {project.archived ? 'Restaurar' : 'Archivar'}
+            <Icon name="archive" size={18} /> {project.archived ? t('Restaurar') : t('Archivar')}
           </button>
           <button type="button" className={pageStyles.secondary} onClick={remove}>
-            <Icon name="trash" size={18} /> Eliminar
+            <Icon name="trash" size={18} /> {t('Eliminar')}
           </button>
         </div>
       </div>
@@ -77,20 +78,20 @@ export function ProjectDetailPage() {
 
       {project.archived && (
         <p className={styles.archivedNote} role="status">
-          Este proyecto está archivado: no aparece en la lista ni en los filtros.
+          {t('Este proyecto está archivado: no aparece en la lista ni en los filtros.')}
         </p>
       )}
 
       <div>
         <Link to={`/tareas/nueva?proyecto=${project.id}`} className={`${pageStyles.primary} ${pageStyles.buttonLink} ${styles.inlineButton}`}>
-          + Nueva tarea en este proyecto
+          + {t('Nueva tarea en este proyecto')}
         </Link>
       </div>
 
       {open.isSuccess && tasks.length === 0 && (
         <div className={taskStyles.empty}>
-          <strong>Sin tareas pendientes</strong>
-          <span>Crea la primera tarea de este proyecto con el botón de arriba.</span>
+          <strong>{t('Sin tareas pendientes')}</strong>
+          <span>{t('Crea la primera tarea de este proyecto con el botón de arriba.')}</span>
         </div>
       )}
 
@@ -98,10 +99,10 @@ export function ProjectDetailPage() {
 
       <label className={taskStyles.toggle}>
         <input type="checkbox" checked={showCompleted} onChange={(e) => setShowCompleted(e.target.checked)} />
-        Ver completadas
+        {t('Ver completadas')}
       </label>
       {showCompleted && completed.data && completed.data.length > 0 && (
-        <TaskList title="Completadas" tasks={completed.data} showProject={false} />
+        <TaskList title={t('Completadas')} tasks={completed.data} showProject={false} />
       )}
     </>
   )

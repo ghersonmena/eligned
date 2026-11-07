@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { FILES } from '../locales/en'
 import { EN, t, useLocaleStore } from './i18n'
 
 // The app's own source files, as text.
@@ -29,6 +30,19 @@ describe('translations', () => {
   it('has English for every text in the app', () => {
     const missing = [...usedTexts()].filter(([text]) => !(text in EN)).map(([text, file]) => `${file}: ${text}`)
     expect(missing).toEqual([])
+  })
+
+  it('translates each text only one way', () => {
+    const seen = new Map<string, string>()
+    const clashes: string[] = []
+    for (const [file, texts] of Object.entries(FILES)) {
+      for (const [es, en] of Object.entries(texts)) {
+        const before = seen.get(es)
+        if (before !== undefined && before !== en) clashes.push(`${file}: "${es}" → "${en}" (antes "${before}")`)
+        seen.set(es, en)
+      }
+    }
+    expect(clashes).toEqual([])
   })
 
   it('keeps the same {placeholders} in English', () => {

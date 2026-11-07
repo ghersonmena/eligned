@@ -26,11 +26,12 @@ import { dueGroup } from '../lib/dates'
 import { currentWorkspace } from '../lib/workspace'
 import { DEFAULT_LAYOUT, HOME_CARDS, moveCard, resolveLayout, toggleCard } from '../lib/homeLayout'
 import styles from './pages.module.css'
+import { t, tk } from '../lib/i18n'
 
 function greetingFor(hour: number) {
-  if (hour < 12) return 'Buenos días,'
-  if (hour < 19) return 'Buenas tardes,'
-  return 'Buenas noches,'
+  if (hour < 12) return t('Buenos días,')
+  if (hour < 19) return t('Buenas tardes,')
+  return t('Buenas noches,')
 }
 
 const CARD_CLASS = styles.card
@@ -91,7 +92,7 @@ export function HomePage({ user }: { user: User }) {
         <div className={homeStyles.editBar}>
           {editing && (
             <button type="button" className={styles.secondary} onClick={() => change(null)}>
-              Restablecer
+              {t('Restablecer')}
             </button>
           )}
           <button
@@ -100,16 +101,16 @@ export function HomePage({ user }: { user: User }) {
             aria-pressed={editing}
             onClick={() => setEditing(!editing)}
           >
-            {editing ? 'Listo' : 'Personalizar'}
+            {editing ? t('Listo') : t('Personalizar')}
           </button>
-          {editing && <p className={homeStyles.editHint}>Arrastra las tarjetas para acomodarlas (en el celular, mantén presionada la tarjeta) y oculta las que no uses. Se guarda solo.</p>}
+          {editing && <p className={homeStyles.editHint}>{t('Arrastra las tarjetas para acomodarlas (en el celular, mantén presionada la tarjeta) y oculta las que no uses. Se guarda solo.')}</p>}
         </div>
       </div>
 
       {visible.length === 0 && (
         <section className={styles.card}>
-          <h2>Ocultaste todas las tarjetas</h2>
-          <p>Pulsa "Personalizar" para volver a mostrar alguna.</p>
+          <h2>{t('Ocultaste todas las tarjetas')}</h2>
+          <p>{t('Pulsa "Personalizar" para volver a mostrar alguna.')}</p>
         </section>
       )}
 
@@ -118,12 +119,12 @@ export function HomePage({ user }: { user: User }) {
         collisionDetection={closestCenter}
         onDragEnd={onDragEnd}
         accessibility={{
-          screenReaderInstructions: { draggable: DRAG_HELP },
+          screenReaderInstructions: { draggable: t(DRAG_HELP) },
           announcements: {
-            onDragStart: ({ active }) => `Tomaste la tarjeta ${label(active.id as HomeCardId)}.`,
-            onDragOver: ({ over }) => (over ? `Sobre el lugar de ${label(over.id as HomeCardId)}.` : 'Fuera del inicio.'),
-            onDragEnd: ({ over }) => (over ? `Tarjeta colocada en el lugar de ${label(over.id as HomeCardId)}.` : 'Movimiento cancelado.'),
-            onDragCancel: () => 'Movimiento cancelado.',
+            onDragStart: ({ active }) => t('Tomaste la tarjeta {name}.', { name: label(active.id as HomeCardId) }),
+            onDragOver: ({ over }) => (over ? t('Sobre el lugar de {name}.', { name: label(over.id as HomeCardId) }) : t('Fuera del inicio.')),
+            onDragEnd: ({ over }) => (over ? t('Tarjeta colocada en el lugar de {name}.', { name: label(over.id as HomeCardId) }) : t('Movimiento cancelado.')),
+            onDragCancel: () => t('Movimiento cancelado.'),
           },
         }}
       >
@@ -147,8 +148,9 @@ export function HomePage({ user }: { user: User }) {
   )
 }
 
-const DRAG_HELP =
-  'Para mover una tarjeta con el teclado, enfoca su botón de mover y pulsa espacio. Usa las flechas para llevarla a otro lugar y espacio otra vez para soltarla, o Escape para cancelar.'
+const DRAG_HELP = tk(
+  'Para mover una tarjeta con el teclado, enfoca su botón de mover y pulsa espacio. Usa las flechas para llevarla a otro lugar y espacio otra vez para soltarla, o Escape para cancelar.',
+)
 
 /** A card while "Personalizar" is on: drag it anywhere (long press on touch screens). */
 function SortableSlot({ card, label, onToggle, children }: { card: HomeCardSetting; label: string; onToggle: () => void; children: ReactNode }) {
@@ -163,12 +165,12 @@ function SortableSlot({ card, label, onToggle, children }: { card: HomeCardSetti
       {...grab}
     >
       {children}
-      <div className={homeStyles.tools} role="group" aria-label={`Tarjeta ${label}`}>
-        <button ref={setActivatorNodeRef} type="button" className={homeStyles.handle} {...attributes} onKeyDown={onKeyDown} aria-label={`Mover ${label}`}>
-          <span aria-hidden="true">⠿</span> Mover
+      <div className={homeStyles.tools} role="group" aria-label={t('Tarjeta {name}', { name: label })}>
+        <button ref={setActivatorNodeRef} type="button" className={homeStyles.handle} {...attributes} onKeyDown={onKeyDown} aria-label={t('Mover {name}', { name: label })}>
+          <span aria-hidden="true">⠿</span> {t('Mover')}
         </button>
         <button type="button" aria-pressed={!card.hidden} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onClick={onToggle}>
-          {card.hidden ? 'Mostrar' : 'Ocultar'}
+          {card.hidden ? t('Mostrar') : t('Ocultar')}
         </button>
       </div>
     </div>
@@ -182,14 +184,17 @@ function TodayCard() {
   return (
     <section className={`${styles.card} ${styles.cardToday}`}>
       <h2>
-        Para hoy{today.length > 0 && <span className={styles.count}> · {today.length}</span>}
+        {t('Para hoy')}
+        {today.length > 0 && <span className={styles.count}> · {today.length}</span>}
       </h2>
-      {isPending && <p>Cargando…</p>}
+      {isPending && <p>{t('Cargando…')}</p>}
       {!isPending && today.length === 0 && (
-        <p>Nada pendiente para hoy. {tasks.length > 0 ? `Tienes ${tasks.length} tareas abiertas más adelante.` : ''}</p>
+        <p>
+          {t('Nada pendiente para hoy.')} {tasks.length > 0 ? t('Tienes {n} tareas abiertas más adelante.', { n: tasks.length }) : ''}
+        </p>
       )}
       {today.length > 0 && (
-        <div className={styles.cardScroll} tabIndex={0} aria-label="Tareas para hoy">
+        <div className={styles.cardScroll} tabIndex={0} aria-label={t('Tareas para hoy')}>
           <ul className={taskStyles.list}>
             {today.map((task) => (
               <TaskRow key={task.id} task={task} showTimer />
@@ -197,7 +202,7 @@ function TodayCard() {
           </ul>
         </div>
       )}
-      <Link to="/tareas">Ver todas mis tareas</Link>
+      <Link to="/tareas">{t('Ver todas mis tareas')}</Link>
     </section>
   )
 }

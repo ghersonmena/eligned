@@ -1,3 +1,5 @@
+import { intlLocale } from '../i18n'
+
 /**
  * The browser's own speech: listening (SpeechRecognition, Chrome / Edge /
  * Safari / Android) and talking (speechSynthesis). Nothing is sent to our
@@ -104,16 +106,13 @@ const NATURAL = /natural|neural|online|premium|mejorad|enhanced|siri|wavenet/i
 // Spanish women's voices, by the names browsers give them.
 const FEMALE = /dalia|paulina|sabina|m[oó]nica|helena|laura|elvira|dalia|lupe|paloma|marisol|ximena|elena|larissa|salom[eé]|catalina|camila|sof[ií]a|valentina|google español/i
 
-const COUNTRIES: Record<string, string> = {
-  MX: 'México',
-  US: 'Estados Unidos',
-  ES: 'España',
-  AR: 'Argentina',
-  CO: 'Colombia',
-  CL: 'Chile',
-  PE: 'Perú',
-  VE: 'Venezuela',
-  '419': 'Latinoamérica',
+/** "México", "Estados Unidos"… in the current language. */
+function countryName(region: string): string | undefined {
+  try {
+    return new Intl.DisplayNames([intlLocale()], { type: 'region' }).of(region)
+  } catch {
+    return undefined
+  }
 }
 
 export const isNatural = (v: VoiceLike) => NATURAL.test(v.name)
@@ -139,7 +138,7 @@ export function voiceLabel(v: VoiceLike): string {
       .replace(/\s*online/i, '')
       .trim() || v.name
   const region = v.lang.replace('_', '-').split('-')[1]?.toUpperCase()
-  const country = region ? COUNTRIES[region] : undefined
+  const country = region ? countryName(region) : undefined
   return country && !name.toLowerCase().includes(country.toLowerCase()) ? `${name} · ${country}` : name
 }
 
