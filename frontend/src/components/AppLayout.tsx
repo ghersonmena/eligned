@@ -11,6 +11,8 @@ import { useRealtime } from '../hooks/useRealtime'
 import { takePendingInvitation } from '../lib/pendingInvitation'
 import { NotificationBell } from './notifications/NotificationBell'
 import { currentWorkspace } from '../lib/workspace'
+import { APP_NAME } from '../lib/brand'
+import { dateFormat, t, type Locale, useLocaleStore } from '../lib/i18n'
 import { Assistant } from './assistant/Assistant'
 import { Toasts } from './notifications/Toasts'
 import { TimerPill } from './time/TimerPill'
@@ -25,13 +27,12 @@ function mobileActive(to: string, pathname: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`)
 }
 
-const today = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
 
 export function AppLayout({ user }: { user: User }) {
   const setPreference = useThemeStore((s) => s.setPreference)
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const [todayLabel] = useState(() => today.format(new Date()))
+  const [todayLabel] = useState(() => dateFormat({ weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()))
 
   useRealtime(user)
 
@@ -50,6 +51,15 @@ export function AppLayout({ user }: { user: User }) {
     if (deviceZone && savedZone !== deviceZone) savePreferences({ timezone: deviceZone })
   }, [deviceZone, savedZone, savePreferences])
 
+  // Language: the account's choice wins; an account without one keeps this device's.
+  const setLocale = useLocaleStore((s) => s.setLocale)
+  const localLocale = useLocaleStore((s) => s.locale)
+  const savedLocale = user.preferences.locale
+  useEffect(() => {
+    if (savedLocale) setLocale(savedLocale as Locale)
+    else savePreferences({ locale: localLocale })
+  }, [savedLocale, localLocale, setLocale, savePreferences])
+
   // The server copy of the theme wins when it differs (e.g. changed on another device).
   useEffect(() => {
     setPreference(user.preferences.theme)
@@ -57,26 +67,26 @@ export function AppLayout({ user }: { user: User }) {
 
   return (
     <div className={styles.shell}>
-      <nav className={styles.sidebar} aria-label="Principal">
+      <nav className={styles.sidebar} aria-label={t('Principal')}>
         <div className={styles.brand}>
           <Logo />
-          <span>[nombre]</span>
+          <span>{APP_NAME}</span>
         </div>
         <button type="button" className={styles.create} onClick={() => navigate('/tareas/nueva')}>
           <Icon name="plus" size={18} />
-          Crear tarea
+          {t('Crear tarea')}
         </button>
-        <span className={styles.sectionLabel}>GENERAL</span>
+        <span className={styles.sectionLabel}>{t('GENERAL')}</span>
         {NAV_ITEMS.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.to === '/'} className={styles.navLink}>
             <Icon name={item.icon} size={18} />
-            {item.label}
+            {t(item.label)}
           </NavLink>
         ))}
         <div className={styles.navFooter}>
           <NavLink to="/ajustes" className={styles.navLink}>
             <Icon name="settings" size={18} />
-            Ajustes
+            {t('Ajustes')}
           </NavLink>
         </div>
       </nav>
@@ -101,7 +111,7 @@ export function AppLayout({ user }: { user: User }) {
       <Toasts />
       <Assistant canEdit={currentWorkspace(user)?.role !== 'guest'} />
 
-      <nav className={styles.bottomNav} aria-label="Principal (móvil)">
+      <nav className={styles.bottomNav} aria-label={t('Principal (móvil)')}>
         {MOBILE_NAV_ITEMS.map((item) => (
           <Link
             key={item.to}
@@ -110,7 +120,7 @@ export function AppLayout({ user }: { user: User }) {
             aria-current={mobileActive(item.to, pathname) ? 'page' : undefined}
           >
             <Icon name={item.icon} size={22} />
-            {item.shortLabel ?? item.label}
+            {t(item.shortLabel ?? item.label)}
           </Link>
         ))}
       </nav>

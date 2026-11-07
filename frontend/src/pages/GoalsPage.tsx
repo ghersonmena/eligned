@@ -11,6 +11,7 @@ import { formatGoalDate, HEALTH, krValueText } from '../lib/goals'
 import { currentWorkspace } from '../lib/workspace'
 import pageStyles from './pages.module.css'
 import projectStyles from './projects.module.css'
+import { t } from '../lib/i18n'
 
 export function GoalsPage() {
   const [showClosed, setShowClosed] = useState(false)
@@ -23,21 +24,25 @@ export function GoalsPage() {
     <>
       <div className={projectStyles.header}>
         <div>
-          <span className={pageStyles.eyebrow}>{isPending ? 'Cargando…' : `${goals.length} ${showClosed ? 'cerrada' : 'activa'}${goals.length === 1 ? '' : 's'}`}</span>
-          <h1 className={pageStyles.pageTitle}>Metas</h1>
+          <span className={pageStyles.eyebrow}>{isPending
+              ? t('Cargando…')
+              : showClosed
+                ? goals.length === 1 ? t('1 cerrada') : t('{n} cerradas', { n: goals.length })
+                : goals.length === 1 ? t('1 activa') : t('{n} activas', { n: goals.length })}</span>
+          <h1 className={pageStyles.pageTitle}>{t('Metas')}</h1>
         </div>
         <div className={goalStyles.headerActions}>
-          <div className={pageStyles.segmented} role="group" aria-label="Mostrar">
+          <div className={pageStyles.segmented} role="group" aria-label={t('Mostrar')}>
             <button type="button" className={pageStyles.themeOption} aria-checked={!showClosed} role="radio" onClick={() => setShowClosed(false)}>
-              Activas
+              {t('Activas')}
             </button>
             <button type="button" className={pageStyles.themeOption} aria-checked={showClosed} role="radio" onClick={() => setShowClosed(true)}>
-              Cerradas
+              {t('Cerradas')}
             </button>
           </div>
           {canEdit && !creating && (
             <button type="button" className={pageStyles.primary} onClick={() => setCreating(true)}>
-              + Nueva meta
+              + {t('Nueva meta')}
             </button>
           )}
         </div>
@@ -47,19 +52,19 @@ export function GoalsPage() {
 
       {isError && (
         <p className={pageStyles.error} role="alert">
-          No pudimos cargar las metas.
+          {t('No pudimos cargar las metas.')}
         </p>
       )}
 
       {!isPending && goals.length === 0 && !creating && (
         <div className={projectStyles.empty}>
-          <strong>{showClosed ? 'No hay metas cerradas' : 'Aún no tienes metas'}</strong>
+          <strong>{showClosed ? t('No hay metas cerradas') : t('Aún no tienes metas')}</strong>
           {!showClosed && (
             <>
-              <span>Una meta es un objetivo grande (por ejemplo, "Migrar la oficina antes de diciembre") que mides con resultados clave.</span>
+              <span>{t('Una meta es un objetivo grande (por ejemplo, "Migrar la oficina antes de diciembre") que mides con resultados clave.')}</span>
               {canEdit && (
                 <button type="button" className={pageStyles.primary} onClick={() => setCreating(true)}>
-                  Crear la primera
+                  {t('Crear la primera')}
                 </button>
               )}
             </>
@@ -99,12 +104,12 @@ function GoalCard({ goal }: { goal: Goal }) {
             <span className={goalStyles.miniValue}>{krValueText(kr)}</span>
           </li>
         ))}
-        {goal.key_results.length === 0 && <li className={goalStyles.noKrs}>Sin resultados clave todavía</li>}
-        {goal.key_results.length > 3 && <li className={goalStyles.noKrs}>y {goal.key_results.length - 3} más…</li>}
+        {goal.key_results.length === 0 && <li className={goalStyles.noKrs}>{t('Sin resultados clave todavía')}</li>}
+        {goal.key_results.length > 3 && <li className={goalStyles.noKrs}>{t('y {n} más…', { n: goal.key_results.length - 3 })}</li>}
       </ul>
       <span className={goalStyles.cardFoot}>
-        {goal.owner ? goal.owner.name : 'Sin responsable'}
-        {goal.due_date && ` · vence el ${formatGoalDate(goal.due_date)}`}
+        {goal.owner ? goal.owner.name : t('Sin responsable')}
+        {goal.due_date && ` · ${t('vence el {date}', { date: formatGoalDate(goal.due_date) })}`}
       </span>
     </Link>
   )

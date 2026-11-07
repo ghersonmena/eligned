@@ -3,12 +3,21 @@ import { useNavigate } from 'react-router'
 import { Icon } from '../Icon'
 import styles from './toasts.module.css'
 import { useToasts, type Toast } from './toasts'
+import { t } from '../../lib/i18n'
 
 const LABEL: Record<Toast['kind'], string> = {
-  reminder: 'Recordatorio',
-  due_soon: 'Por vencer',
-  assigned: 'Te asignaron',
-  commented: 'Nuevo comentario',
+  get reminder() {
+    return t('Recordatorio')
+  },
+  get due_soon() {
+    return t('Por vencer')
+  },
+  get assigned() {
+    return t('Te asignaron')
+  },
+  get commented() {
+    return t('Nuevo comentario')
+  },
 }
 
 const VISIBLE_MS = 9000
@@ -50,7 +59,7 @@ function ToastCard({ toast }: { toast: Toast }) {
         <span className={styles.title}>{toast.title}</span>
         <span className={styles.body}>{toast.body}</span>
       </button>
-      <button type="button" className={styles.close} aria-label="Cerrar aviso" onClick={() => dismiss(toast.id)}>
+      <button type="button" className={styles.close} aria-label={t('Cerrar aviso')} onClick={() => dismiss(toast.id)}>
         <Icon name="close" size={16} />
       </button>
     </div>

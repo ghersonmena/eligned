@@ -1,3 +1,4 @@
+import { getLocale, t } from '../lib/i18n'
 /**
  * Small fetch wrapper for the Laravel API.
  *
@@ -61,7 +62,8 @@ type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 export async function api<T>(method: Method, path: string, body?: unknown): Promise<T> {
   if (method !== 'GET') await ensureCsrfCookie()
 
-  const headers: Record<string, string> = { Accept: 'application/json' }
+  // Server messages come back in the language on screen (it uses the account's once signed in).
+  const headers: Record<string, string> = { Accept: 'application/json', 'Accept-Language': getLocale() }
   // FormData (file uploads) sets its own multipart Content-Type.
   const isForm = body instanceof FormData
   if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
@@ -82,7 +84,7 @@ export async function api<T>(method: Method, path: string, body?: unknown): Prom
 
   if (!response.ok) {
     if (response.status === 419) csrfReady = null
-    throw new ApiError(response.status, data.message ?? 'Error inesperado', data.errors ?? {}, data.code)
+    throw new ApiError(response.status, data.message ?? t('Error inesperado'), data.errors ?? {}, data.code)
   }
 
   return data as T

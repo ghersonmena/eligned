@@ -32,10 +32,10 @@ class StoreCommentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'body.required_without' => 'Escribe un comentario o adjunta un archivo.',
-            'attachments.max' => 'Puedes adjuntar hasta '.self::MAX_FILES.' archivos por comentario.',
-            'attachments.*.max' => 'Cada archivo puede pesar hasta 10 MB.',
-            'attachments.*.extensions' => 'Ese tipo de archivo no se permite. Usa imágenes, PDF, documentos de Office, texto o ZIP.',
+            'body.required_without' => __('Escribe un comentario o adjunta un archivo.'),
+            'attachments.max' => __('Puedes adjuntar hasta :n archivos por comentario.', ['n' => self::MAX_FILES]),
+            'attachments.*.max' => __('Cada archivo puede pesar hasta 10 MB.'),
+            'attachments.*.extensions' => __('Ese tipo de archivo no se permite. Usa imágenes, PDF, documentos de Office, texto o ZIP.'),
         ];
     }
 }

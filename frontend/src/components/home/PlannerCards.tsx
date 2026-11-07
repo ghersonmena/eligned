@@ -10,6 +10,7 @@ import pageStyles from '../../pages/pages.module.css'
 import { TaskRow } from '../tasks/TaskRow'
 import taskStyles from '../tasks/tasks.module.css'
 import styles from './home.module.css'
+import { dateFormat, t } from '../../lib/i18n'
 
 export const NOTE_MAX = 5000
 const SAVE_AFTER_MS = 800
@@ -17,10 +18,18 @@ const SAVE_AFTER_MS = 800
 type SaveState = 'saved' | 'pending' | 'saving' | 'error'
 
 const STATE_TEXT: Record<SaveState, string> = {
-  saved: 'Guardado',
-  pending: 'Escribiendo…',
-  saving: 'Guardando…',
-  error: 'No se pudo guardar. Se reintentará al seguir escribiendo.',
+  get saved() {
+    return t('Guardado')
+  },
+  get pending() {
+    return t('Escribiendo…')
+  },
+  get saving() {
+    return t('Guardando…')
+  },
+  get error() {
+    return t('No se pudo guardar. Se reintentará al seguir escribiendo.')
+  },
 }
 
 /** A personal scratchpad on the home page. Saves itself shortly after you stop typing. */
@@ -76,7 +85,7 @@ export function NotesCard({ className, initial }: { className: string; initial: 
 
   return (
     <section className={className}>
-      <h2>Notas rápidas</h2>
+      <h2>{t('Notas rápidas')}</h2>
       <textarea
         className={`caps ${styles.noteArea}`}
         autoCapitalize="characters"
@@ -84,21 +93,21 @@ export function NotesCard({ className, initial }: { className: string; initial: 
         onChange={(e) => change(e.target.value)}
         onBlur={save}
         maxLength={NOTE_MAX}
-        placeholder="Números de folio, pendientes sueltos, recordatorios… Solo tú lo ves."
-        aria-label="Notas rápidas"
+        placeholder={t('Números de folio, pendientes sueltos, recordatorios… Solo tú lo ves.')}
+        aria-label={t('Notas rápidas')}
         aria-describedby="note-status"
       />
       <p id="note-status" className={`${styles.noteStatus} ${state === 'error' ? styles.noteError : ''}`} role="status">
         {STATE_TEXT[state]}
-        {left < 500 && ` · quedan ${left} caracteres`}
+        {left < 500 && ` · ${t('quedan {n} caracteres', { n: left })}`}
       </p>
     </section>
   )
 }
 
-const weekdayShort = new Intl.DateTimeFormat('es', { weekday: 'short' })
-const dayTitle = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
-const rangeFmt = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' })
+const weekdayShort = { format: (d: Date) => dateFormat({ weekday: 'short' }).format(d) }
+const dayTitle = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'long' }).format(d) }
+const rangeFmt = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short' }).format(d) }
 
 /** This week as a strip of days; pick one to see what is due that day. */
 export function AgendaCard({ className }: { className: string }) {
@@ -138,12 +147,12 @@ export function AgendaCard({ className }: { className: string }) {
   return (
     <section className={`${className} ${pageStyles.cardToday}`}>
       <div className={styles.agendaHead}>
-        <h2>Agenda</h2>
+        <h2>{t('Agenda')}</h2>
         <span className={styles.agendaRange}>
           {rangeFmt.format(days[0])} – {rangeFmt.format(days[6])}
         </span>
         <div className={styles.agendaNav}>
-          <button type="button" aria-label="Semana anterior" onClick={() => setOffset(offset - 1)}>
+          <button type="button" aria-label={t('Semana anterior')} onClick={() => setOffset(offset - 1)}>
             ‹
           </button>
           {offset !== 0 && (
@@ -154,16 +163,16 @@ export function AgendaCard({ className }: { className: string }) {
                 setPicked(todayKey)
               }}
             >
-              Hoy
+              {t('Hoy')}
             </button>
           )}
-          <button type="button" aria-label="Semana siguiente" onClick={() => setOffset(offset + 1)}>
+          <button type="button" aria-label={t('Semana siguiente')} onClick={() => setOffset(offset + 1)}>
             ›
           </button>
         </div>
       </div>
 
-      <div className={styles.week} role="group" aria-label="Días de la semana">
+      <div className={styles.week} role="group" aria-label={t('Días de la semana')}>
         {days.map((d, i) => {
           const key = keys[i]
           const dayTasks = byDay.get(key) ?? []
@@ -173,7 +182,7 @@ export function AgendaCard({ className }: { className: string }) {
               key={key}
               type="button"
               aria-pressed={key === selected}
-              aria-label={`${dayTitle.format(d)}: ${open} ${open === 1 ? 'pendiente' : 'pendientes'}, ${dayTasks.length - open} ${dayTasks.length - open === 1 ? 'terminada' : 'terminadas'}`}
+              aria-label={t('{day}: {open} pendientes, {done} terminadas', { day: dayTitle.format(d), open, done: dayTasks.length - open })}
               className={[styles.weekDay, key === todayKey && styles.weekToday].filter(Boolean).join(' ')}
               onClick={() => setPicked(key)}
             >
@@ -191,10 +200,10 @@ export function AgendaCard({ className }: { className: string }) {
       </div>
 
       <h3 className={styles.agendaDay}>{selectedDate && dayTitle.format(selectedDate)}</h3>
-      {isPending && <p>Cargando…</p>}
-      {!isPending && list.length === 0 && <p>Nada programado para este día.</p>}
+      {isPending && <p>{t('Cargando…')}</p>}
+      {!isPending && list.length === 0 && <p>{t('Nada programado para este día.')}</p>}
       {list.length > 0 && (
-        <div className={pageStyles.cardScroll} tabIndex={0} aria-label="Tareas del día elegido">
+        <div className={pageStyles.cardScroll} tabIndex={0} aria-label={t('Tareas del día elegido')}>
           <ul className={taskStyles.list}>
             {list.map((task) => (
               <TaskRow key={task.id} task={task} />
@@ -203,7 +212,7 @@ export function AgendaCard({ className }: { className: string }) {
         </div>
       )}
       <Link to="/calendario" className={styles.more}>
-        Abrir calendario
+        {t('Abrir calendario')}
       </Link>
     </section>
   )

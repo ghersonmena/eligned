@@ -1,9 +1,10 @@
 import type { Activity } from '../api/types'
 import { PRIORITIES } from './colors'
 import { isAllDay } from './dates'
+import { dateFormat, relativeFormat, t } from './i18n'
 
-const day = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' })
-const dayTime = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+const day = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short', year: 'numeric' }).format(d) }
+const dayTime = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d) }
 
 function formatDate(iso: unknown): string {
   if (typeof iso !== 'string') return ''
@@ -36,21 +37,21 @@ export function describeActivity(a: Activity): string[] {
   const c = (a.changes ?? {}) as Record<string, unknown>
   switch (a.event) {
     case 'created':
-      return ['creó la tarea']
+      return [t('creó la tarea')]
     case 'deleted':
-      return ['eliminó la tarea']
+      return [t('eliminó la tarea')]
     case 'commented':
-      return [`comentó: "${String(c.excerpt ?? '')}"`]
+      return [t('comentó: "{text}"', { text: String(c.excerpt ?? '') })]
     case 'subtask_added':
-      return [`agregó la subtarea "${String(c.subtask ?? '')}"`]
+      return [t('agregó la subtarea "{title}"', { title: String(c.subtask ?? '') })]
     case 'time_logged':
-      return [`registró ${formatMinutes(Number(c.minutes ?? 0))} de trabajo`]
+      return [t('registró {time} de trabajo', { time: formatMinutes(Number(c.minutes ?? 0)) })]
     case 'assigned': {
       const added = (c.added as string[] | undefined) ?? []
       const removed = (c.removed as string[] | undefined) ?? []
       return [
-        ...(added.length ? [`asignó a ${added.join(', ')}`] : []),
-        ...(removed.length ? [`quitó a ${removed.join(', ')}`] : []),
+        ...(added.length ? [t('asignó a {names}', { names: added.join(', ') })] : []),
+        ...(removed.length ? [t('quitó a {names}', { names: removed.join(', ') })] : []),
       ]
     }
   }
@@ -61,26 +62,26 @@ export function describeActivity(a: Activity): string[] {
 
   const done = pair('completed_at')
   if (done) {
-    if (!done[0] && done[1]) lines.push(bySubtasks ? 'se completó al cerrar todas sus subtareas' : 'completó la tarea')
-    else if (done[0] && !done[1]) lines.push(bySubtasks ? 'se reabrió porque una subtarea quedó abierta' : 'reabrió la tarea')
+    if (!done[0] && done[1]) lines.push(bySubtasks ? t('se completó al cerrar todas sus subtareas') : t('completó la tarea'))
+    else if (done[0] && !done[1]) lines.push(bySubtasks ? t('se reabrió porque una subtarea quedó abierta') : t('reabrió la tarea'))
   }
   const status = pair('status_id')
-  if (status && !done) lines.push(`la movió de ${status[0] ?? '—'} a ${status[1] ?? '—'}`)
+  if (status && !done) lines.push(t('la movió de {from} a {to}', { from: String(status[0] ?? '—'), to: String(status[1] ?? '—') }))
   const title = pair('title')
-  if (title) lines.push(`cambió el título a "${String(title[1])}"`)
-  if ('description' in c) lines.push('editó la descripción')
+  if (title) lines.push(t('cambió el título a "{title}"', { title: String(title[1]) }))
+  if ('description' in c) lines.push(t('editó la descripción'))
   const priority = pair('priority')
-  if (priority) lines.push(`cambió la prioridad a ${PRIORITIES.find((p) => p.value === priority[1])?.label.toLowerCase() ?? priority[1]}`)
+  if (priority) lines.push(t('cambió la prioridad a {level}', { level: PRIORITIES.find((p) => p.value === priority[1])?.label.toLowerCase() ?? String(priority[1]) }))
   const project = pair('project_id')
-  if (project) lines.push(project[1] ? `la pasó al proyecto ${String(project[1])}` : 'le quitó el proyecto')
+  if (project) lines.push(project[1] ? t('la pasó al proyecto {name}', { name: String(project[1]) }) : t('le quitó el proyecto'))
 
   const start = pair('start_at')
   const due = pair('due_at')
   if (bySubtasks && (start || due)) {
-    lines.push('sus fechas se ajustaron a sus subtareas')
+    lines.push(t('sus fechas se ajustaron a sus subtareas'))
   } else {
-    if (due) lines.push(due[1] ? `cambió la fecha límite a ${formatDate(due[1])}` : 'quitó la fecha límite')
-    if (start) lines.push(start[1] ? `cambió el inicio a ${formatDate(start[1])}` : 'quitó la fecha de inicio')
+    if (due) lines.push(due[1] ? t('cambió la fecha límite a {date}', { date: formatDate(due[1]) }) : t('quitó la fecha límite'))
+    if (start) lines.push(start[1] ? t('cambió el inicio a {date}', { date: formatDate(start[1]) }) : t('quitó la fecha de inicio'))
   }
   return lines
 }
@@ -90,12 +91,12 @@ export function isAutomatic(a: Activity): boolean {
   return a.changes?.reason === 'subtasks' || !a.user
 }
 
-const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' })
 
 /** "hace 5 minutos", "ayer"… */
 export function timeAgo(iso: string, now = Date.now()): string {
   const minutes = Math.round((new Date(iso).getTime() - now) / 60_000)
-  if (Math.abs(minutes) < 1) return 'ahora'
+  if (Math.abs(minutes) < 1) return t('ahora')
+  const rtf = relativeFormat()
   if (Math.abs(minutes) < 60) return rtf.format(minutes, 'minute')
   const hours = Math.round(minutes / 60)
   if (Math.abs(hours) < 24) return rtf.format(hours, 'hour')

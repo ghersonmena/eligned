@@ -269,6 +269,7 @@ const TRIGGERS = [
   'por favor',
   'oye',
   'asistente',
+  'lil+[iy]+e?', // Lily, as speech recognition may spell it
   'recuerdame',
   'recordarme',
   'recuerda',

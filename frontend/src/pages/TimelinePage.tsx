@@ -26,8 +26,10 @@ import {
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
 import pageStyles from './pages.module.css'
 import styles from './timeline.module.css'
+import { dateFormat, t, t as tr } from '../lib/i18n'
 
-const SCALE_LABELS: Record<Scale, string> = { dia: 'Día', semana: 'Semana', mes: 'Mes' }
+const SCALES: Scale[] = ['dia', 'semana', 'mes']
+const scaleLabel = (s: Scale) => (s === 'dia' ? t('Día') : s === 'semana' ? t('Semana') : t('Mes'))
 const SCALE_KEY = 'cronograma.escala'
 
 function savedScale(): Scale {
@@ -39,11 +41,11 @@ function savedScale(): Scale {
   }
 }
 
-const shortDay = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' })
-const longDay = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
-const monthName = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' })
-const fullDay = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-const weekdayName = new Intl.DateTimeFormat('es', { weekday: 'long' })
+const shortDay = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short' }).format(d) }
+const longDay = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'long' }).format(d) }
+const monthName = { format: (d: Date) => dateFormat({ month: 'long', year: 'numeric' }).format(d) }
+const fullDay = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d) }
+const weekdayName = { format: (d: Date) => dateFormat({ weekday: 'long' }).format(d) }
 
 interface Group {
   key: string
@@ -99,7 +101,7 @@ export function TimelinePage() {
     const map = new Map<string, Group>()
     ;(query.data ?? []).forEach((t) => {
       const key = t.project ? String(t.project.id) : 'none'
-      if (!map.has(key)) map.set(key, { key, name: t.project?.name ?? 'Sin proyecto', color: t.project?.color ?? 'slate', tasks: [] })
+      if (!map.has(key)) map.set(key, { key, name: t.project?.name ?? tr('Sin proyecto'), color: t.project?.color ?? 'slate', tasks: [] })
       map.get(key)!.tasks.push(t)
     })
     const list = [...map.values()]
@@ -155,24 +157,23 @@ export function TimelinePage() {
     scale === 'dia'
       ? fullDay.format(windowStart)
       : scale === 'semana'
-        ? `${shortDay.format(windowStart)} – ${shortDay.format(windowEnd)} ${windowEnd.getFullYear()}`
+        ? `${shortDay.format(windowStart)} – ${shortDay.format(windowEnd)}, ${windowEnd.getFullYear()}`
         : monthName.format(anchor)
-  const stepLabel = scale === 'dia' ? 'día' : scale === 'semana' ? 'semana' : 'mes'
 
   return (
     <>
       <ViewHeader
         eyebrow={eyebrow}
-        title="Cronograma"
+        title={t('Cronograma')}
         aside={
           <div className={viewStyles.navGroup}>
-            <button type="button" className={viewStyles.roundBtn} aria-label={`${stepLabel[0].toUpperCase()}${stepLabel.slice(1)} anterior`} onClick={() => setAnchor(shiftAnchor(scale, anchor, -1))}>
+            <button type="button" className={viewStyles.roundBtn} aria-label={scale === 'dia' ? t('Día anterior') : scale === 'semana' ? t('Semana anterior') : t('Mes anterior')} onClick={() => setAnchor(shiftAnchor(scale, anchor, -1))}>
               <Icon name="back" size={16} />
             </button>
             <button type="button" className={viewStyles.todayBtn} onClick={() => setAnchor(today)}>
-              Hoy
+              {t('Hoy')}
             </button>
-            <button type="button" className={viewStyles.roundBtn} aria-label={`${stepLabel[0].toUpperCase()}${stepLabel.slice(1)} siguiente`} onClick={() => setAnchor(shiftAnchor(scale, anchor, 1))}>
+            <button type="button" className={viewStyles.roundBtn} aria-label={scale === 'dia' ? t('Día siguiente') : scale === 'semana' ? t('Semana siguiente') : t('Mes siguiente')} onClick={() => setAnchor(shiftAnchor(scale, anchor, 1))}>
               <Icon name="forward" size={16} />
             </button>
             {parentIds.length > 0 && (
@@ -182,13 +183,13 @@ export function TimelinePage() {
                 aria-pressed={allUnfolded}
                 onClick={() => setUnfolded(allUnfolded ? new Set() : new Set(parentIds))}
               >
-                {allUnfolded ? 'Ocultar subtareas' : 'Ver subtareas'}
+                {allUnfolded ? t('Ocultar subtareas') : t('Ver subtareas')}
               </button>
             )}
-            <div className={viewStyles.scale} role="group" aria-label="Escala">
-              {(Object.keys(SCALE_LABELS) as Scale[]).map((s) => (
+            <div className={viewStyles.scale} role="group" aria-label={t('Escala')}>
+              {SCALES.map((s) => (
                 <button key={s} type="button" aria-pressed={scale === s} onClick={() => setScale(s)}>
-                  {SCALE_LABELS[s]}
+                  {scaleLabel(s)}
                 </button>
               ))}
             </div>
@@ -199,14 +200,14 @@ export function TimelinePage() {
 
       {query.isError && (
         <p className={pageStyles.error} role="alert">
-          No pudimos cargar el cronograma. Revisa tu conexión e inténtalo de nuevo.
+          {t('No pudimos cargar el cronograma. Revisa tu conexión e inténtalo de nuevo.')}
         </p>
       )}
 
-      <section ref={chartRef} className={styles.chart} aria-label="Cronograma de tareas">
+      <section ref={chartRef} className={styles.chart} aria-label={t('Cronograma de tareas')}>
         <div className={styles.inner} style={{ minWidth: laneWidth }}>
           <div className={`${styles.row} ${styles.headRow}`}>
-            <div className={`${styles.label} ${styles.headLabel}`}>Tarea</div>
+            <div className={`${styles.label} ${styles.headLabel}`}>{t('Tarea')}</div>
             <div className={styles.lane} style={{ width: laneWidth }}>
               <div className={styles.months}>
                 {scale === 'dia' ? (
@@ -227,7 +228,7 @@ export function TimelinePage() {
                       style={{ width: columnWidth }}
                       className={todayX !== null && now.getHours() === h ? styles.isToday : undefined}
                     >
-                      <small>{h < 12 ? 'a.m.' : 'p.m.'}</small>
+                      <small>{h < 12 ? t('a.m.') : t('p.m.')}</small>
                       {String(h).padStart(2, '0')}:00
                     </span>
                   ))}
@@ -255,7 +256,7 @@ export function TimelinePage() {
                           <small>
                             {shortDay.format(d)} – {shortDay.format(end)}
                           </small>
-                          Semana {i + 1}
+                          {t('Semana {n}', { n: i + 1 })}
                         </span>
                       )
                     })}
@@ -313,7 +314,11 @@ export function TimelinePage() {
                                 type="button"
                                 className={styles.fold}
                                 aria-expanded={isOpen}
-                                aria-label={`${isOpen ? 'Ocultar' : 'Ver'} las ${subtasks.length} subtareas de "${t.title}"`}
+                                aria-label={
+                                  isOpen
+                                    ? tr('Ocultar las {n} subtareas de "{title}"', { n: subtasks.length, title: t.title })
+                                    : tr('Ver las {n} subtareas de "{title}"', { n: subtasks.length, title: t.title })
+                                }
                                 onClick={() => toggle(t.id)}
                               >
                                 <span className={isOpen ? styles.chev : `${styles.chev} ${styles.chevClosed}`}>
@@ -353,7 +358,7 @@ export function TimelinePage() {
                                     <Completion task={st} axis={axis} />
                                   </>
                                 ) : (
-                                  <span className={styles.noDates}>Sin fechas</span>
+                                  <span className={styles.noDates}>{tr('Sin fechas')}</span>
                                 )}
                               </div>
                             </div>
@@ -366,39 +371,40 @@ export function TimelinePage() {
           })}
 
           {query.isSuccess && groups.length === 0 && (
-            <p className={styles.empty}>No hay tareas con fechas en estas semanas.</p>
+            <p className={styles.empty}>{t('No hay tareas con fechas en estas semanas.')}</p>
           )}
         </div>
       </section>
 
       <div className={styles.legend}>
         <span>
-          <span className={styles.legendBar} /> Inicio → fecha límite
+          <span className={styles.legendBar} /> {t('Inicio → fecha límite')}
         </span>
         <span>
-          <span className={styles.legendDiamond} /> Solo fecha límite
+          <span className={styles.legendDiamond} /> {t('Solo fecha límite')}
         </span>
         <span>
-          <span className={styles.legendToday} /> Hoy
+          <span className={styles.legendToday} /> {t('Hoy')}
         </span>
         <span>
-          <span className={styles.legendSummary} /> Tarea con subtareas: va de la primera a la última subtarea
+          <span className={styles.legendSummary} /> {t('Tarea con subtareas: va de la primera a la última subtarea')}
         </span>
         <span>
-          <span className={`${styles.legendMark} ${styles.dueMarkColor}`} /> Fecha límite de una tarea terminada
+          <span className={`${styles.legendMark} ${styles.dueMarkColor}`} /> {t('Fecha límite de una tarea terminada')}
         </span>
         <span>
-          <span className={`${styles.legendMark} ${styles.doneMarkColor}`} /> Terminada a tiempo
+          <span className={`${styles.legendMark} ${styles.doneMarkColor}`} /> {t('Terminada a tiempo')}
           <span className={`${styles.legendLine} ${styles.linkEarly}`} />
         </span>
         <span>
-          <span className={`${styles.legendMark} ${styles.doneLateColor}`} /> Terminada con retraso
+          <span className={`${styles.legendMark} ${styles.doneLateColor}`} /> {t('Terminada con retraso')}
           <span className={`${styles.legendLine} ${styles.linkLate}`} />
         </span>
-        <span>Arrastra una barra para moverla o sus bordes para cambiar las fechas. Las tareas sin fechas no aparecen aquí.</span>
+        <span>{t('Arrastra una barra para moverla o sus bordes para cambiar las fechas. Las tareas sin fechas no aparecen aquí.')}</span>
         <span id="timeline-keys">
-          Con teclado: flechas mueven la tarea {scale === 'dia' ? 'una hora' : 'un día'}; Mayús + flechas cambian la fecha límite; Alt + flechas
-          cambian el inicio.
+          {scale === 'dia'
+            ? t('Con teclado: flechas mueven la tarea una hora; Mayús + flechas cambian la fecha límite; Alt + flechas cambian el inicio.')
+            : t('Con teclado: flechas mueven la tarea un día; Mayús + flechas cambian la fecha límite; Alt + flechas cambian el inicio.')}
         </span>
       </div>
     </>
@@ -505,9 +511,18 @@ function Bar({ task, color, axis }: BarProps) {
   }
 
   const finished = task.completed_at
-    ? `. Terminada ${formatDone(task.completed_at)}${task.due_at ? (new Date(task.completed_at) > new Date(task.due_at) ? ', con retraso' : ', a tiempo') : ''}`
+    ? '. ' +
+      t('Terminada {when}', { when: formatDone(task.completed_at) }) +
+      (task.due_at ? `, ${new Date(task.completed_at) > new Date(task.due_at) ? t('con retraso') : t('a tiempo')}` : '')
     : ''
-  const label = `${task.parent_id ? 'Subtarea ' : ''}${task.title}: ${task.start_at ? `del ${longDay.format(span.start)} al ` : 'vence el '}${longDay.format(span.end)}, ${pct}% de avance${summary ? '. Sus fechas siguen a sus subtareas' : ''}${finished}`
+  const when = task.start_at
+    ? t('del {start} al {end}', { start: longDay.format(span.start), end: longDay.format(span.end) })
+    : t('vence el {date}', { date: longDay.format(span.end) })
+  const label =
+    (task.parent_id ? t('Subtarea: {title}', { title: task.title }) : task.title) +
+    `: ${when}, ${t('{pct}% de avance', { pct })}` +
+    (summary ? `. ${t('Sus fechas siguen a sus subtareas')}` : '') +
+    finished
   const width = Math.max(shownRight - shownLeft, axis.exact ? 12 : axis.dayWidth)
 
   return (

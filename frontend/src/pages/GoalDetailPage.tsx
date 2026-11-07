@@ -14,6 +14,7 @@ import { formatGoalDate, HEALTH, krValueText } from '../lib/goals'
 import { currentWorkspace } from '../lib/workspace'
 import pageStyles from './pages.module.css'
 import projectStyles from './projects.module.css'
+import { t } from '../lib/i18n'
 
 export function GoalDetailPage() {
   const { id } = useParams()
@@ -26,12 +27,12 @@ export function GoalDetailPage() {
   const [editing, setEditing] = useState(false)
   const [adding, setAdding] = useState(false)
 
-  if (isPending) return <p className={pageStyles.eyebrow}>Cargando meta…</p>
+  if (isPending) return <p className={pageStyles.eyebrow}>{t('Cargando meta…')}</p>
   if (isError || !goal) {
     return (
       <section className={pageStyles.card}>
-        <h2>No encontramos esta meta</h2>
-        <Link to="/metas">Volver a metas</Link>
+        <h2>{t('No encontramos esta meta')}</h2>
+        <Link to="/metas">{t('Volver a metas')}</Link>
       </section>
     )
   }
@@ -40,8 +41,8 @@ export function GoalDetailPage() {
 
   return (
     <>
-      <nav aria-label="Ruta" className={projectStyles.breadcrumb}>
-        <Link to="/metas">Metas</Link>
+      <nav aria-label={t('Ruta')} className={projectStyles.breadcrumb}>
+        <Link to="/metas">{t('Metas')}</Link>
       </nav>
       <div className={goalStyles.detailHead}>
         <ProgressRing value={goal.progress} color={dotColor(goal.color)} size={96} stroke={9} />
@@ -50,15 +51,15 @@ export function GoalDetailPage() {
           {goal.description && <p className={projectStyles.description}>{goal.description}</p>}
           <div className={goalStyles.facts}>
             <span className={goalStyles.health} style={{ color: health.color, borderColor: health.color }}>
-              {goal.closed ? 'Cerrada' : health.label}
+              {goal.closed ? t('Cerrada') : health.label}
             </span>
             <span>
-              <Icon name="team" size={14} /> {goal.owner?.name ?? 'Sin responsable'}
+              <Icon name="team" size={14} /> {goal.owner?.name ?? t('Sin responsable')}
             </span>
             {(goal.start_date || goal.due_date) && (
               <span>
                 <Icon name="calendar" size={14} />
-                {goal.start_date && ` ${formatGoalDate(goal.start_date)} →`} {goal.due_date ? formatGoalDate(goal.due_date) : 'sin fecha límite'}
+                {goal.start_date && ` ${formatGoalDate(goal.start_date)} →`} {goal.due_date ? formatGoalDate(goal.due_date) : t('sin fecha límite')}
               </span>
             )}
           </div>
@@ -67,7 +68,7 @@ export function GoalDetailPage() {
           <div className={projectStyles.formActions}>
             {!editing && (
               <button type="button" className={pageStyles.secondary} onClick={() => setEditing(true)}>
-                <Icon name="edit" size={18} /> Editar
+                <Icon name="edit" size={18} /> {t('Editar')}
               </button>
             )}
             <button
@@ -75,17 +76,17 @@ export function GoalDetailPage() {
               className={pageStyles.secondary}
               onClick={() => updateGoal.mutate({ id: goal.id, input: { closed: !goal.closed } })}
             >
-              <Icon name="archive" size={18} /> {goal.closed ? 'Reabrir' : 'Cerrar meta'}
+              <Icon name="archive" size={18} /> {goal.closed ? t('Reabrir') : t('Cerrar meta')}
             </button>
             <button
               type="button"
               className={pageStyles.secondary}
               onClick={() =>
-                window.confirm(`¿Eliminar la meta "${goal.title}" y sus resultados clave? Las tareas y proyectos no se tocan.`) &&
+                window.confirm(t('¿Eliminar la meta "{title}" y sus resultados clave? Las tareas y proyectos no se tocan.', { title: goal.title })) &&
                 deleteGoal.mutate(goal.id, { onSuccess: () => navigate('/metas') })
               }
             >
-              <Icon name="trash" size={18} /> Eliminar
+              <Icon name="trash" size={18} /> {t('Eliminar')}
             </button>
           </div>
         )}
@@ -94,9 +95,9 @@ export function GoalDetailPage() {
       {editing && <GoalForm key={goal.id} goal={goal} onDone={() => setEditing(false)} />}
 
       <section className={pageStyles.card} aria-labelledby="krs-title">
-        <h2 id="krs-title">Resultados clave</h2>
-        <p className={goalStyles.hint}>El avance de la meta es el promedio de sus resultados clave.</p>
-        {goal.key_results.length === 0 && !adding && <p>Agrega cómo vas a medir esta meta.</p>}
+        <h2 id="krs-title">{t('Resultados clave')}</h2>
+        <p className={goalStyles.hint}>{t('El avance de la meta es el promedio de sus resultados clave.')}</p>
+        {goal.key_results.length === 0 && !adding && <p>{t('Agrega cómo vas a medir esta meta.')}</p>}
         <ul className={goalStyles.krList}>
           {goal.key_results.map((kr) => (
             <KeyResultRow key={kr.id} goal={goal} kr={kr} canEdit={canEdit} confetti={user?.preferences.confetti ?? true} />
@@ -107,7 +108,7 @@ export function GoalDetailPage() {
             <KeyResultForm goalId={goal.id} onDone={() => setAdding(false)} />
           ) : (
             <button type="button" className={`${pageStyles.secondary} ${goalStyles.addKr}`} onClick={() => setAdding(true)}>
-              <Icon name="plus" size={18} /> Agregar resultado clave
+              <Icon name="plus" size={18} /> {t('Agregar resultado clave')}
             </button>
           ))}
       </section>
@@ -160,36 +161,36 @@ function KeyResultRow({ goal, kr, canEdit, confetti }: { goal: Goal; kr: KeyResu
         )}
         {kr.kind === 'number' && canEdit && (
           <form className={goalStyles.krUpdate} onSubmit={onSubmit}>
-            <button type="button" aria-label="Restar uno" onClick={() => save(kr.current_value - 1)} disabled={update.isPending}>
+            <button type="button" aria-label={t('Restar uno')} onClick={() => save(kr.current_value - 1)} disabled={update.isPending}>
               −
             </button>
             <input
               type="number"
               inputMode="decimal"
               step="any"
-              aria-label={`Valor actual de ${kr.title}`}
+              aria-label={t('Valor actual de {title}', { title: kr.title })}
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
-            <button type="button" aria-label="Sumar uno" onClick={() => save(kr.current_value + 1)} disabled={update.isPending}>
+            <button type="button" aria-label={t('Sumar uno')} onClick={() => save(kr.current_value + 1)} disabled={update.isPending}>
               +
             </button>
             {Number(value) !== kr.current_value && (
               <button type="submit" className={goalStyles.krSave} disabled={update.isPending}>
-                Guardar
+                {t('Guardar')}
               </button>
             )}
           </form>
         )}
         {canEdit && (
           <span className={goalStyles.krTools}>
-            <button type="button" aria-label={`Editar ${kr.title}`} onClick={() => setEditing(true)}>
+            <button type="button" aria-label={t('Editar {title}', { title: kr.title })} onClick={() => setEditing(true)}>
               <Icon name="edit" size={16} />
             </button>
             <button
               type="button"
-              aria-label={`Eliminar ${kr.title}`}
-              onClick={() => window.confirm(`¿Eliminar el resultado "${kr.title}"?`) && remove.mutate(kr.id)}
+              aria-label={t('Eliminar {title}', { title: kr.title })}
+              onClick={() => window.confirm(t('¿Eliminar el resultado "{title}"?', { title: kr.title })) && remove.mutate(kr.id)}
             >
               <Icon name="trash" size={16} />
             </button>

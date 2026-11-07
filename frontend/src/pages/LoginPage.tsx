@@ -1,13 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '../api/client'
+import { LanguageSwitch } from '../components/LanguageSwitch'
 import { Logo } from '../components/Logo'
+import { APP_NAME } from '../lib/brand'
 import { PasswordInput } from '../components/PasswordInput'
 import { ResendNotice } from '../components/ResendNotice'
 import { useLogin } from '../hooks/useAuth'
 import { useResendFeedback } from '../hooks/useResendFeedback'
 import { celebrate } from '../lib/celebrate'
 import styles from './pages.module.css'
+import { t } from '../lib/i18n'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -38,24 +41,24 @@ export function LoginPage() {
     <main className={styles.authShell}>
       <div className={styles.authCard}>
         <div className={styles.authBrand}>
-          <Logo /> [nombre]
+          <Logo /> {APP_NAME}
         </div>
         {justVerified && (
           <p className={styles.notice} role="status">
-            ¡Correo confirmado! Ya puedes iniciar sesión.
+            {t('¡Correo confirmado! Ya puedes iniciar sesión.')}
           </p>
         )}
         {invalidLink && (
           <p className={styles.error} role="alert">
-            Ese enlace no es válido o ya venció. <Link to="/revisa-tu-correo">Pide uno nuevo</Link>.
+            {t('Ese enlace no es válido o ya venció.')} <Link to="/revisa-tu-correo">{t('Pide uno nuevo')}</Link>.
           </p>
         )}
         <h1 className={styles.authTitle}>
-          <span>Hola de nuevo,</span> entra a tu espacio
+          <span>{t('Hola de nuevo,')}</span> {t('entra a tu espacio')}
         </h1>
         <form className={styles.form} onSubmit={onSubmit} noValidate>
           <label className={styles.field}>
-            Correo
+            {t('Correo')}
             <input
               className={styles.input}
               type="email"
@@ -68,7 +71,7 @@ export function LoginPage() {
             />
           </label>
           <label className={styles.field}>
-            Contraseña
+            {t('Contraseña')}
             <PasswordInput
               className={styles.input}
               autoComplete="current-password"
@@ -79,38 +82,39 @@ export function LoginPage() {
           </label>
           {wrongCredentials && (
             <span id="login-error" className={styles.error} role="alert">
-              El correo o la contraseña no son correctos.
+              {t('El correo o la contraseña no son correctos.')}
             </span>
           )}
           {unverified && (
             <div id="login-error" className={styles.callout} role="alert">
-              <span>Aún no confirmas tu correo. Abre el enlace que te enviamos para poder entrar.</span>
+              <span>{t('Aún no confirmas tu correo. Abre el enlace que te enviamos para poder entrar.')}</span>
               <button
                 type="button"
                 className={styles.linkButton}
                 disabled={resend.isPending}
                 onClick={() => resend.mutate(email)}
               >
-                {resend.isPending ? 'Enviando…' : 'Reenviar correo'}
+                {resend.isPending ? t('Enviando…') : t('Reenviar correo')}
               </button>
               <ResendNotice feedback={feedback} />
             </div>
           )}
           {error && !wrongCredentials && !unverified && (
             <span id="login-error" className={styles.error} role="alert">
-              No pudimos iniciar sesión. Inténtalo de nuevo en un momento.
+              {t('No pudimos iniciar sesión. Inténtalo de nuevo en un momento.')}
             </span>
           )}
           <label className={styles.check}>
             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-            Mantener la sesión iniciada
+            {t('Mantener la sesión iniciada')}
           </label>
           <button type="submit" className={styles.primary} disabled={login.isPending}>
-            {login.isPending ? 'Entrando…' : 'Iniciar sesión'}
+            {login.isPending ? t('Entrando…') : t('Iniciar sesión')}
           </button>
         </form>
+        <LanguageSwitch />
         <p className={styles.switchLink}>
-          ¿No tienes cuenta? <Link to="/registro">Crear una cuenta</Link>
+          {t('¿No tienes cuenta?')} <Link to="/registro">{t('Crear una cuenta')}</Link>
         </p>
       </div>
     </main>

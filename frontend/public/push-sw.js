@@ -7,9 +7,9 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data ? event.data.json() : {}
   } catch {
-    data = { title: 'Todo Smart', body: event.data ? event.data.text() : '' }
+    data = { title: 'eLigned', body: event.data ? event.data.text() : '' }
   }
-  const title = data.title || 'Todo Smart'
+  const title = data.title || 'eLigned'
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || '',

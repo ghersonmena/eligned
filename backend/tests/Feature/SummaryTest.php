@@ -37,6 +37,13 @@ it('summarizes my day and week, counting my tasks and personal ones', function (
     ]]);
 });
 
+it('remembers the interface language', function () {
+    [$me] = memberWithWorkspace();
+    $this->actingAs($me)->getJson('/api/v1/me')->assertJsonPath('data.preferences.locale', null);
+    $this->patchJson('/api/v1/me/preferences', ['locale' => 'en'])->assertJsonPath('data.preferences.locale', 'en');
+    $this->patchJson('/api/v1/me/preferences', ['locale' => 'fr'])->assertJsonValidationErrors('locale');
+});
+
 it('keeps a personal note for the home page', function () {
     [$me] = memberWithWorkspace();
     $this->actingAs($me)->getJson('/api/v1/me')->assertJsonPath('data.preferences.home_note', null);

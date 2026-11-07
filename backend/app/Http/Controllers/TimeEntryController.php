@@ -40,7 +40,7 @@ class TimeEntryController extends Controller
     public function start(Request $request, Task $task): TimeEntryResource
     {
         Gate::authorize('update', $task);
-        abort_if($task->isCompleted(), 422, 'La tarea ya está terminada.');
+        abort_if($task->isCompleted(), 422, __('La tarea ya está terminada.'));
 
         $entry = DB::transaction(function () use ($request, $task) {
             $running = TimeEntry::running()->where('user_id', $request->user()->id)

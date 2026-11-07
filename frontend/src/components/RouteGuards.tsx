@@ -2,9 +2,10 @@ import type { ReactNode } from 'react'
 import { Navigate } from 'react-router'
 import type { User } from '../api/auth'
 import { useMe } from '../hooks/useAuth'
+import { t } from '../lib/i18n'
 
 function Splash() {
-  return <div role="status" aria-label="Cargando" style={{ minHeight: '100dvh' }} />
+  return <div role="status" aria-label={t('Cargando')} style={{ minHeight: '100dvh' }} />
 }
 
 /** Renders the app only for a signed-in user. */

@@ -13,6 +13,7 @@ import { DoneStamp } from './DoneStamp'
 import { initials } from '../../lib/initials'
 import { Icon } from '../Icon'
 import styles from './tasks.module.css'
+import { t } from '../../lib/i18n'
 
 /** Checkbox that completes/reopens a task, with the confetti celebration. */
 export function CompleteCheckbox({ task, className }: { task: Task; className?: string }) {
@@ -22,7 +23,7 @@ export function CompleteCheckbox({ task, className }: { task: Task; className?: 
   if (closesWithSubtasks(task)) {
     const total = task.subtasks_count ?? task.subtasks?.length ?? 0
     const done = task.subtasks_done_count ?? task.subtasks?.filter((st) => st.completed).length ?? 0
-    const why = `"${task.title}" se completa al cerrar sus subtareas (${done} de ${total} cerradas)`
+    const why = t('"{title}" se completa al cerrar sus subtareas ({done} de {total} cerradas)', { title: task.title, done, total })
     return (
       <input type="checkbox" className={className ?? styles.check} checked={task.completed} disabled aria-label={why} title={why} readOnly />
     )
@@ -32,7 +33,7 @@ export function CompleteCheckbox({ task, className }: { task: Task; className?: 
     <input
       type="checkbox"
       className={className ?? styles.check}
-      aria-label={task.completed ? `Reabrir "${task.title}"` : `Completar "${task.title}"`}
+      aria-label={task.completed ? t('Reabrir "{title}"', { title: task.title }) : t('Completar "{title}"', { title: task.title })}
       checked={task.completed}
       onChange={(e) => {
         const completed = e.target.checked
@@ -100,7 +101,7 @@ export function TaskRow({ task, showProject = true, showTimer = false }: TaskRow
             className={styles.expand}
             aria-expanded={expanded}
             aria-controls={subtasksId}
-            aria-label={`${expanded ? 'Ocultar' : 'Ver'} subtareas de "${task.title}"`}
+            aria-label={expanded ? t('Ocultar subtareas de "{title}"', { title: task.title }) : t('Ver subtareas de "{title}"', { title: task.title })}
             onClick={() => setExpanded((v) => !v)}
           >
             <Icon name="tasks" size={14} />
@@ -112,8 +113,8 @@ export function TaskRow({ task, showProject = true, showTimer = false }: TaskRow
         <span
           className={styles.priority}
           style={{ background: priority.color }}
-          title={`Prioridad ${priority.label.toLowerCase()}`}
-          aria-label={`Prioridad ${priority.label.toLowerCase()}`}
+          title={t('Prioridad: {level}', { level: priority.label.toLowerCase() })}
+          aria-label={t('Prioridad: {level}', { level: priority.label.toLowerCase() })}
         >
           {task.priority}
         </span>
@@ -128,7 +129,7 @@ export function TaskRow({ task, showProject = true, showTimer = false }: TaskRow
         )}
       </div>
       {expanded && (
-        <ul id={subtasksId} className={styles.subtaskList} aria-label={`Subtareas de "${task.title}"`}>
+        <ul id={subtasksId} className={styles.subtaskList} aria-label={t('Subtareas de "{title}"', { title: task.title })}>
           {subtasks.map((st) => (
             <li key={st.id} className={`${styles.subtaskRow} ${st.completed ? styles.done : ''}`}>
               <CompleteCheckbox task={st} />

@@ -2,10 +2,11 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import type { User } from '../api/auth'
 import { useLogout, useUpdatePreferences } from '../hooks/useAuth'
-import { currentWorkspace, ROLE_LABELS } from '../lib/workspace'
+import { currentWorkspace, roleLabel } from '../lib/workspace'
 import { initials } from '../lib/initials'
 import { Icon } from './Icon'
 import styles from './layout.module.css'
+import { t } from '../lib/i18n'
 
 /** Avatar + name in the top bar; opens a menu with account actions. */
 export function UserMenu({ user }: { user: User }) {
@@ -46,7 +47,7 @@ export function UserMenu({ user }: { user: User }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={`Cuenta de ${user.name}`}
+        aria-label={t('Cuenta de {name}', { name: user.name })}
         onClick={() => setOpen((v) => !v)}
       >
         <span className={styles.avatar}>{initials(user.name)}</span>
@@ -60,8 +61,8 @@ export function UserMenu({ user }: { user: User }) {
             <span>{user.email}</span>
           </div>
           {user.workspaces.length > 1 && (
-            <div className={styles.menuGroup} role="group" aria-label="Espacios de trabajo">
-              <span className={styles.menuLabel}>Espacios</span>
+            <div className={styles.menuGroup} role="group" aria-label={t('Espacios de trabajo')}>
+              <span className={styles.menuLabel}>{t('Espacios')}</span>
               {user.workspaces.map((w) => (
                 <button
                   key={w.id}
@@ -82,7 +83,7 @@ export function UserMenu({ user }: { user: User }) {
                   </span>
                   <span className={styles.wsName}>
                     {w.name}
-                    {w.role && <small>{ROLE_LABELS[w.role]}</small>}
+                    {w.role && <small>{roleLabel(w.role)}</small>}
                   </span>
                   {w.id === current?.id && <span className={styles.wsCheck} aria-hidden="true">✓</span>}
                 </button>
@@ -91,11 +92,11 @@ export function UserMenu({ user }: { user: User }) {
           )}
           <Link role="menuitem" to="/equipo" className={styles.menuItem} onClick={() => setOpen(false)}>
             <Icon name="team" size={18} />
-            Equipo e invitaciones
+            {t('Equipo e invitaciones')}
           </Link>
           <Link role="menuitem" to="/ajustes" className={styles.menuItem} onClick={() => setOpen(false)}>
             <Icon name="settings" size={18} />
-            Ajustes
+            {t('Ajustes')}
           </Link>
           <button
             role="menuitem"
@@ -105,7 +106,7 @@ export function UserMenu({ user }: { user: User }) {
             onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/login', { replace: true }) })}
           >
             <Icon name="logout" size={18} />
-            {logout.isPending ? 'Cerrando sesión…' : 'Cerrar sesión'}
+            {logout.isPending ? t('Cerrando sesión…') : t('Cerrar sesión')}
           </button>
         </div>
       )}

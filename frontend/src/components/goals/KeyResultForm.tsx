@@ -6,6 +6,7 @@ import { useProjects } from '../../hooks/useWorkspaceData'
 import pageStyles from '../../pages/pages.module.css'
 import projectStyles from '../../pages/projects.module.css'
 import styles from './goals.module.css'
+import { t } from '../../lib/i18n'
 
 /** Add a key result to a goal, or edit one. */
 export function KeyResultForm({ goalId, keyResult, onDone }: { goalId: number; keyResult?: KeyResult; onDone: () => void }) {
@@ -37,44 +38,44 @@ export function KeyResultForm({ goalId, keyResult, onDone }: { goalId: number; k
   return (
     <form className={styles.krForm} onSubmit={onSubmit}>
       <label className={pageStyles.field}>
-        Resultado clave
+        {t('Resultado clave')}
         <input
           className={`${pageStyles.input} caps`}
           autoCapitalize="characters"
           value={title}
           maxLength={255}
           autoFocus
-          placeholder="Ej. Equipos migrados"
+          placeholder={t('Ej. Equipos migrados')}
           onChange={(e) => setTitle(e.target.value)}
         />
       </label>
-      <div className={styles.kindPicker} role="radiogroup" aria-label="Cómo se mide">
+      <div className={styles.kindPicker} role="radiogroup" aria-label={t('Cómo se mide')}>
         <button type="button" role="radio" aria-checked={kind === 'number'} onClick={() => setKind('number')}>
-          <strong>Con un número</strong>
-          <span>Lo actualizas a mano: de 0 a 20 equipos, de 40% a 90%…</span>
+          <strong>{t('Con un número')}</strong>
+          <span>{t('Lo actualizas a mano: de 0 a 20 equipos, de 40% a 90%…')}</span>
         </button>
         <button type="button" role="radio" aria-checked={kind === 'tasks'} onClick={() => setKind('tasks')}>
-          <strong>Con las tareas de un proyecto</strong>
-          <span>Avanza solo conforme se terminan sus tareas.</span>
+          <strong>{t('Con las tareas de un proyecto')}</strong>
+          <span>{t('Avanza solo conforme se terminan sus tareas.')}</span>
         </button>
       </div>
       {kind === 'number' ? (
         <div className={styles.formRow}>
           <label className={pageStyles.field}>
-            Valor inicial
+            {t('Valor inicial')}
             <input className={pageStyles.input} type="number" inputMode="decimal" step="any" value={start} onChange={(e) => setStart(e.target.value)} />
           </label>
           <label className={pageStyles.field}>
-            Meta
+            {t('Meta')}
             <input className={pageStyles.input} type="number" inputMode="decimal" step="any" required value={target} onChange={(e) => setTarget(e.target.value)} />
           </label>
           <label className={pageStyles.field}>
-            Unidad (opcional)
+            {t('Unidad (opcional)')}
             <input
               className={`${pageStyles.input} caps`}
               autoCapitalize="characters"
               maxLength={30}
-              placeholder="equipos, %, $…"
+              placeholder={t('equipos, %, $…')}
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
             />
@@ -82,9 +83,9 @@ export function KeyResultForm({ goalId, keyResult, onDone }: { goalId: number; k
         </div>
       ) : (
         <label className={pageStyles.field}>
-          Proyecto
+          {t('Proyecto')}
           <select className={pageStyles.input} value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-            <option value="">Elige un proyecto…</option>
+            <option value="">{t('Elige un proyecto…')}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -100,10 +101,10 @@ export function KeyResultForm({ goalId, keyResult, onDone }: { goalId: number; k
       )}
       <div className={projectStyles.formActions}>
         <button type="submit" className={pageStyles.primary} disabled={!ready || saving.isPending}>
-          {keyResult ? 'Guardar' : 'Agregar resultado'}
+          {keyResult ? t('Guardar') : t('Agregar resultado')}
         </button>
         <button type="button" className={pageStyles.secondary} onClick={onDone}>
-          Cancelar
+          {t('Cancelar')}
         </button>
       </div>
     </form>

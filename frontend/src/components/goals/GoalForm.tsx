@@ -6,6 +6,7 @@ import { dotColor, PROJECT_COLORS } from '../../lib/colors'
 import pageStyles from '../../pages/pages.module.css'
 import projectStyles from '../../pages/projects.module.css'
 import styles from './goals.module.css'
+import { t } from '../../lib/i18n'
 
 /** New goal, or edit one when `goal` is given. */
 export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal) => void }) {
@@ -38,9 +39,9 @@ export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal)
 
   return (
     <form className={`${pageStyles.card} ${styles.form}`} onSubmit={onSubmit}>
-      <h2>{goal ? 'Editar meta' : 'Nueva meta'}</h2>
+      <h2>{goal ? t('Editar meta') : t('Nueva meta')}</h2>
       <label className={pageStyles.field}>
-        ¿Qué quieres lograr?
+        {t('¿Qué quieres lograr?')}
         <input
           className={`${pageStyles.input} caps`}
           autoCapitalize="characters"
@@ -48,12 +49,12 @@ export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal)
           maxLength={255}
           required
           autoFocus
-          placeholder="Ej. Migrar todos los equipos a Windows 11"
+          placeholder={t('Ej. Migrar todos los equipos a Windows 11')}
           onChange={(e) => setTitle(e.target.value)}
         />
       </label>
       <label className={pageStyles.field}>
-        Descripción (opcional)
+        {t('Descripción (opcional)')}
         <textarea
           className={`${pageStyles.input} ${styles.textarea} caps`}
           autoCapitalize="characters"
@@ -65,9 +66,9 @@ export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal)
       </label>
       <div className={styles.formRow}>
         <label className={pageStyles.field}>
-          Responsable
+          {t('Responsable')}
           <select className={pageStyles.input} value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
-            <option value="">Sin responsable</option>
+            <option value="">{t('Sin responsable')}</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -76,11 +77,11 @@ export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal)
           </select>
         </label>
         <label className={pageStyles.field}>
-          Inicio
+          {t('Fecha de inicio')}
           <input type="date" className={pageStyles.input} value={start} onChange={(e) => setStart(e.target.value)} />
         </label>
         <label className={pageStyles.field}>
-          Fecha límite
+          {t('Fecha límite')}
           <input
             type="date"
             className={pageStyles.input}
@@ -93,11 +94,11 @@ export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal)
       </div>
       {badDates && (
         <p className={pageStyles.error} role="alert">
-          La fecha límite no puede ser antes del inicio.
+          {t('La fecha límite no puede ser antes del inicio.')}
         </p>
       )}
       <fieldset className={projectStyles.colors}>
-        <legend>Color</legend>
+        <legend>{t('Color')}</legend>
         {PROJECT_COLORS.map((c) => (
           <label key={c.value} className={projectStyles.colorOption} title={c.label}>
             <input type="radio" name="goal-color" value={c.value} checked={color === c.value} onChange={() => setColor(c.value)} aria-label={c.label} />
@@ -107,15 +108,15 @@ export function GoalForm({ goal, onDone }: { goal?: Goal; onDone: (saved?: Goal)
       </fieldset>
       {saving.isError && (
         <p className={pageStyles.error} role="alert">
-          No se pudo guardar la meta.
+          {t('No se pudo guardar la meta.')}
         </p>
       )}
       <div className={projectStyles.formActions}>
         <button type="submit" className={pageStyles.primary} disabled={!title.trim() || badDates || saving.isPending}>
-          {goal ? 'Guardar cambios' : 'Crear meta'}
+          {goal ? t('Guardar cambios') : t('Crear meta')}
         </button>
         <button type="button" className={pageStyles.secondary} onClick={() => onDone()}>
-          Cancelar
+          {t('Cancelar')}
         </button>
       </div>
     </form>

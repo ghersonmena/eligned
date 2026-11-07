@@ -6,6 +6,7 @@ import { useCreateProject, useProjects, useUpdateProject } from '../hooks/useWor
 import { chipStyle, dotColor, PROJECT_COLORS } from '../lib/colors'
 import styles from './projects.module.css'
 import pageStyles from './pages.module.css'
+import { t } from '../lib/i18n'
 
 export function ProjectsPage() {
   const { data: projects = [], isPending, isError } = useProjects()
@@ -15,12 +16,12 @@ export function ProjectsPage() {
     <>
       <div className={styles.header}>
         <div>
-          <span className={pageStyles.eyebrow}>{isPending ? 'Cargando…' : `${projects.length} activos`}</span>
-          <h1 className={pageStyles.pageTitle}>Proyectos / Etiquetas</h1>
+          <span className={pageStyles.eyebrow}>{isPending ? t('Cargando…') : projects.length === 1 ? t('1 activo') : t('{n} activos', { n: projects.length })}</span>
+          <h1 className={pageStyles.pageTitle}>{t('Proyectos / Etiquetas')}</h1>
         </div>
         {!creating && (
           <button type="button" className={pageStyles.primary} onClick={() => setCreating(true)}>
-            + Nuevo
+            + {t('Nuevo')}
           </button>
         )}
       </div>
@@ -29,16 +30,16 @@ export function ProjectsPage() {
 
       {isError && (
         <p className={pageStyles.error} role="alert">
-          No pudimos cargar los proyectos.
+          {t('No pudimos cargar los proyectos.')}
         </p>
       )}
 
       {!isPending && projects.length === 0 && !creating && (
         <div className={styles.empty}>
-          <strong>Aún no tienes proyectos ni etiquetas</strong>
-          <span>Agrupa tus tareas por proyecto: soporte, infraestructura, una migración…</span>
+          <strong>{t('Aún no tienes proyectos ni etiquetas')}</strong>
+          <span>{t('Agrupa tus tareas por proyecto: soporte, infraestructura, una migración…')}</span>
           <button type="button" className={pageStyles.primary} onClick={() => setCreating(true)}>
-            Crear el primero
+            {t('Crear el primero')}
           </button>
         </div>
       )}
@@ -94,9 +95,9 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
 
   return (
     <form className={`${pageStyles.card} ${styles.form}`} onSubmit={onSubmit}>
-      <h2>{project ? 'Editar proyecto / etiqueta' : 'Nuevo proyecto / etiqueta'}</h2>
+      <h2>{project ? t('Editar proyecto / etiqueta') : t('Nuevo proyecto / etiqueta')}</h2>
       <label className={pageStyles.field}>
-        Nombre
+        {t('Nombre')}
         <input
           className={`${pageStyles.input} caps`}
           autoCapitalize="characters"
@@ -108,7 +109,7 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
         />
       </label>
       <label className={pageStyles.field}>
-        Descripción (opcional)
+        {t('Descripción (opcional)')}
         <input
           className={`${pageStyles.input} caps`}
           autoCapitalize="characters"
@@ -118,7 +119,7 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
         />
       </label>
       <fieldset className={styles.colors}>
-        <legend>Color</legend>
+        <legend>{t('Color')}</legend>
         {PROJECT_COLORS.map((c) => (
           <label key={c.value} className={styles.colorOption} title={c.label}>
             <input
@@ -135,21 +136,21 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
       </fieldset>
       {saving.isError && (
         <p className={pageStyles.error} role="alert">
-          No se pudo guardar. Revisa el nombre e inténtalo de nuevo.
+          {t('No se pudo guardar. Revisa el nombre e inténtalo de nuevo.')}
         </p>
       )}
       <div className={styles.formActions}>
         <button type="submit" className={pageStyles.primary} disabled={!name.trim() || saving.isPending}>
           {project ? (
-            'Guardar cambios'
+            t('Guardar cambios')
           ) : (
             <>
-              <Icon name="plus" size={18} /> Crear
+              <Icon name="plus" size={18} /> {t('Crear')}
             </>
           )}
         </button>
         <button type="button" className={pageStyles.secondary} onClick={onDone}>
-          Cancelar
+          {t('Cancelar')}
         </button>
       </div>
     </form>

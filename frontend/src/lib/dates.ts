@@ -6,18 +6,32 @@
  * and count as overdue only once the day is over.
  */
 
+import { dateFormat, t } from './i18n'
+
 const DAY_END_HOURS = 23
 const DAY_END_MINUTES = 59
 
 export type DueGroup = 'overdue' | 'today' | 'tomorrow' | 'week' | 'later' | 'none'
 
 export const GROUP_LABELS: Record<DueGroup, string> = {
-  overdue: 'Atrasadas',
-  today: 'Hoy',
-  tomorrow: 'Mañana',
-  week: 'Próximos 7 días',
-  later: 'Más adelante',
-  none: 'Sin fecha',
+  get overdue() {
+    return t('Atrasadas')
+  },
+  get today() {
+    return t('Hoy')
+  },
+  get tomorrow() {
+    return t('Mañana')
+  },
+  get week() {
+    return t('Próximos 7 días')
+  },
+  get later() {
+    return t('Más adelante')
+  },
+  get none() {
+    return t('Sin fecha')
+  },
 }
 
 export const GROUP_ORDER: DueGroup[] = ['overdue', 'today', 'tomorrow', 'week', 'later', 'none']
@@ -47,9 +61,10 @@ export function dueGroup(dueAt: string | null, now = new Date()): DueGroup {
   return 'later'
 }
 
-const weekdayShort = new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric', month: 'short' })
-const dayMonth = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' })
-const time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' })
+const weekdayShort = { format: (d: Date) => dateFormat({ weekday: 'short', day: 'numeric', month: 'short' }).format(d) }
+const dayMonth = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short', year: 'numeric' }).format(d) }
+const time = { format: (d: Date) => dateFormat({ hour: '2-digit', minute: '2-digit' }).format(d) }
+const pad = (n: number) => String(n).padStart(2, '0')
 
 /** "Hoy", "Mañana 10:00", "Ayer", "lun 3 nov", "5 ene 2027"… */
 export function formatDue(dueAt: string, now = new Date()): string {
@@ -57,9 +72,9 @@ export function formatDue(dueAt: string, now = new Date()): string {
   const days = daysBetween(now, due)
   const clock = isAllDay(due) ? '' : ` ${time.format(due)}`
 
-  if (days === 0) return `Hoy${clock}`
-  if (days === 1) return `Mañana${clock}`
-  if (days === -1) return `Ayer${clock}`
+  if (days === 0) return t('Hoy') + clock
+  if (days === 1) return t('Mañana') + clock
+  if (days === -1) return t('Ayer') + clock
   if (Math.abs(days) <= 7) return `${weekdayShort.format(due)}${clock}`
   return `${dayMonth.format(due)}${clock}`
 }
@@ -69,8 +84,8 @@ export function formatDone(completedAt: string, now = new Date()): string {
   const done = new Date(completedAt)
   const days = daysBetween(now, done)
   const clock = time.format(done)
-  if (days === 0) return `hoy ${clock}`
-  if (days === -1) return `ayer ${clock}`
+  if (days === 0) return t('hoy {time}', { time: clock })
+  if (days === -1) return t('ayer {time}', { time: clock })
   if (Math.abs(days) <= 7) return `${weekdayShort.format(done)} ${clock}`
   return `${dayMonth.format(done)} ${clock}`
 }
@@ -84,7 +99,6 @@ export function finishedLate(task: { due_at: string | null; completed_at: string
 export function toDateInput(dueAt: string | null): string {
   if (!dueAt) return ''
   const d = new Date(dueAt)
-  const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
@@ -93,7 +107,8 @@ export function toTimeInput(dueAt: string | null): string {
   if (!dueAt) return ''
   const d = new Date(dueAt)
   if (isAllDay(d)) return ''
-  return time.format(d)
+  // Always 24 h "HH:MM", whatever the language.
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 /** Builds the ISO string to send to the API from local date/time inputs. */
@@ -115,7 +130,7 @@ export function shortcutDate(kind: 'today' | 'tomorrow' | 'nextWeek', now = new 
 
 /* ---------- Calendar / timeline helpers (all in local time) ---------- */
 
-const pad2 = (n: number) => String(n).padStart(2, '0')
+const pad2 = pad
 
 /** "2026-11-04" for a local day. */
 export function dayKey(date: Date): string {

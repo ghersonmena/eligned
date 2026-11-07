@@ -6,6 +6,7 @@ use App\Models\Reminder;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAlert;
+use App\Support\Locale;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -39,7 +40,9 @@ class SendTaskAlerts
                 if ($task->isCompleted()) {
                     return;
                 }
-                $reminder->user->notify(TaskAlert::for('reminder', $task, $this->dueText($task, $reminder->user, $now) ?? 'Recordatorio'));
+                $user = $reminder->user;
+                $body = Locale::run($user->preferredLocale(), fn () => $this->dueText($task, $user, $now) ?? __('Recordatorio'));
+                $user->notify(TaskAlert::for('reminder', $task, $body));
                 $sent++;
             });
 
@@ -69,7 +72,8 @@ class SendTaskAlerts
                         'created_at' => $now,
                     ]);
                     if ($fresh) {
-                        $user->notify(TaskAlert::for('due_soon', $task, $this->dueText($task, $user, $now)));
+                        $body = Locale::run($user->preferredLocale(), fn () => $this->dueText($task, $user, $now));
+                        $user->notify(TaskAlert::for('due_soon', $task, $body));
                         $sent++;
                     }
                 }
@@ -116,15 +120,15 @@ class SendTaskAlerts
         $allDay = $due->format('H:i') === '23:59';
 
         if ($task->due_at->lt($now)) {
-            return 'Venció '.$due->locale('es')->diffForHumans($now, ['parts' => 1, 'syntax' => Carbon::DIFF_RELATIVE_TO_NOW]);
+            return __('Venció :when', ['when' => $due->locale(app()->getLocale())->diffForHumans($now, ['parts' => 1, 'syntax' => Carbon::DIFF_RELATIVE_TO_NOW])]);
         }
         $day = match (true) {
-            $due->isSameDay($today) => 'hoy',
-            $due->isSameDay($today->copy()->addDay()) => 'mañana',
-            default => 'el '.$due->locale('es')->translatedFormat('l j \d\e F'),
+            $due->isSameDay($today) => __('hoy'),
+            $due->isSameDay($today->copy()->addDay()) => __('mañana'),
+            default => __('el :date', ['date' => $due->locale(app()->getLocale())->translatedFormat(__('l j \d\e F'))]),
         };
 
-        return $allDay ? "Vence {$day}" : "Vence {$day} a las {$due->format('H:i')}";
+        return $allDay ? __('Vence :day', ['day' => $day]) : __('Vence :day a las :time', ['day' => $day, 'time' => $due->format('H:i')]);
     }
 
     /**

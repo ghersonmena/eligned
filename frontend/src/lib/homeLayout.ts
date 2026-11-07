@@ -1,21 +1,22 @@
 import type { HomeCardId, HomeCardSetting } from '../api/auth'
+import { t } from './i18n'
 
 export const HOME_CARDS: { id: HomeCardId; label: string }[] = [
-  { id: 'today', label: 'Para hoy' },
-  { id: 'tracker', label: 'Registro de tiempo' },
-  { id: 'activity', label: 'Actividad' },
-  { id: 'goals', label: 'Metas' },
-  { id: 'upcoming', label: 'Próximos 7 días' },
-  { id: 'projects', label: 'Proyectos' },
-  { id: 'team', label: 'Carga del equipo' },
-  { id: 'quick', label: 'Captura rápida' },
-  { id: 'priority', label: 'Prioridad alta' },
-  { id: 'rhythm', label: 'Ritmo' },
-  { id: 'time', label: 'Tiempo por proyecto' },
-  { id: 'stale', label: 'Sin movimiento' },
-  { id: 'comments', label: 'Comentarios recientes' },
-  { id: 'notes', label: 'Notas rápidas' },
-  { id: 'agenda', label: 'Agenda de la semana' },
+  { id: 'today', get label() { return t('Para hoy') } },
+  { id: 'tracker', get label() { return t('Registro de tiempo') } },
+  { id: 'activity', get label() { return t('Actividad') } },
+  { id: 'goals', get label() { return t('Metas') } },
+  { id: 'upcoming', get label() { return t('Próximos 7 días') } },
+  { id: 'projects', get label() { return t('Proyectos') } },
+  { id: 'team', get label() { return t('Carga del equipo') } },
+  { id: 'quick', get label() { return t('Captura rápida') } },
+  { id: 'priority', get label() { return t('Prioridad alta') } },
+  { id: 'rhythm', get label() { return t('Ritmo') } },
+  { id: 'time', get label() { return t('Tiempo por proyecto') } },
+  { id: 'stale', get label() { return t('Sin movimiento') } },
+  { id: 'comments', get label() { return t('Comentarios recientes') } },
+  { id: 'notes', get label() { return t('Notas rápidas') } },
+  { id: 'agenda', get label() { return t('Agenda de la semana') } },
 ]
 
 export const DEFAULT_LAYOUT: HomeCardSetting[] = HOME_CARDS.map((c) => ({ id: c.id, hidden: false }))

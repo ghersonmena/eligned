@@ -107,11 +107,11 @@ class GoalController extends Controller
             'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'color' => ['sometimes', Rule::in(Project::COLORS)],
             'owner_id' => ['sometimes', 'nullable', 'integer', fn ($a, $v, $fail) => $v === null
-                || $workspace->members()->whereKey($v)->exists() || $fail('Esa persona no es parte del espacio.')],
+                || $workspace->members()->whereKey($v)->exists() || $fail(__('Esa persona no es parte del espacio.'))],
             'start_date' => ['sometimes', 'nullable', 'date'],
             'due_date' => ['sometimes', 'nullable', 'date', 'after_or_equal:start_date'],
             'closed' => ['sometimes', 'boolean'],
-        ], ['due_date.after_or_equal' => 'La fecha límite no puede ser antes del inicio.']);
+        ], ['due_date.after_or_equal' => __('La fecha límite no puede ser antes del inicio.')]);
     }
 
     /**
@@ -133,7 +133,7 @@ class GoalController extends Controller
                 'integer',
                 Rule::exists('projects', 'id')->where('workspace_id', $goal->workspace_id),
             ],
-        ], ['project_id.required' => 'Elige el proyecto cuyas tareas miden este resultado.']);
+        ], ['project_id.required' => __('Elige el proyecto cuyas tareas miden este resultado.')]);
 
         // A new number result starts where it begins.
         if ($creating && $kind === 'number' && ! array_key_exists('current_value', $data)) {

@@ -26,15 +26,18 @@ import { useMe } from '../hooks/useAuth'
 import { useMoveTask, useStatuses, useTasks } from '../hooks/useWorkspaceData'
 import { celebrate } from '../lib/celebrate'
 import { dotColor } from '../lib/colors'
+import { statusName } from '../lib/statuses'
 import { addDays, startOfDay } from '../lib/dates'
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
 import pageStyles from './pages.module.css'
+import { t, tk } from '../lib/i18n'
 
 /** Completed cards stay on the board for this many days. */
 const DONE_DAYS = 14
 
-const BOARD_HELP =
-  'Para mover la tarjeta pulsa espacio, cámbiala de lugar con las flechas y pulsa espacio otra vez para soltarla. Escape cancela.'
+const BOARD_HELP = tk(
+  'Para mover la tarjeta pulsa espacio, cámbiala de lugar con las flechas y pulsa espacio otra vez para soltarla. Escape cancela.',
+)
 
 type Columns = Record<number, number[]>
 const colId = (statusId: number) => `col-${statusId}`
@@ -154,14 +157,18 @@ export function BoardPage() {
   return (
     <>
       <ViewHeader
-        eyebrow={board.isPending ? 'Cargando…' : `${tasks.filter((t) => !t.completed).length} abiertas · las completadas se ven ${DONE_DAYS} días`}
-        title="Tablero"
+        eyebrow={
+          board.isPending
+            ? t('Cargando…')
+            : t('{n} abiertas · las completadas se ven {days} días', { n: tasks.filter((task) => !task.completed).length, days: DONE_DAYS })
+        }
+        title={t('Tablero')}
         filters={<ViewFilters value={filters} onChange={setFilters} />}
       />
 
       {board.isError && (
         <p className={pageStyles.error} role="alert">
-          No pudimos cargar el tablero. Revisa tu conexión e inténtalo de nuevo.
+          {t('No pudimos cargar el tablero. Revisa tu conexión e inténtalo de nuevo.')}
         </p>
       )}
 
@@ -176,12 +183,12 @@ export function BoardPage() {
           setDragColumns(null)
         }}
         accessibility={{
-          screenReaderInstructions: { draggable: BOARD_HELP },
+          screenReaderInstructions: { draggable: t(BOARD_HELP) },
           announcements: {
-            onDragStart: ({ active }) => `Tomaste "${byId.get(Number(active.id))?.title ?? ''}".`,
-            onDragOver: ({ over }) => (over ? `Sobre ${columnName(over.id)}.` : 'Fuera de las columnas.'),
-            onDragEnd: ({ over }) => (over ? `Soltada en ${columnName(over.id)}.` : 'Movimiento cancelado.'),
-            onDragCancel: () => 'Movimiento cancelado.',
+            onDragStart: ({ active }) => t('Tomaste "{title}".', { title: byId.get(Number(active.id))?.title ?? '' }),
+            onDragOver: ({ over }) => (over ? t('Sobre {column}.', { column: columnName(over.id) }) : t('Fuera de las columnas.')),
+            onDragEnd: ({ over }) => (over ? t('Soltada en {column}.', { column: columnName(over.id) }) : t('Movimiento cancelado.')),
+            onDragCancel: () => t('Movimiento cancelado.'),
           },
         }}
       >
@@ -201,13 +208,13 @@ export function BoardPage() {
                     const task = byId.get(id)
                     if (!task) return null
                     return (
-                      <SortableCard key={id} task={task} next={next ? { name: next.name, onMove: () => moveToNext(task, next) } : undefined} />
+                      <SortableCard key={id} task={task} next={next ? { name: statusName(next.name), onMove: () => moveToNext(task, next) } : undefined} />
                     )
                   })}
                 </SortableContext>
-                {ids.length === 0 && <p className={styles.columnEmpty}>Suelta aquí una tarjeta</p>}
+                {ids.length === 0 && <p className={styles.columnEmpty}>{t('Suelta aquí una tarjeta')}</p>}
                 <Link to={`/tareas/nueva?estado=${status.id}`} className={styles.addCard}>
-                  + Agregar tarjeta
+                  + {t('Agregar tarjeta')}
                 </Link>
               </BoardColumn>
             )
@@ -220,7 +227,8 @@ export function BoardPage() {
 
   function columnName(id: UniqueIdentifier): string {
     const statusId = containerOf(id, dragColumns ?? columns)
-    return statuses.find((s) => s.id === statusId)?.name ?? 'la columna'
+    const name = statuses.find((s) => s.id === statusId)?.name
+    return name ? statusName(name) : t('la columna')
   }
 }
 
@@ -230,7 +238,7 @@ function BoardColumn({ status, count, children }: { status: TaskStatus; count: n
     <section ref={setNodeRef} className={`${styles.column} ${isOver ? styles.columnOver : ''}`} aria-labelledby={`col-title-${status.id}`}>
       <div className={styles.columnHead}>
         <span className={styles.dot} style={{ background: dotColor(status.color) }} aria-hidden="true" />
-        <h2 id={`col-title-${status.id}`}>{status.name}</h2>
+        <h2 id={`col-title-${status.id}`}>{statusName(status.name)}</h2>
         <span className={styles.count}>{count}</span>
       </div>
       {children}
@@ -248,7 +256,7 @@ function SortableCard({ task, next }: { task: Task; next?: { name: string; onMov
       {...attributes}
       {...listeners}
       aria-roledescription="tarjeta movible"
-      aria-label={task.parent ? `${task.title}, subtarea de ${task.parent.title}` : task.title}
+      aria-label={task.parent ? t('{title}, subtarea de {parent}', { title: task.title, parent: task.parent.title }) : task.title}
     >
       <TaskCard task={task} next={next} />
     </div>

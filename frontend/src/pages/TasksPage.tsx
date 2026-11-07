@@ -8,6 +8,7 @@ import { useTasks } from '../hooks/useWorkspaceData'
 import { dueGroup } from '../lib/dates'
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
 import pageStyles from './pages.module.css'
+import { t } from '../lib/i18n'
 
 export function TasksPage() {
   const [filters, setFilters] = useState<ViewFilterValues>(NO_FILTERS)
@@ -20,14 +21,19 @@ export function TasksPage() {
   return (
     <>
       <ViewHeader
-        eyebrow={open.isPending ? 'Cargando…' : `${tasks.length} abiertas${overdue ? ` · ${overdue} atrasadas` : ''}`}
-        title="Mis tareas"
+        eyebrow={
+          open.isPending
+            ? t('Cargando…')
+            : (tasks.length === 1 ? t('1 abierta') : t('{n} abiertas', { n: tasks.length })) +
+              (overdue ? ` · ${overdue === 1 ? t('1 atrasada') : t('{n} atrasadas', { n: overdue })}` : '')
+        }
+        title={t('Mis tareas')}
         filters={
           <>
             <ViewFilters value={filters} onChange={setFilters} />
             <label className={styles.toggle}>
               <input type="checkbox" checked={showCompleted} onChange={(e) => setShowCompleted(e.target.checked)} />
-              Ver completadas
+              {t('Ver completadas')}
             </label>
           </>
         }
@@ -35,22 +41,22 @@ export function TasksPage() {
 
       {open.isError && (
         <p className={pageStyles.error} role="alert">
-          No pudimos cargar tus tareas. Revisa tu conexión e inténtalo de nuevo.
+          {t('No pudimos cargar tus tareas. Revisa tu conexión e inténtalo de nuevo.')}
         </p>
       )}
 
       {open.isSuccess && tasks.length === 0 && (
         <div className={styles.empty}>
-          <strong>Todo al día</strong>
-          <span>No tienes tareas pendientes.</span>
-          <Link to="/tareas/nueva">Crear una tarea</Link>
+          <strong>{t('Todo al día')}</strong>
+          <span>{t('No tienes tareas pendientes.')}</span>
+          <Link to="/tareas/nueva">{t('Crear una tarea')}</Link>
         </div>
       )}
 
       <TaskGroups tasks={tasks} />
 
       {showCompleted && completed.data && completed.data.length > 0 && (
-        <TaskList title="Completadas" tasks={completed.data} />
+        <TaskList title={t('Completadas')} tasks={completed.data} />
       )}
     </>
   )

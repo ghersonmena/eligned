@@ -1,6 +1,6 @@
-# Todo Smart
+# eLigned
 
-> Nombre provisional. Aplicación de tareas para personas y equipos: lista, Kanban, calendario, cronograma (Gantt),
+> Aplicación de tareas para personas y equipos: lista, Kanban, calendario, cronograma (Gantt),
 > recordatorios, registro de tiempo, metas y notificaciones. PWA para escritorio y celular; app móvil más adelante.
 
 - Arquitectura y hoja de ruta: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)
@@ -34,7 +34,7 @@ Abre **<http://localhost:8090>** y crea tu cuenta.
 | App (PWA + API vía nginx) | <http://localhost:8090> |
 | API | <http://localhost:8090/api/v1> |
 | Correos de prueba (Mailpit) | <http://localhost:8025> |
-| PostgreSQL (para un cliente SQL) | `localhost:5433`, usuario y base `todo_smart`, contraseña `secret` |
+| PostgreSQL (para un cliente SQL) | `localhost:5433`, usuario y base `eligned`, contraseña `secret` |
 
 Al registrarte llega un correo de confirmación: en desarrollo no sale a internet, lo ves en Mailpit.
 

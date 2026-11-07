@@ -17,8 +17,8 @@ export default defineConfig({
         overrideManifestIcons: true,
       },
       manifest: {
-        name: 'Todo Smart',
-        short_name: 'Todo Smart',
+        name: 'eLigned',
+        short_name: 'eLigned',
         description: 'Tareas, proyectos, metas y tiempo de tu equipo en un solo lugar.',
         lang: 'es',
         start_url: '/',
@@ -47,5 +47,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: { modules: { classNameStrategy: 'non-scoped' } },
+    // The translations test reads the source files through a glob; a cached
+    // transform would miss files added since, so don't keep one on disk.
+    fsModuleCache: false,
   },
 })

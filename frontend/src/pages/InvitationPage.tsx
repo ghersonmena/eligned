@@ -4,11 +4,13 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { teamApi } from '../api/team'
 import { Logo } from '../components/Logo'
+import { APP_NAME } from '../lib/brand'
 import { useLogout, useMe } from '../hooks/useAuth'
 import { celebrate } from '../lib/celebrate'
 import { rememberInvitation } from '../lib/pendingInvitation'
-import { ROLE_HINTS, ROLE_LABELS } from '../lib/workspace'
+import { roleHint, roleLabel } from '../lib/workspace'
 import styles from './pages.module.css'
+import { t, tx } from '../lib/i18n'
 
 /** /invitacion/:token — works with or without a session. */
 export function InvitationPage() {
@@ -30,7 +32,7 @@ export function InvitationPage() {
       celebrate(user?.preferences.confetti ?? true)
       navigate('/', { replace: true })
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'No se pudo aceptar la invitación.')
+      setError(e instanceof ApiError ? e.message : t('No se pudo aceptar la invitación.'))
       setAccepting(false)
     }
   }
@@ -40,30 +42,34 @@ export function InvitationPage() {
 
   let body
   if (info.isPending || loadingUser) {
-    body = <p className={styles.lead}>Cargando invitación…</p>
+    body = <p className={styles.lead}>{t('Cargando invitación…')}</p>
   } else if (info.isError || !data) {
     body = (
       <>
-        <p className={styles.lead}>Esta invitación no existe o fue cancelada.</p>
-        <Link to="/">Ir al inicio</Link>
+        <p className={styles.lead}>{t('Esta invitación no existe o fue cancelada.')}</p>
+        <Link to="/">{t('Ir al inicio')}</Link>
       </>
     )
   } else if (data.accepted || data.expired) {
     body = (
       <>
         <p className={styles.lead}>
-          {data.accepted ? 'Esta invitación ya se usó.' : 'Esta invitación venció.'} Pide a {data.inviter ?? 'quien te invitó'} que te envíe una
-          nueva.
+          {data.accepted ? t('Esta invitación ya se usó.') : t('Esta invitación venció.')}{' '}
+          {data.inviter ? t('Pide a {name} que te envíe una nueva.', { name: data.inviter }) : t('Pide a quien te invitó que te envíe una nueva.')}
         </p>
-        <Link to="/">Ir al inicio</Link>
+        <Link to="/">{t('Ir al inicio')}</Link>
       </>
     )
   } else {
     body = (
       <>
         <p className={styles.lead}>
-          <strong>{data.inviter ?? 'Alguien'}</strong> te invitó a <strong>{data.workspace}</strong> como{' '}
-          <strong>{ROLE_LABELS[data.role].toLowerCase()}</strong>: {ROLE_HINTS[data.role].toLowerCase()}
+          {tx('{who} te invitó a {space} como {role}: {hint}', {
+            who: <strong>{data.inviter ?? t('Alguien')}</strong>,
+            space: <strong>{data.workspace}</strong>,
+            role: <strong>{roleLabel(data.role).toLowerCase()}</strong>,
+            hint: roleHint(data.role).toLowerCase(),
+          })}
         </p>
         {error && (
           <p className={styles.error} role="alert">
@@ -72,13 +78,16 @@ export function InvitationPage() {
         )}
         {user && sameEmail && (
           <button type="button" className={styles.primary} disabled={accepting} onClick={() => void accept()}>
-            {accepting ? 'Uniéndote…' : `Unirme a ${data.workspace}`}
+            {accepting ? t('Uniéndote…') : t('Unirme a {space}', { space: data.workspace })}
           </button>
         )}
         {user && !sameEmail && (
           <>
             <p className={styles.notice}>
-              La invitación es para <strong>{data.email}</strong>, pero entraste como <strong>{user.email}</strong>.
+              {tx('La invitación es para {invited}, pero entraste como {current}.', {
+                invited: <strong>{data.email}</strong>,
+                current: <strong>{user.email}</strong>,
+              })}
             </p>
             <button
               type="button"
@@ -89,28 +98,28 @@ export function InvitationPage() {
                 logout.mutate(undefined, { onSuccess: () => navigate(`/login?email=${encodeURIComponent(data.email)}`) })
               }}
             >
-              Entrar con {data.email}
+              {t('Entrar con {email}', { email: data.email })}
             </button>
           </>
         )}
         {!user && (
           <>
             <p>
-              Para unirte necesitas una cuenta con <strong>{data.email}</strong>.
+              {tx('Para unirte necesitas una cuenta con {email}.', { email: <strong>{data.email}</strong> })}
             </p>
             <Link
               className={`${styles.primary} ${styles.buttonLink}`}
               to={`/registro?email=${encodeURIComponent(data.email)}`}
               onClick={() => rememberInvitation(token)}
             >
-              Crear mi cuenta
+              {t('Crear mi cuenta')}
             </Link>
             <Link
               className={`${styles.secondary} ${styles.buttonLink}`}
               to={`/login?email=${encodeURIComponent(data.email)}`}
               onClick={() => rememberInvitation(token)}
             >
-              Ya tengo cuenta
+              {t('Ya tengo cuenta')}
             </Link>
           </>
         )}
@@ -122,10 +131,10 @@ export function InvitationPage() {
     <main className={styles.authShell}>
       <div className={styles.authCard}>
         <div className={styles.authBrand}>
-          <Logo /> [nombre]
+          <Logo /> {APP_NAME}
         </div>
         <h1 className={styles.authTitle}>
-          <span>Te invitaron</span> a colaborar
+          <span>{t('Te invitaron')}</span> {t('a colaborar')}
         </h1>
         <div className={styles.form}>{body}</div>
       </div>

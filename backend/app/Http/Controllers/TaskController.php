@@ -99,7 +99,7 @@ class TaskController extends Controller
     public function storeSubtask(StoreTaskRequest $request, Task $task, CreateTask $createTask): TaskResource
     {
         Gate::authorize('update', $task);
-        abort_if($task->parent_id !== null, 422, 'Las subtareas no pueden tener subtareas.');
+        abort_if($task->parent_id !== null, 422, __('Las subtareas no pueden tener subtareas.'));
 
         $subtask = $createTask->handle($task->workspace, $request->user(), $request->validated(), $task);
 
@@ -139,7 +139,7 @@ class TaskController extends Controller
             abort_if(
                 $completionChanged && $task->subtasks()->exists(),
                 422,
-                'Esta tarea se completa al cerrar todas sus subtareas.',
+                __('Esta tarea se completa al cerrar todas sus subtareas.'),
             );
             $datesChanged = $task->isDirty(['start_at', 'due_at']);
             $task->save();
@@ -169,7 +169,7 @@ class TaskController extends Controller
     public function move(MoveTaskRequest $request, Task $task, MoveTask $moveTask): TaskResource
     {
         Gate::authorize('update', $task);
-        abort_if($task->subtasks()->exists(), 422, 'Una tarea con subtareas avanza con sus subtareas.');
+        abort_if($task->subtasks()->exists(), 422, __('Una tarea con subtareas avanza con sus subtareas.'));
 
         $status = $task->workspace->statuses->firstWhere('id', $request->integer('status_id'));
         $moveTask->handle($task, $status, $request->integer('position'));

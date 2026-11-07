@@ -6,6 +6,7 @@ import { initials } from '../../lib/initials'
 import { DoneStamp } from '../tasks/DoneStamp'
 import { Icon } from '../Icon'
 import styles from './views.module.css'
+import { t } from '../../lib/i18n'
 
 interface TaskCardProps {
   task: Task
@@ -27,8 +28,8 @@ export function TaskCard({ task, next, dragging }: TaskCardProps) {
         <span
           className={styles.prio}
           style={{ background: priority.color }}
-          title={`Prioridad ${priority.label.toLowerCase()}`}
-          aria-label={`Prioridad ${priority.label.toLowerCase()}`}
+          title={t('Prioridad: {level}', { level: priority.label.toLowerCase() })}
+          aria-label={t('Prioridad: {level}', { level: priority.label.toLowerCase() })}
         >
           {task.priority}
         </span>
@@ -42,8 +43,8 @@ export function TaskCard({ task, next, dragging }: TaskCardProps) {
           <button
             type="button"
             className={styles.moveBtn}
-            aria-label={`Mover "${task.title}" a ${next.name}`}
-            title={`Mover a ${next.name}`}
+            aria-label={t('Mover "{title}" a {column}', { title: task.title, column: next.name })}
+            title={t('Mover a {column}', { column: next.name })}
             onPointerDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={next.onMove}
@@ -55,12 +56,12 @@ export function TaskCard({ task, next, dragging }: TaskCardProps) {
         )}
       </div>
       {task.parent && (
-        <span className={styles.parentTag} title={`Subtarea de "${task.parent.title}"`}>
+        <span className={styles.parentTag} title={t('Subtarea de "{title}"', { title: task.parent.title })}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M6 4v9a3 3 0 0 0 3 3h10M15 12l4 4-4 4" />
           </svg>
           <span className={styles.parentTagText}>
-            <span className="visually-hidden">Subtarea de </span>
+            <span className="visually-hidden">{t('Subtarea de')} </span>
             {task.parent.title}
           </span>
         </span>
@@ -73,7 +74,7 @@ export function TaskCard({ task, next, dragging }: TaskCardProps) {
           <span className={styles.progress} aria-hidden="true">
             <span style={{ width: `${Math.round((done / total) * 100)}%`, background: done === total ? 'var(--c-green-dot)' : 'var(--c-blue-dot)' }} />
           </span>
-          <span className={styles.progressLabel} aria-label={`${done} de ${total} subtareas`}>
+          <span className={styles.progressLabel} aria-label={t('{done} de {total} subtareas', { done, total })}>
             {done}/{total}
           </span>
         </div>

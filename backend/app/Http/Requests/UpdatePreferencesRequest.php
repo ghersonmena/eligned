@@ -27,6 +27,7 @@ class UpdatePreferencesRequest extends FormRequest
             'home_layout' => ['sometimes', 'nullable', 'array', 'max:20'],
             'home_layout.*.id' => ['required', 'distinct', Rule::in(User::HOME_CARDS)],
             'home_layout.*.hidden' => ['required', 'boolean'],
+            'locale' => ['sometimes', Rule::in(User::LOCALES)],
             'home_note' => ['sometimes', 'nullable', 'string', 'max:'.User::HOME_NOTE_MAX],
             'current_workspace_id' => [
                 'sometimes',
@@ -34,7 +35,7 @@ class UpdatePreferencesRequest extends FormRequest
                 'integer',
                 fn (string $attribute, mixed $value, \Closure $fail) => $value === null
                     || $this->user()->workspaces()->whereKey($value)->exists()
-                    || $fail('No perteneces a ese espacio.'),
+                    || $fail(__('No perteneces a ese espacio.')),
             ],
         ];
     }

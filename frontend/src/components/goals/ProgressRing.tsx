@@ -1,3 +1,4 @@
+import { t } from '../../lib/i18n'
 /** Circular progress (0–100) with the percentage in the middle. */
 export function ProgressRing({
   value,
@@ -19,7 +20,7 @@ export function ProgressRing({
   const c = 2 * Math.PI * r
   const pct = Math.max(0, Math.min(100, value))
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${label ?? `${pct}%`} de avance`}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={t('{value} de avance', { value: label ?? `${pct}%` })}>
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
       <circle
         cx={size / 2}

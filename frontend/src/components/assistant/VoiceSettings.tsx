@@ -1,9 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { canListen, canSpeak, isNatural, readVoiceSettings, saveVoiceSettings, speak, spanishVoices, stopSpeaking, voiceLabel } from '../../lib/assistant/speech'
+import { ASSISTANT_NAME } from '../../lib/brand'
+import { getLocale, t } from '../../lib/i18n'
 import styles from '../../pages/pages.module.css'
 import voice from './voice.module.css'
 
-const SAMPLE = 'Hola, soy tu asistente. ¿Guardo la tarea: ir a la cita con mi esposa, para hoy a las 5 de la tarde?'
+// The assistant talks Spanish, so the sample is Spanish in every language.
+const SAMPLE = `Hola, soy ${ASSISTANT_NAME}. ¿Guardo la tarea: ir a la cita con mi esposa, para hoy a las 5 de la tarde?`
 
 /* Browsers load their voices a moment after the page; this re-renders when they arrive. */
 function subscribe(onChange: () => void) {
@@ -22,10 +25,12 @@ function snapshot() {
 function platformTip(): string {
   const ua = navigator.userAgent
   if (/iPhone|iPad|Macintosh/.test(ua) && !/Edg\//.test(ua))
-    return 'En iPhone o Mac puedes descargar voces más naturales: Ajustes → Accesibilidad → Contenido leído → Voces → Español (México) → "Paulina (Mejorada)" o "Mónica (Premium)". Luego vuelve aquí y elígela.'
-  if (/Android/.test(ua)) return 'En Android puedes instalar voces de mejor calidad en Ajustes → Sistema → Idioma → Texto a voz → Servicios de voz de Google → Instalar datos de voz → Español.'
-  if (/Edg\//.test(ua)) return 'Edge incluye voces "Natural" (como Dalia o Jorge); necesitan conexión a internet para hablar.'
-  return 'Las voces más realistas gratis vienen en Microsoft Edge (voces "Natural") y en iPhone/Mac (voces "Mejorada" o "Premium").'
+    return t(
+      'En iPhone o Mac puedes descargar voces más naturales: Ajustes → Accesibilidad → Contenido leído → Voces → Español (México) → "Paulina (Mejorada)" o "Mónica (Premium)". Luego vuelve aquí y elígela.',
+    )
+  if (/Android/.test(ua)) return t('En Android puedes instalar voces de mejor calidad en Ajustes → Sistema → Idioma → Texto a voz → Servicios de voz de Google → Instalar datos de voz → Español.')
+  if (/Edg\//.test(ua)) return t('Edge incluye voces "Natural" (como Dalia o Jorge); necesitan conexión a internet para hablar.')
+  return t('Las voces más realistas gratis vienen en Microsoft Edge (voces "Natural") y en iPhone/Mac (voces "Mejorada" o "Premium").')
 }
 
 /** Ajustes → Asistente de voz: which voice talks, how fast, and whether it talks at all. Saved on this device. */
@@ -53,26 +58,27 @@ export function VoiceSettings() {
 
   return (
     <section className={styles.card} aria-labelledby="voice-title">
-      <h2 id="voice-title">Asistente de voz</h2>
+      <h2 id="voice-title">{t('{name}, tu asistente de voz', { name: ASSISTANT_NAME })}</h2>
       <p>
-        El botón del micrófono, abajo a la derecha, crea tareas y te dice qué tienes pendiente.
-        {!canListen() && ' Este navegador no puede escucharte (Firefox no lo permite), pero puedes escribirle.'}
+        {t('El botón del micrófono, abajo a la derecha, crea tareas y te dice qué tienes pendiente.')}
+        {getLocale() !== 'es' && ` ${t('Por ahora entiende y habla solo español.')}`}
+        {!canListen() && ` ${t('Este navegador no puede escucharte (Firefox no lo permite), pero puedes escribirle.')}`}
       </p>
 
       {!canSpeak() ? (
-        <p className={styles.settingNote}>Este navegador no puede leer respuestas en voz alta.</p>
+        <p className={styles.settingNote}>{t('Este navegador no puede leer respuestas en voz alta.')}</p>
       ) : (
         <>
           <div className={styles.row}>
             <span>
-              <strong>Responder en voz alta</strong>
-              <small>Si lo apagas, solo responde por escrito.</small>
+              <strong>{t('Responder en voz alta')}</strong>
+              <small>{t('Si lo apagas, solo responde por escrito.')}</small>
             </span>
             <button
               type="button"
               role="switch"
               aria-checked={settings.enabled}
-              aria-label="Responder en voz alta"
+              aria-label={t('Responder en voz alta')}
               className={styles.switch}
               onClick={() => update({ enabled: !settings.enabled })}
             >
@@ -82,8 +88,12 @@ export function VoiceSettings() {
 
           <label className={`${styles.row} ${voice.voiceRow}`}>
             <span>
-              <strong>Voz</strong>
-              <small>{natural.length > 0 ? `Tienes ${natural.length === 1 ? '1 voz natural' : `${natural.length} voces naturales`} en este dispositivo.` : 'Elige la que más te guste.'}</small>
+              <strong>{t('Voz')}</strong>
+              <small>{natural.length === 0
+                  ? t('Elige la que más te guste.')
+                  : natural.length === 1
+                    ? t('Tienes 1 voz natural en este dispositivo.')
+                    : t('Tienes {n} voces naturales en este dispositivo.', { n: natural.length })}</small>
             </span>
             <select
               className={styles.settingSelect}
@@ -94,9 +104,12 @@ export function VoiceSettings() {
                 preview(name)
               }}
             >
-              <option value="">Automática{best ? ` (${voiceLabel(best)})` : ''}</option>
+              <option value="">
+                {t('Automática')}
+                {best ? ` (${voiceLabel(best)})` : ''}
+              </option>
               {natural.length > 0 && (
-                <optgroup label="Naturales (más realistas)">
+                <optgroup label={t('Naturales (más realistas)')}>
                   {natural.map((v) => (
                     <option key={v.name} value={v.name}>
                       {voiceLabel(v)}
@@ -105,7 +118,7 @@ export function VoiceSettings() {
                 </optgroup>
               )}
               {others.length > 0 && (
-                <optgroup label={natural.length > 0 ? 'Otras' : 'Voces en español'}>
+                <optgroup label={natural.length > 0 ? t('Otras') : t('Voces en español')}>
                   {others.map((v) => (
                     <option key={v.name} value={v.name}>
                       {voiceLabel(v)}
@@ -115,12 +128,12 @@ export function VoiceSettings() {
               )}
             </select>
           </label>
-          {chosenMissing && <p className={styles.settingNote}>La voz que elegiste ya no está en este dispositivo; se usa la automática.</p>}
+          {chosenMissing && <p className={styles.settingNote}>{t('La voz que elegiste ya no está en este dispositivo; se usa la automática.')}</p>}
 
           <label className={styles.row}>
             <span>
-              <strong>Velocidad</strong>
-              <small>{settings.rate === 1 ? 'Normal' : settings.rate < 1 ? 'Más lenta' : 'Más rápida'} · {settings.rate.toFixed(2).replace(/0$/, '')}×</small>
+              <strong>{t('Velocidad')}</strong>
+              <small>{settings.rate === 1 ? t('Normal') : settings.rate < 1 ? t('Más lenta') : t('Más rápida')} · {settings.rate.toFixed(2).replace(/0$/, '')}×</small>
             </span>
             <input
               type="range"
@@ -129,7 +142,7 @@ export function VoiceSettings() {
               max={1.4}
               step={0.05}
               value={settings.rate}
-              aria-label="Velocidad de la voz"
+              aria-label={t('Velocidad de la voz')}
               onChange={(e) => update({ rate: Number(e.target.value) })}
               onPointerUp={() => preview()}
               onKeyUp={(e) => ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && preview()}
@@ -138,12 +151,14 @@ export function VoiceSettings() {
 
           <div className={styles.settingInline}>
             <button type="button" className={styles.secondary} onClick={() => (playing ? (stopSpeaking(), setPlaying(false)) : preview())}>
-              {playing ? 'Detener' : '▶ Escuchar ejemplo'}
+              {playing ? t('Detener') : `▶ ${t('Escuchar ejemplo')}`}
             </button>
           </div>
 
           {voices.length === 0 ? (
-            <p className={styles.settingNote}>Este dispositivo no tiene voces en español instaladas. {platformTip()}</p>
+            <p className={styles.settingNote}>
+              {t('Este dispositivo no tiene voces en español instaladas.')} {platformTip()}
+            </p>
           ) : (
             natural.length === 0 && <p className={styles.settingNote}>💡 {platformTip()}</p>
           )}

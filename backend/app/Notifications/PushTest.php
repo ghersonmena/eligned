@@ -21,8 +21,8 @@ class PushTest extends Notification
     public function toWebPush(User $notifiable): WebPushMessage
     {
         return (new WebPushMessage)
-            ->title('¡Las notificaciones funcionan!')
-            ->body('Así te avisaremos de recordatorios y tareas por vencer.')
+            ->title(__('¡Las notificaciones funcionan!'))
+            ->body(__('Así te avisaremos de recordatorios y tareas por vencer.'))
             ->icon('/pwa-192x192.png')
             ->tag('push-test')
             ->data(['url' => '/ajustes']);

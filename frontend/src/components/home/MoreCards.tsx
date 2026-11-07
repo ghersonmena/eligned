@@ -12,14 +12,15 @@ import pageStyles from '../../pages/pages.module.css'
 import { TaskRow } from '../tasks/TaskRow'
 import taskStyles from '../tasks/tasks.module.css'
 import styles from './home.module.css'
+import { dateFormat, t } from '../../lib/i18n'
 
 type When = 'none' | 'today' | 'tomorrow' | 'nextWeek'
 
 const WHEN: { id: When; label: string }[] = [
-  { id: 'none', label: 'Sin fecha' },
-  { id: 'today', label: 'Hoy' },
-  { id: 'tomorrow', label: 'Mañana' },
-  { id: 'nextWeek', label: 'En 7 días' },
+  { id: 'none', get label() { return t('Sin fecha') } },
+  { id: 'today', get label() { return t('Hoy') } },
+  { id: 'tomorrow', get label() { return t('Mañana') } },
+  { id: 'nextWeek', get label() { return t('En 7 días') } },
 ]
 
 /** Write a task down without leaving the home page. */
@@ -48,9 +49,9 @@ export function QuickAddCard({ className, canEdit }: { className: string; canEdi
 
   return (
     <section className={className}>
-      <h2>Captura rápida</h2>
+      <h2>{t('Captura rápida')}</h2>
       {!canEdit ? (
-        <p>En este espacio eres invitado: puedes ver las tareas, pero no crearlas.</p>
+        <p>{t('En este espacio eres invitado: puedes ver las tareas, pero no crearlas.')}</p>
       ) : (
         <form className={styles.quick} onSubmit={submit}>
           <input
@@ -58,28 +59,28 @@ export function QuickAddCard({ className, canEdit }: { className: string; canEdi
             autoCapitalize="characters"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="¿Qué hay que hacer?"
-            aria-label="Nueva tarea"
+            placeholder={t('¿Qué hay que hacer?')}
+            aria-label={t('Nueva tarea')}
             maxLength={255}
           />
-          <div className={styles.chips} role="radiogroup" aria-label="Para cuándo">
+          <div className={styles.chips} role="radiogroup" aria-label={t('Para cuándo')}>
             {WHEN.map((w) => (
               <button key={w.id} type="button" role="radio" aria-checked={when === w.id} onClick={() => setWhen(w.id)}>
                 {w.label}
               </button>
             ))}
             <button type="button" aria-pressed={urgent} className={styles.chipUrgent} onClick={() => setUrgent(!urgent)}>
-              ⚑ Alta
+              ⚑ {t('Alta')}
             </button>
           </div>
           <button type="submit" className={pageStyles.primary} disabled={!title.trim() || createTask.isPending}>
-            {createTask.isPending ? 'Agregando…' : 'Agregar tarea'}
+            {createTask.isPending ? t('Agregando…') : t('Agregar tarea')}
           </button>
           <p role="status" className={styles.quickStatus}>
-            {createTask.isError && 'No se pudo agregar. Inténtalo de nuevo.'}
+            {createTask.isError && t('No se pudo agregar. Inténtalo de nuevo.')}
             {added && !createTask.isError && (
               <>
-                Agregada: <Link to={`/tareas/${added.id}`}>{added.title}</Link>
+                {t('Agregada:')} <Link to={`/tareas/${added.id}`}>{added.title}</Link>
               </>
             )}
           </p>
@@ -96,12 +97,13 @@ export function PriorityCard({ className }: { className: string }) {
   return (
     <section className={`${className} ${pageStyles.cardToday}`}>
       <h2>
-        Prioridad alta{urgent.length > 0 && <span className={pageStyles.count}> · {urgent.length}</span>}
+        {t('Prioridad alta')}
+        {urgent.length > 0 && <span className={pageStyles.count}> · {urgent.length}</span>}
       </h2>
-      {isPending && <p>Cargando…</p>}
-      {!isPending && urgent.length === 0 && <p>No hay tareas abiertas con prioridad alta.</p>}
+      {isPending && <p>{t('Cargando…')}</p>}
+      {!isPending && urgent.length === 0 && <p>{t('No hay tareas abiertas con prioridad alta.')}</p>}
       {urgent.length > 0 && (
-        <div className={pageStyles.cardScroll} tabIndex={0} aria-label="Tareas de prioridad alta">
+        <div className={pageStyles.cardScroll} tabIndex={0} aria-label={t('Tareas de prioridad alta')}>
           <ul className={taskStyles.list}>
             {urgent.map((task) => (
               <TaskRow key={task.id} task={task} />
@@ -110,14 +112,14 @@ export function PriorityCard({ className }: { className: string }) {
         </div>
       )}
       <Link to="/tareas" className={styles.more}>
-        Ver todas mis tareas
+        {t('Ver todas mis tareas')}
       </Link>
     </section>
   )
 }
 
-const weekday = new Intl.DateTimeFormat('es', { weekday: 'narrow' })
-const longDay = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'short' })
+const weekday = { format: (d: Date) => dateFormat({ weekday: 'narrow' }).format(d) }
+const longDay = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'short' }).format(d) }
 
 /** Finished tasks per day for two weeks, plus the streak. */
 export function RhythmCard({ className }: { className: string }) {
@@ -131,24 +133,24 @@ export function RhythmCard({ className }: { className: string }) {
 
   return (
     <section className={className}>
-      <h2>Ritmo</h2>
+      <h2>{t('Ritmo')}</h2>
       <div className={styles.rhythmStats}>
         <div>
           <strong>{days}</strong>
-          <span>{days === 1 ? 'día seguido' : 'días seguidos'}</span>
+          <span>{days === 1 ? t('día seguido') : t('días seguidos')}</span>
         </div>
         <div>
           <strong>{thisWeek}</strong>
-          <span>últimos 7 días</span>
+          <span>{t('últimos 7 días')}</span>
         </div>
         <div>
           <strong className={diff > 0 ? styles.up : diff < 0 ? styles.down : undefined}>
             {diff > 0 ? `+${diff}` : diff}
           </strong>
-          <span>vs. 7 días antes</span>
+          <span>{t('vs. 7 días antes')}</span>
         </div>
       </div>
-      <ol className={styles.columns} aria-label="Tareas terminadas por día">
+      <ol className={styles.columns} aria-label={t('Tareas terminadas por día')}>
         {counts.map((c, i) => (
           <li key={i} title={`${longDay.format(c.day)}: ${c.count}`} className={i === counts.length - 1 ? styles.columnToday : undefined}>
             <span className={styles.columnTrack}>
@@ -163,10 +165,10 @@ export function RhythmCard({ className }: { className: string }) {
       </ol>
       <p>
         {isPending
-          ? 'Cargando…'
+          ? t('Cargando…')
           : days >= 3
-            ? `¡Llevas ${days} días seguidos terminando algo! Sigue así.`
-            : 'Termina al menos una tarea al día para mantener la racha.'}
+            ? t('¡Llevas {n} días seguidos terminando algo! Sigue así.', { n: days })
+            : t('Termina al menos una tarea al día para mantener la racha.')}
       </p>
     </section>
   )
@@ -181,15 +183,16 @@ export function TimeByProjectCard({ className }: { className: string }) {
   return (
     <section className={className}>
       <h2>
-        Tiempo por proyecto{total > 0 && <span className={pageStyles.count}> · {formatMinutes(total)}</span>}
+        {t('Tiempo por proyecto')}
+        {total > 0 && <span className={pageStyles.count}> · {formatMinutes(total)}</span>}
       </h2>
-      {isPending && <p>Cargando…</p>}
-      {!isPending && rows.length === 0 && <p>Esta semana aún no registras tiempo. Usa el cronómetro de una tarea para empezar.</p>}
+      {isPending && <p>{t('Cargando…')}</p>}
+      {!isPending && rows.length === 0 && <p>{t('Esta semana aún no registras tiempo. Usa el cronómetro de una tarea para empezar.')}</p>}
       <ul className={styles.bars}>
         {rows.slice(0, 6).map((r) => (
           <li key={r.project?.id ?? 0} className={styles.barLink}>
             <span className={styles.barTitle}>
-              {r.project ? <Link to={`/proyectos/${r.project.id}`}>{r.project.name}</Link> : 'Sin proyecto'}
+              {r.project ? <Link to={`/proyectos/${r.project.id}`}>{r.project.name}</Link> : t('Sin proyecto')}
             </span>
             <span className={styles.barPct}>
               {formatMinutes(r.minutes)} · {Math.round((r.minutes / total) * 100)}%
@@ -200,7 +203,7 @@ export function TimeByProjectCard({ className }: { className: string }) {
           </li>
         ))}
       </ul>
-      {rows.length > 0 && <p className={styles.note}>Desde el lunes, solo tu tiempo.</p>}
+      {rows.length > 0 && <p className={styles.note}>{t('Desde el lunes, solo tu tiempo.')}</p>}
     </section>
   )
 }
@@ -213,21 +216,22 @@ export function StaleCard({ className }: { className: string }) {
   return (
     <section className={className}>
       <h2>
-        Sin movimiento{count > 0 && <span className={pageStyles.count}> · {count}</span>}
+        {t('Sin movimiento')}
+        {count > 0 && <span className={pageStyles.count}> · {count}</span>}
       </h2>
-      {isPending && <p>Cargando…</p>}
-      {!isPending && count === 0 && <p>Todas tus tareas abiertas se movieron en los últimos {data?.stale_days ?? 14} días. 👌</p>}
-      {count > 0 && <p>Llevan más de {data?.stale_days} días sin cambios ni comentarios. ¿Siguen vigentes?</p>}
+      {isPending && <p>{t('Cargando…')}</p>}
+      {!isPending && count === 0 && <p>{t('Todas tus tareas abiertas se movieron en los últimos {n} días. 👌', { n: data?.stale_days ?? 14 })}</p>}
+      {count > 0 && <p>{t('Llevan más de {n} días sin cambios ni comentarios. ¿Siguen vigentes?', { n: data?.stale_days ?? 14 })}</p>}
       <ul className={styles.feed}>
-        {rows.map((t) => (
-          <li key={t.id}>
-            <span className={styles.feedDot} style={{ background: t.project ? dotColor(t.project.color) : 'var(--faint)' }} aria-hidden="true" />
-            <Link to={`/tareas/${t.id}`} className={styles.feedTitle}>
-              {t.title}
+        {rows.map((task) => (
+          <li key={task.id}>
+            <span className={styles.feedDot} style={{ background: task.project ? dotColor(task.project.color) : 'var(--faint)' }} aria-hidden="true" />
+            <Link to={`/tareas/${task.id}`} className={styles.feedTitle}>
+              {task.title}
             </Link>
             <span className={styles.feedMeta}>
-              {timeAgo(t.updated_at)}
-              {t.due_at && ` · vence ${formatDue(t.due_at)}`}
+              {timeAgo(task.updated_at)}
+              {task.due_at && ` · ${t('vence {date}', { date: formatDue(task.due_at) })}`}
             </span>
           </li>
         ))}
@@ -242,9 +246,9 @@ export function CommentsCard({ className }: { className: string }) {
   const rows = data?.comments ?? []
   return (
     <section className={className}>
-      <h2>Comentarios recientes</h2>
-      {isPending && <p>Cargando…</p>}
-      {!isPending && rows.length === 0 && <p>Nadie ha comentado en tus tareas todavía.</p>}
+      <h2>{t('Comentarios recientes')}</h2>
+      {isPending && <p>{t('Cargando…')}</p>}
+      {!isPending && rows.length === 0 && <p>{t('Nadie ha comentado en tus tareas todavía.')}</p>}
       <ul className={styles.comments}>
         {rows.map((c) => (
           <li key={c.id}>
@@ -253,7 +257,7 @@ export function CommentsCard({ className }: { className: string }) {
             </span>
             <div>
               <div className={styles.commentHead}>
-                <strong>{c.author?.name ?? 'Alguien'}</strong>
+                <strong>{c.author?.name ?? t('Alguien')}</strong>
                 <span>{timeAgo(c.created_at)}</span>
               </div>
               <Link to={`/tareas/${c.task.id}`} className={styles.commentTask}>

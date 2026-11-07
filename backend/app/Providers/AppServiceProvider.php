@@ -27,12 +27,12 @@ class AppServiceProvider extends ServiceProvider
 
         VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
             return (new MailMessage)
-                ->subject('Confirma tu correo')
-                ->greeting('¡Hola, '.$notifiable->name.'!')
-                ->line('Gracias por crear tu cuenta. Confirma que este correo es tuyo para empezar a usar la app.')
-                ->action('Confirmar mi correo', $url)
-                ->line('El enlace vence en '.config('auth.verification.expire', 60).' minutos.')
-                ->line('Si no creaste esta cuenta, ignora este mensaje.');
+                ->subject(__('Confirma tu correo'))
+                ->greeting(__('¡Hola, :name!', ['name' => $notifiable->name]))
+                ->line(__('Gracias por crear tu cuenta. Confirma que este correo es tuyo para empezar a usar la app.'))
+                ->action(__('Confirmar mi correo'), $url)
+                ->line(__('El enlace vence en :minutes minutos.', ['minutes' => config('auth.verification.expire', 60)]))
+                ->line(__('Si no creaste esta cuenta, ignora este mensaje.'));
         });
     }
 }

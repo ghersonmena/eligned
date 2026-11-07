@@ -5,12 +5,21 @@ import { useNotifications, useReadNotification } from '../../hooks/useWorkspaceD
 import { timeAgo } from '../../lib/activity'
 import { Icon } from '../Icon'
 import styles from './notifications.module.css'
+import { t } from '../../lib/i18n'
 
 const KIND_LABEL: Record<AppNotification['kind'], string> = {
-  reminder: 'Recordatorio',
-  due_soon: 'Por vencer',
-  assigned: 'Asignada',
-  commented: 'Comentario',
+  get reminder() {
+    return t('Recordatorio')
+  },
+  get due_soon() {
+    return t('Por vencer')
+  },
+  get assigned() {
+    return t('Asignada')
+  },
+  get commented() {
+    return t('Comentario')
+  },
 }
 
 /** Bell in the top bar with the unread count and the latest notifications. */
@@ -56,7 +65,7 @@ export function NotificationBell() {
         ref={buttonRef}
         type="button"
         className={styles.bell}
-        aria-label={unread ? `Notificaciones, ${unread} sin leer` : 'Notificaciones'}
+        aria-label={unread ? t('Notificaciones, {n} sin leer', { n: unread }) : t('Notificaciones')}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(!open)}
@@ -69,17 +78,17 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div id={panelId} className={styles.panel} role="region" aria-label="Notificaciones">
+        <div id={panelId} className={styles.panel} role="region" aria-label={t('Notificaciones')}>
           <div className={styles.panelHead}>
-            <h2>Notificaciones</h2>
+            <h2>{t('Notificaciones')}</h2>
             {unread > 0 && (
               <button type="button" className={styles.readAll} onClick={() => read.mutate('all')}>
-                Marcar todo como leído
+                {t('Marcar todo como leído')}
               </button>
             )}
           </div>
           {items.length === 0 ? (
-            <p className={styles.empty}>Sin notificaciones por ahora. Aquí verás recordatorios, tareas por vencer y comentarios.</p>
+            <p className={styles.empty}>{t('Sin notificaciones por ahora. Aquí verás recordatorios, tareas por vencer y comentarios.')}</p>
           ) : (
             <ul className={styles.list}>
               {items.map((n) => (
@@ -89,7 +98,7 @@ export function NotificationBell() {
                     <span className={styles.itemTitle}>{n.title}</span>
                     <span className={styles.itemBody}>{n.body}</span>
                     <span className={styles.itemTime}>{timeAgo(n.created_at)}</span>
-                    {!n.read_at && <span className="visually-hidden">(sin leer)</span>}
+                    {!n.read_at && <span className="visually-hidden">{t('(sin leer)')}</span>}
                   </button>
                 </li>
               ))}

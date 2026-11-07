@@ -6,6 +6,7 @@ use App\Enums\Theme;
 use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 
 #[Fillable(['name', 'email', 'password', 'preferences'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasPushSubscriptions, Notifiable;
@@ -43,11 +44,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'current_workspace_id' => null,
         // Home cards in order, each maybe hidden (null: the default layout).
         'home_layout' => null,
+        // Interface language (es / en); null until the app sends the device's.
+        'locale' => null,
         // "Notas rápidas" home card: a personal scratchpad.
         'home_note' => null,
     ];
 
     public const HOME_NOTE_MAX = 5000;
+
+    public const LOCALES = ['es', 'en'];
 
     /** Cards the home page can show (see HomePage in the app). */
     public const HOME_CARDS = [
@@ -93,5 +98,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function resolvedPreferences(): array
     {
         return array_merge(self::DEFAULT_PREFERENCES, $this->preferences ?? []);
+    }
+
+    /** Language for this person's emails, notifications and API messages. */
+    public function preferredLocale(): string
+    {
+        $locale = $this->resolvedPreferences()['locale'];
+
+        return in_array($locale, self::LOCALES, true) ? $locale : config('app.locale');
     }
 }

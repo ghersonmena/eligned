@@ -21,7 +21,7 @@ class RegisterUser
             $user = User::create($data);
 
             $workspace = Workspace::create([
-                'name' => 'Espacio de '.$user->name,
+                'name' => __('Espacio de :name', ['name' => $user->name]),
                 'owner_id' => $user->id,
                 'personal' => true,
             ]);
