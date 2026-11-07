@@ -3,6 +3,7 @@ import type { ThemePreference, User } from '../api/auth'
 import { VoiceSettings } from '../components/assistant/VoiceSettings'
 import { PushSettings } from '../components/notifications/PushSettings'
 import { useLogout, useUpdatePreferences } from '../hooks/useAuth'
+import { AUTHOR, AUTHOR_URL, LICENSE_NAME, LICENSE_URL, REPO_URL } from '../lib/about'
 import { LOCALES, t, tk, type Locale, useLocaleStore } from '../lib/i18n'
 import { useThemeStore } from '../theme/theme'
 import styles from './pages.module.css'
@@ -174,6 +175,40 @@ export function SettingsPage({ user }: { user: User }) {
           >
             {t('Cerrar sesión')}
           </button>
+        </div>
+      </section>
+      <section className={styles.card}>
+        <h2>{t('Acerca de eLigned')}</h2>
+        <div className={styles.row}>
+          <span>
+            <strong>{t('Autoría')}</strong>
+            <small>{t('Creada por {author}.', { author: AUTHOR })}</small>
+          </span>
+          <a className={styles.secondaryLink} href={AUTHOR_URL} target="_blank" rel="noopener noreferrer">
+            {t('Perfil')}
+          </a>
+        </div>
+        <div className={styles.row}>
+          <span>
+            <strong>{t('Licencia: {license}', { license: LICENSE_NAME })}</strong>
+            <small>
+              {t(
+                'Es software libre: puedes usarla, estudiarla, modificarla y compartirla. Si ofreces una versión modificada por internet, debes publicar su código con esta misma licencia.',
+              )}
+            </small>
+          </span>
+          <a className={styles.secondaryLink} href={LICENSE_URL} target="_blank" rel="noopener noreferrer">
+            {t('Leer')}
+          </a>
+        </div>
+        <div className={styles.row}>
+          <span>
+            <strong>{t('Código fuente')}</strong>
+            <small>{t('Todo el código de la app está publicado en GitHub.')}</small>
+          </span>
+          <a className={styles.secondaryLink} href={REPO_URL} target="_blank" rel="noopener noreferrer">
+            {t('Ver el repositorio')}
+          </a>
         </div>
       </section>
     </>
