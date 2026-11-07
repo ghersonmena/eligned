@@ -20,6 +20,8 @@ export interface Preferences {
   home_layout: HomeCardSetting[] | null
   /** "Notas rápidas" home card (max NOTE_MAX characters). */
   home_note: string | null
+  /** Interface language; null until the app saves the device's. */
+  locale: 'es' | 'en' | null
 }
 
 export type HomeCardId =

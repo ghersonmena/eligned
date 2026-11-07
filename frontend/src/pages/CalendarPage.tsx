@@ -41,13 +41,15 @@ import { datesFromSubtasks, projectSpans, type ProjectSpan } from '../lib/timeli
 import { NO_FILTERS, toTaskFilters, type ViewFilterValues } from '../lib/viewFilters'
 import styles from './calendar.module.css'
 import pageStyles from './pages.module.css'
+import { dateFormat, t } from '../lib/i18n'
 
 type Mode = 'mes' | 'semana'
 
-const monthTitle = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' })
-const dayTitle = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
-const shortDay = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' })
-const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+const monthTitle = { format: (d: Date) => dateFormat({ month: 'long', year: 'numeric' }).format(d) }
+const dayTitle = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'long' }).format(d) }
+const shortDay = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short' }).format(d) }
+/** Mon…Sun, short, in the current language. */
+const weekdayNames = () => Array.from({ length: 7 }, (_, i) => dateFormat({ weekday: 'short' }).format(new Date(2026, 0, 5 + i)).replace('.', ''))
 const MAX_IN_CELL = 3
 
 /** The day a task shows on: its due day, or its start day when it has no due date. */
@@ -185,7 +187,7 @@ export function CalendarPage() {
       {
         onSuccess: () => {
           setQuickTitle('')
-          setAdded(`"${title}" agregada al ${dayTitle.format(day)}.`)
+          setAdded(t('"{title}" agregada al {day}.', { title, day: dayTitle.format(day) }))
         },
       },
     )
@@ -194,19 +196,19 @@ export function CalendarPage() {
   const title =
     mode === 'mes'
       ? monthTitle.format(anchor)
-      : `${shortDay.format(days[0])} – ${shortDay.format(days[6])} ${days[6].getFullYear()}`
+      : `${shortDay.format(days[0])} – ${shortDay.format(days[6])}, ${days[6].getFullYear()}`
   const selectedTasks = byDay.get(selected) ?? []
   const draggingTask = draggingId !== null ? (query.data ?? []).find((t) => t.id === draggingId) : undefined
 
   return (
     <>
       <ViewHeader
-        eyebrow={mode === 'mes' ? 'Mes' : 'Semana'}
+        eyebrow={mode === 'mes' ? t('Mes') : t('Semana')}
         title={title.charAt(0).toUpperCase() + title.slice(1)}
         newTaskHref={`/tareas/nueva?fecha=${selected}`}
         aside={
           <div className={viewStyles.navGroup}>
-            <button type="button" className={viewStyles.roundBtn} aria-label={mode === 'mes' ? 'Mes anterior' : 'Semana anterior'} onClick={() => step(-1)}>
+            <button type="button" className={viewStyles.roundBtn} aria-label={mode === 'mes' ? t('Mes anterior') : t('Semana anterior')} onClick={() => step(-1)}>
               <Icon name="back" size={16} />
             </button>
             <button
@@ -217,15 +219,15 @@ export function CalendarPage() {
                 setSelected(dayKey(today))
               }}
             >
-              Hoy
+              {t('Hoy')}
             </button>
-            <button type="button" className={viewStyles.roundBtn} aria-label={mode === 'mes' ? 'Mes siguiente' : 'Semana siguiente'} onClick={() => step(1)}>
+            <button type="button" className={viewStyles.roundBtn} aria-label={mode === 'mes' ? t('Mes siguiente') : t('Semana siguiente')} onClick={() => step(1)}>
               <Icon name="forward" size={16} />
             </button>
-            <div className={viewStyles.scale} role="group" aria-label="Escala">
+            <div className={viewStyles.scale} role="group" aria-label={t('Escala')}>
               {(['mes', 'semana'] as const).map((m) => (
                 <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}>
-                  {m === 'mes' ? 'Mes' : 'Semana'}
+                  {m === 'mes' ? t('Mes') : t('Semana')}
                 </button>
               ))}
             </div>
@@ -236,7 +238,7 @@ export function CalendarPage() {
 
       {query.isError && (
         <p className={pageStyles.error} role="alert">
-          No pudimos cargar el calendario. Revisa tu conexión e inténtalo de nuevo.
+          {t('No pudimos cargar el calendario. Revisa tu conexión e inténtalo de nuevo.')}
         </p>
       )}
 
@@ -247,13 +249,13 @@ export function CalendarPage() {
         onDragCancel={() => setDraggingId(null)}
         accessibility={{
           screenReaderInstructions: {
-            draggable: 'Para cambiar la fecha pulsa espacio, muévete entre días con las flechas y pulsa espacio para soltar.',
+            draggable: t('Para cambiar la fecha pulsa espacio, muévete entre días con las flechas y pulsa espacio para soltar.'),
           },
           announcements: {
-            onDragStart: () => 'Tarea tomada.',
-            onDragOver: ({ over }) => (over ? dayTitle.format(parseDayKey(String(over.id))) : 'Fuera del calendario.'),
-            onDragEnd: ({ over }) => (over ? `Movida al ${dayTitle.format(parseDayKey(String(over.id)))}.` : 'Sin cambios.'),
-            onDragCancel: () => 'Sin cambios.',
+            onDragStart: () => t('Tarea tomada.'),
+            onDragOver: ({ over }) => (over ? dayTitle.format(parseDayKey(String(over.id))) : t('Fuera del calendario.')),
+            onDragEnd: ({ over }) => (over ? t('Movida al {day}.', { day: dayTitle.format(parseDayKey(String(over.id))) }) : t('Sin cambios.')),
+            onDragCancel: () => t('Sin cambios.'),
           },
         }}
       >
@@ -266,7 +268,7 @@ export function CalendarPage() {
             }}
           >
             <div className={styles.weekdays} aria-hidden="true">
-              {WEEKDAYS.map((d) => (
+              {weekdayNames().map((d) => (
                 <span key={d}>{d}</span>
               ))}
             </div>
@@ -294,10 +296,10 @@ export function CalendarPage() {
               <div className={styles.legend}>
                 <label className={styles.shadeToggle}>
                   <input type="checkbox" checked={shade} onChange={(e) => setShade(e.target.checked)} />
-                  Sombrear los días de cada proyecto
+                  {t('Sombrear los días de cada proyecto')}
                 </label>
                 {shade && (
-                  <ul className={styles.legendList} aria-label="Proyectos en estas fechas">
+                  <ul className={styles.legendList} aria-label={t('Proyectos en estas fechas')}>
                     {spans.map((s) => (
                       <li key={s.id}>
                         <span className={styles.legendSwatch} style={{ background: dotColor(s.color) }} aria-hidden="true" />
@@ -316,7 +318,7 @@ export function CalendarPage() {
           <aside className={styles.agenda} aria-labelledby="agenda-title">
             <div className={styles.agendaHead}>
               <h2 id="agenda-title">{capitalize(dayTitle.format(parseDayKey(selected)))}</h2>
-              <Link to={`/tareas/nueva?fecha=${selected}`} className={styles.agendaAdd} aria-label="Nueva tarea este día">
+              <Link to={`/tareas/nueva?fecha=${selected}`} className={styles.agendaAdd} aria-label={t('Nueva tarea este día')}>
                 <Icon name="plus" size={18} />
               </Link>
             </div>
@@ -327,44 +329,44 @@ export function CalendarPage() {
                 autoCapitalize="characters"
                 value={quickTitle}
                 maxLength={255}
-                placeholder="Nueva tarea para este día"
-                aria-label={`Nueva tarea para el ${dayTitle.format(parseDayKey(selected))}`}
+                placeholder={t('Nueva tarea para este día')}
+                aria-label={t('Nueva tarea para el {day}', { day: dayTitle.format(parseDayKey(selected)) })}
                 onChange={(e) => {
                   setQuickTitle(e.target.value)
                   setAdded('')
                 }}
               />
               <button type="submit" disabled={!quickTitle.trim() || createTask.isPending}>
-                {createTask.isPending ? 'Añadiendo…' : 'Añadir'}
+                {createTask.isPending ? t('Añadiendo…') : t('Añadir')}
               </button>
             </form>
             <p className={styles.quickStatus} role="status">
-              {createTask.isError ? 'No se pudo crear la tarea. Inténtalo de nuevo.' : added}
+              {createTask.isError ? t('No se pudo crear la tarea. Inténtalo de nuevo.') : added}
             </p>
             {selectedTasks.length === 0 ? (
-              <p className={viewStyles.note}>Nada para este día.</p>
+              <p className={viewStyles.note}>{t('Nada para este día.')}</p>
             ) : (
               <ul className={styles.agendaList}>
-                {selectedTasks.map((t) => (
-                  <li key={t.id} className={`${styles.agendaItem} ${t.completed ? styles.done : ''}`}>
-                    <CompleteCheckbox task={t} />
-                    <Link to={`/tareas/${t.id}`} className={styles.agendaLink}>
-                      <span className={styles.agendaTitle}>{t.title}</span>
+                {selectedTasks.map((task) => (
+                  <li key={task.id} className={`${styles.agendaItem} ${task.completed ? styles.done : ''}`}>
+                    <CompleteCheckbox task={task} />
+                    <Link to={`/tareas/${task.id}`} className={styles.agendaLink}>
+                      <span className={styles.agendaTitle}>{task.title}</span>
                       <span className={styles.agendaMeta}>
-                        {t.due_at ? (formatTime(t.due_at) ?? 'Todo el día') : 'Inicia este día'}
-                        {t.project && ` · ${t.project.name}`}
+                        {task.due_at ? (formatTime(task.due_at) ?? t('Todo el día')) : t('Inicia este día')}
+                        {task.project && ` · ${task.project.name}`}
                       </span>
-                      {t.parent && <span className={styles.agendaParent}>Subtarea de {t.parent.title}</span>}
-                      <DoneStamp task={t} />
+                      {task.parent && <span className={styles.agendaParent}>{t('Subtarea de {title}', { title: task.parent.title })}</span>}
+                      <DoneStamp task={task} />
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
             <p className={viewStyles.note}>
-              Toca otra vez un día (o su botón +) para escribir una tarea nueva en él. Las tareas y subtareas aparecen el
-              día que vencen. Arrastra una a otro día para cambiar su fecha; una
-              tarea con subtareas fechadas se mueve moviendo sus subtareas.
+              {t(
+                'Toca otra vez un día (o su botón +) para escribir una tarea nueva en él. Las tareas y subtareas aparecen el día que vencen. Arrastra una a otro día para cambiar su fecha; una tarea con subtareas fechadas se mueve moviendo sus subtareas.',
+              )}
             </p>
           </aside>
         </div>
@@ -425,24 +427,26 @@ function DayCell({ day, tasks, projects, slots, mode, isToday, outside, selected
         type="button"
         className={`${styles.dayBtn} ${isToday ? styles.todayNum : ''}`}
         aria-pressed={selected}
-        aria-label={`${capitalize(dayTitle.format(day))}${tasks.length ? `, ${tasks.length} tareas` : ''}${
-          projects.length ? `, proyecto ${projects.map((p) => p.span.name).join(', ')}` : ''
-        }`}
+        aria-label={
+          capitalize(dayTitle.format(day)) +
+          (tasks.length ? `, ${tasks.length === 1 ? t('1 tarea') : t('{n} tareas', { n: tasks.length })}` : '') +
+          (projects.length ? `, ${t('proyecto {names}', { names: projects.map((p) => p.span.name).join(', ') })}` : '')
+        }
         onClick={onSelect}
       >
-        {mode === 'semana' && <span className={styles.dow}>{WEEKDAYS[(day.getDay() + 6) % 7]}</span>}
+        {mode === 'semana' && <span className={styles.dow}>{weekdayNames()[(day.getDay() + 6) % 7]}</span>}
         {day.getDate()}
       </button>
-      <button type="button" className={styles.cellAdd} aria-label={`Nueva tarea el ${dayTitle.format(day)}`} title="Nueva tarea este día" onClick={onAdd}>
+      <button type="button" className={styles.cellAdd} aria-label={t('Nueva tarea el {day}', { day: dayTitle.format(day) })} title={t('Nueva tarea este día')} onClick={onAdd}>
         <Icon name="plus" size={16} />
       </button>
       <div className={styles.chips}>
-        {visible.map((t) => (
-          <DraggableChip key={t.id} task={t} />
+        {visible.map((task) => (
+          <DraggableChip key={task.id} task={task} />
         ))}
         {hidden > 0 && (
           <button type="button" className={styles.more} onClick={onSelect}>
-            +{hidden} más
+            {t('+{n} más', { n: hidden })}
           </button>
         )}
       </div>
@@ -458,7 +462,7 @@ function DraggableChip({ task }: { task: Task }) {
   return (
     <div
       ref={setNodeRef}
-      {...(locked ? {} : { ...attributes, ...listeners, 'aria-roledescription': 'tarea movible' })}
+      {...(locked ? {} : { ...attributes, ...listeners, 'aria-roledescription': t('tarea movible') })}
       className={`${styles.chipWrap} ${isDragging ? styles.dragging : ''} ${locked ? styles.locked : ''}`}
     >
       <Chip task={task} />
@@ -482,7 +486,11 @@ function Chip({ task, overlay }: { task: Task; overlay?: boolean }) {
       <span className={styles.chipTitle}>{task.title}</span>
     </>
   )
-  const hint = task.parent ? `Subtarea de "${task.parent.title}"` : datesFromSubtasks(task) ? 'Sus fechas siguen a sus subtareas' : undefined
+  const hint = task.parent
+    ? t('Subtarea de "{title}"', { title: task.parent.title })
+    : datesFromSubtasks(task)
+      ? t('Sus fechas siguen a sus subtareas')
+      : undefined
   if (overlay) return <span className={className}>{content}</span>
   return (
     <Link
@@ -490,7 +498,7 @@ function Chip({ task, overlay }: { task: Task; overlay?: boolean }) {
       className={className}
       draggable={false}
       title={hint}
-      aria-label={task.parent ? `${task.title}, subtarea de ${task.parent.title}` : undefined}
+      aria-label={task.parent ? t('{title}, subtarea de {parent}', { title: task.title, parent: task.parent.title }) : undefined}
     >
       {content}
     </Link>

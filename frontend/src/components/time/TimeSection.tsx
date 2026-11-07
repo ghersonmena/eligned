@@ -6,8 +6,9 @@ import { formatMinutes } from '../../lib/activity'
 import { Icon } from '../Icon'
 import { TimerButton } from './TimerButton'
 import styles from './time.module.css'
+import { dateFormat, t } from '../../lib/i18n'
 
-const when = new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+const when = { format: (d: Date) => dateFormat({ weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d) }
 
 function todayInput() {
   const d = new Date()
@@ -57,43 +58,43 @@ export function TimeSection({ task }: { task: Task }) {
   return (
     <section className={styles.section} aria-labelledby="time-title">
       <div className={styles.sectionHead}>
-        <h2 id="time-title">Tiempo</h2>
+        <h2 id="time-title">{t('Tiempo')}</h2>
         <span className={styles.total}>
-          {formatMinutes(total)} registrados
-          {elapsed !== null && <span className={styles.live}> + {formatClock(elapsed)} en curso</span>}
+          {t('{time} registrados', { time: formatMinutes(total) })}
+          {elapsed !== null && <span className={styles.live}> + {t('{time} en curso', { time: formatClock(elapsed) })}</span>}
         </span>
       </div>
       <div className={styles.actions}>
         <TimerButton task={task} large />
         <button type="button" className={styles.manualToggle} aria-expanded={open} onClick={() => setOpen(!open)}>
-          <Icon name="plus" size={16} /> Agregar tiempo a mano
+          <Icon name="plus" size={16} /> {t('Agregar tiempo a mano')}
         </button>
       </div>
 
       {open && (
         <form className={styles.manual} onSubmit={submit}>
           <label>
-            Día
+            {t('Día')}
             <input type="date" value={date} max={todayInput()} required onChange={(e) => setDate(e.target.value)} />
           </label>
           <label>
-            Horas
+            {t('Horas')}
             <input type="number" inputMode="numeric" min={0} max={24} value={hours} onChange={(e) => setHours(e.target.value)} />
           </label>
           <label>
-            Minutos
+            {t('Minutos')}
             <input type="number" inputMode="numeric" min={0} max={59} value={mins} onChange={(e) => setMins(e.target.value)} />
           </label>
           <label className={styles.noteField}>
-            Nota (opcional)
-            <input type="text" className="caps" autoCapitalize="characters" maxLength={255} value={note} placeholder="¿Qué hiciste?" onChange={(e) => setNote(e.target.value)} />
+            {t('Nota (opcional)')}
+            <input type="text" className="caps" autoCapitalize="characters" maxLength={255} value={note} placeholder={t('¿Qué hiciste?')} onChange={(e) => setNote(e.target.value)} />
           </label>
           <button type="submit" className={styles.save} disabled={minutes < 1 || minutes > 1440 || add.isPending}>
-            {add.isPending ? 'Guardando…' : 'Guardar'}
+            {add.isPending ? t('Guardando…') : t('Guardar')}
           </button>
           {add.isError && (
             <p className={styles.error} role="alert">
-              No se pudo guardar. Revisa el día y la duración.
+              {t('No se pudo guardar. Revisa el día y la duración.')}
             </p>
           )}
         </form>
@@ -113,10 +114,10 @@ export function TimeSection({ task }: { task: Task }) {
                 <button
                   type="button"
                   className={styles.entryDelete}
-                  aria-label={`Eliminar registro de ${formatMinutes(e.minutes)}`}
+                  aria-label={t('Eliminar registro de {time}', { time: formatMinutes(e.minutes) })}
                   disabled={remove.isPending}
                   onClick={() => {
-                    if (window.confirm(`¿Eliminar este registro de ${formatMinutes(e.minutes)}?`)) remove.mutate(e.id)
+                    if (window.confirm(t('¿Eliminar este registro de {time}?', { time: formatMinutes(e.minutes) }))) remove.mutate(e.id)
                   }}
                 >
                   <Icon name="trash" size={16} />

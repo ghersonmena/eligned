@@ -8,12 +8,13 @@ import { WorkloadSection } from '../components/team/WorkloadSection'
 import { useInvitations, useInvite, useRemoveMember, useRenameWorkspace, useRenewInvitation, useRevokeInvitation, useSetRole } from '../hooks/useTeam'
 import { useMembers } from '../hooks/useWorkspaceData'
 import { initials } from '../lib/initials'
-import { canManage, currentWorkspace, ROLE_HINTS, ROLE_LABELS } from '../lib/workspace'
+import { canManage, currentWorkspace, roleHint, roleLabel } from '../lib/workspace'
 import pageStyles from './pages.module.css'
 import styles from './team.module.css'
+import { dateFormat } from '../lib/i18n'
 
 type InviteRole = Exclude<Role, 'owner'>
-const shortDate = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' })
+const shortDate = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short' }).format(d) }
 
 export function TeamPage({ user }: { user: User }) {
   const workspace = currentWorkspace(user)!
@@ -56,10 +57,10 @@ export function TeamPage({ user }: { user: User }) {
               ))}
             </ul>
             <dl className={styles.roles}>
-              {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
+              {(['owner', 'admin', 'member', 'guest'] as Role[]).map((r) => (
                 <div key={r}>
-                  <dt>{ROLE_LABELS[r]}</dt>
-                  <dd>{ROLE_HINTS[r]}</dd>
+                  <dt>{roleLabel(r)}</dt>
+                  <dd>{roleHint(r)}</dd>
                 </div>
               ))}
             </dl>
@@ -145,12 +146,12 @@ function MemberRow({ member, me, myRole }: { member: Member; me: User; myRole: R
         >
           {options.map((r) => (
             <option key={r} value={r}>
-              {ROLE_LABELS[r]}
+              {roleLabel(r)}
             </option>
           ))}
         </select>
       ) : (
-        <span className={`${styles.roleTag} ${styles[`role_${role}`]}`}>{ROLE_LABELS[role]}</span>
+        <span className={`${styles.roleTag} ${styles[`role_${role}`]}`}>{roleLabel(role)}</span>
       )}
       {(canEdit || (isMe && role !== 'owner')) && (
         <button
@@ -210,7 +211,7 @@ function InviteCard({ isOwner }: { isOwner: boolean }) {
           <select className={pageStyles.input} value={role} onChange={(e) => setRole(e.target.value as InviteRole)}>
             {(isOwner ? (['admin', 'member', 'guest'] as const) : (['member', 'guest'] as const)).map((r) => (
               <option key={r} value={r}>
-                {ROLE_LABELS[r]} — {ROLE_HINTS[r]}
+                {roleLabel(r)} — {roleHint(r)}
               </option>
             ))}
           </select>
@@ -279,7 +280,7 @@ function PendingInvitations() {
             <div className={styles.personText}>
               <strong>{inv.email}</strong>
               <span>
-                {ROLE_LABELS[inv.role]} · {inv.expired ? 'venció' : `vence el ${shortDate.format(new Date(inv.expires_at))}`}
+                {roleLabel(inv.role)} · {inv.expired ? 'venció' : `vence el ${shortDate.format(new Date(inv.expires_at))}`}
               </span>
             </div>
             <div className={styles.invActions}>

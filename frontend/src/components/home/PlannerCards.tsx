@@ -10,6 +10,7 @@ import pageStyles from '../../pages/pages.module.css'
 import { TaskRow } from '../tasks/TaskRow'
 import taskStyles from '../tasks/tasks.module.css'
 import styles from './home.module.css'
+import { dateFormat } from '../../lib/i18n'
 
 export const NOTE_MAX = 5000
 const SAVE_AFTER_MS = 800
@@ -96,9 +97,9 @@ export function NotesCard({ className, initial }: { className: string; initial: 
   )
 }
 
-const weekdayShort = new Intl.DateTimeFormat('es', { weekday: 'short' })
-const dayTitle = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' })
-const rangeFmt = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' })
+const weekdayShort = { format: (d: Date) => dateFormat({ weekday: 'short' }).format(d) }
+const dayTitle = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'long' }).format(d) }
+const rangeFmt = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short' }).format(d) }
 
 /** This week as a strip of days; pick one to see what is due that day. */
 export function AgendaCard({ className }: { className: string }) {

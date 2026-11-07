@@ -12,6 +12,7 @@ import pageStyles from '../../pages/pages.module.css'
 import { TaskRow } from '../tasks/TaskRow'
 import taskStyles from '../tasks/tasks.module.css'
 import styles from './home.module.css'
+import { dateFormat } from '../../lib/i18n'
 
 type When = 'none' | 'today' | 'tomorrow' | 'nextWeek'
 
@@ -116,8 +117,8 @@ export function PriorityCard({ className }: { className: string }) {
   )
 }
 
-const weekday = new Intl.DateTimeFormat('es', { weekday: 'narrow' })
-const longDay = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'short' })
+const weekday = { format: (d: Date) => dateFormat({ weekday: 'narrow' }).format(d) }
+const longDay = { format: (d: Date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'short' }).format(d) }
 
 /** Finished tasks per day for two weeks, plus the streak. */
 export function RhythmCard({ className }: { className: string }) {

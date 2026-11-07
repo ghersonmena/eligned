@@ -4,6 +4,7 @@ import { Icon } from '../Icon'
 import { Lightbox } from './Lightbox'
 import { formatSize } from '../../lib/attachments'
 import styles from './Attachments.module.css'
+import { t } from '../../lib/i18n'
 
 /** Files of a saved comment: photos as thumbnails, everything else as a download chip. */
 export function AttachmentList({ items }: { items: Attachment[] }) {
@@ -15,7 +16,7 @@ export function AttachmentList({ items }: { items: Attachment[] }) {
       {images.length > 0 && (
         <div className={styles.thumbs}>
           {images.map((a, i) => (
-            <button key={a.id} type="button" className={styles.thumb} title={a.name} aria-label={`Ver ${a.name}`} onClick={() => setViewing(i)}>
+            <button key={a.id} type="button" className={styles.thumb} title={a.name} aria-label={t('Ver {name}', { name: a.name })} onClick={() => setViewing(i)}>
               <img src={a.url} alt={a.name} loading="lazy" />
             </button>
           ))}
@@ -40,13 +41,13 @@ export function PendingFiles({ files, onRemove }: { files: File[]; onRemove: (in
   if (files.length === 0) return null
 
   return (
-    <ul className={styles.pending} aria-label="Archivos por enviar">
+    <ul className={styles.pending} aria-label={t('Archivos por enviar')}>
       {files.map((f, i) => (
         <li key={`${f.name}-${i}`} className={styles.pendingItem}>
           {previews[i] ? <img src={previews[i]!} alt="" className={styles.pendingImg} /> : <Icon name="clip" size={16} />}
           <span className={styles.fileName}>{f.name}</span>
           <span className={styles.fileSize}>{formatSize(f.size)}</span>
-          <button type="button" className={styles.remove} aria-label={`Quitar ${f.name}`} onClick={() => onRemove(i)}>
+          <button type="button" className={styles.remove} aria-label={t('Quitar {name}', { name: f.name })} onClick={() => onRemove(i)}>
             <Icon name="close" size={14} />
           </button>
         </li>

@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 /**
  * Small fetch wrapper for the Laravel API.
  *
@@ -82,7 +83,7 @@ export async function api<T>(method: Method, path: string, body?: unknown): Prom
 
   if (!response.ok) {
     if (response.status === 419) csrfReady = null
-    throw new ApiError(response.status, data.message ?? 'Error inesperado', data.errors ?? {}, data.code)
+    throw new ApiError(response.status, data.message ?? t('Error inesperado'), data.errors ?? {}, data.code)
   }
 
   return data as T

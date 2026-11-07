@@ -3,8 +3,9 @@ import { useTaskActivity } from '../../hooks/useWorkspaceData'
 import { describeActivity, isAutomatic } from '../../lib/activity'
 import { initials } from '../../lib/initials'
 import styles from './ActivityList.module.css'
+import { dateFormat, t } from '../../lib/i18n'
 
-const when = new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+const when = { format: (d: Date) => dateFormat({ weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d) }
 const SHOWN = 6
 
 /** "Historial": who did what to the task, and when (newest first). */
@@ -16,14 +17,14 @@ export function ActivityList({ taskId }: { taskId: number }) {
 
   return (
     <section className={styles.card} aria-labelledby="history-title">
-      <h2 id="history-title">Historial</h2>
-      {isPending && <p className={styles.note}>Cargando historial…</p>}
-      {isError && <p className={styles.note}>No se pudo cargar el historial.</p>}
-      {!isPending && rows.length === 0 && <p className={styles.note}>Todavía no hay movimientos.</p>}
+      <h2 id="history-title">{t('Historial')}</h2>
+      {isPending && <p className={styles.note}>{t('Cargando historial…')}</p>}
+      {isError && <p className={styles.note}>{t('No se pudo cargar el historial.')}</p>}
+      {!isPending && rows.length === 0 && <p className={styles.note}>{t('Todavía no hay movimientos.')}</p>}
       <ol className={styles.list}>
         {visible.map(({ key, a, text }) => {
           const auto = isAutomatic(a) && a.event === 'updated'
-          const who = auto ? 'Automático' : (a.user?.name ?? 'Alguien')
+          const who = auto ? t('Automático') : (a.user?.name ?? t('Alguien'))
           return (
             <li key={key} className={styles.item}>
               <span className={`${styles.avatar} ${auto ? styles.auto : ''}`} aria-hidden="true">
@@ -44,7 +45,7 @@ export function ActivityList({ taskId }: { taskId: number }) {
       </ol>
       {rows.length > SHOWN && (
         <button type="button" className={styles.more} onClick={() => setAll(!all)}>
-          {all ? 'Ver menos' : `Ver todo (${rows.length})`}
+          {all ? t('Ver menos') : t('Ver todo ({n})', { n: rows.length })}
         </button>
       )}
     </section>

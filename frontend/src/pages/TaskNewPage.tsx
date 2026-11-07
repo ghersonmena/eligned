@@ -6,6 +6,7 @@ import { useCreateTask } from '../hooks/useWorkspaceData'
 import { emptyTaskValues, toTaskInput } from '../lib/taskForm'
 import styles from './detail.module.css'
 import pageStyles from './pages.module.css'
+import { t } from '../lib/i18n'
 
 /**
  * /tareas/nueva. Optional query params pre-fill the form: ?proyecto=ID,
@@ -28,16 +29,16 @@ export function TaskNewPage() {
 
   return (
     <div className={styles.layout}>
-      <nav aria-label="Ruta" className={styles.breadcrumb}>
-        <Link to="/tareas">Mis tareas</Link>
+      <nav aria-label={t('Ruta')} className={styles.breadcrumb}>
+        <Link to="/tareas">{t('Mis tareas')}</Link>
       </nav>
-      <h1 className={pageStyles.pageTitle}>Nueva tarea</h1>
+      <h1 className={pageStyles.pageTitle}>{t('Nueva tarea')}</h1>
       <section className={pageStyles.card}>
         <TaskForm
           initial={initial}
-          submitLabel="Crear tarea"
+          submitLabel={t('Crear tarea')}
           pending={createTask.isPending}
-          errorMessage={createTask.isError ? 'No se pudo crear la tarea. Revisa los datos e inténtalo de nuevo.' : undefined}
+          errorMessage={createTask.isError ? t('No se pudo crear la tarea. Revisa los datos e inténtalo de nuevo.') : undefined}
           onSubmit={async (values) => {
             const task = await createTask.mutateAsync(toTaskInput(values))
             navigate(`/tareas/${task.id}`, { replace: true })

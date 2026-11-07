@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import type { Attachment } from '../../api/types'
 import { Icon } from '../Icon'
 import styles from './Lightbox.module.css'
+import { t } from '../../lib/i18n'
 
 const MIN = 1
 const MAX = 5
@@ -107,17 +108,17 @@ export function Lightbox({ images, start, onClose }: Props) {
 
   // On <body>, above the app's bars and menus.
   return createPortal(
-    <div className={styles.backdrop} role="dialog" aria-modal="true" aria-label={`Foto ${index + 1} de ${images.length}: ${image.name}`}>
+    <div className={styles.backdrop} role="dialog" aria-modal="true" aria-label={t('Foto {n} de {total}: {name}', { n: index + 1, total: images.length, name: image.name })}>
       <div className={styles.top}>
         <span className={styles.name}>
           {many && <strong>{index + 1} / {images.length}</strong>} {image.name}
         </span>
-        <a className={styles.tool} href={image.url} download={image.name} aria-label="Descargar" title="Descargar">
+        <a className={styles.tool} href={image.url} download={image.name} aria-label={t('Descargar')} title={t('Descargar')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
           </svg>
         </a>
-        <button ref={closeRef} type="button" className={styles.tool} aria-label="Cerrar" title="Cerrar (Esc)" onClick={onClose}>
+        <button ref={closeRef} type="button" className={styles.tool} aria-label={t('Cerrar')} title={t('Cerrar (Esc)')} onClick={onClose}>
           <Icon name="close" size={20} />
         </button>
       </div>
@@ -158,16 +159,16 @@ export function Lightbox({ images, start, onClose }: Props) {
       )}
 
       <div className={styles.bottom}>
-        <div className={styles.zoomBar} role="group" aria-label="Zoom">
-          <button type="button" className={styles.tool} aria-label="Alejar" disabled={scale <= MIN} onClick={() => zoom(scale / 1.5)}>
+        <div className={styles.zoomBar} role="group" aria-label={t('Zoom')}>
+          <button type="button" className={styles.tool} aria-label={t('Alejar')} disabled={scale <= MIN} onClick={() => zoom(scale / 1.5)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
               <path d="M6 12h12" />
             </svg>
           </button>
-          <button type="button" className={styles.percent} aria-label="Tamaño original" onClick={() => zoom(1)}>
+          <button type="button" className={styles.percent} aria-label={t('Tamaño original')} onClick={() => zoom(1)}>
             {Math.round(scale * 100)}%
           </button>
-          <button type="button" className={styles.tool} aria-label="Acercar" disabled={scale >= MAX} onClick={() => zoom(scale * 1.5)}>
+          <button type="button" className={styles.tool} aria-label={t('Acercar')} disabled={scale >= MAX} onClick={() => zoom(scale * 1.5)}>
             <Icon name="plus" size={20} />
           </button>
         </div>
@@ -178,7 +179,7 @@ export function Lightbox({ images, start, onClose }: Props) {
                 key={img.id}
                 type="button"
                 className={styles.stripItem}
-                aria-label={`Ver foto ${i + 1}`}
+                aria-label={t('Ver foto {n}', { n: i + 1 })}
                 aria-current={i === index ? 'true' : undefined}
                 onClick={() => go(i)}
               >

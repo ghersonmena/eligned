@@ -1,4 +1,5 @@
 import type { GoalHealth, KeyResult } from '../api/types'
+import { dateFormat, intlLocale } from './i18n'
 
 export const HEALTH: Record<GoalHealth, { label: string; color: string }> = {
   done: { label: 'Lograda', color: '#16a34a' },
@@ -8,7 +9,7 @@ export const HEALTH: Record<GoalHealth, { label: string; color: string }> = {
   no_dates: { label: 'Sin fecha', color: '#a8958a' },
 }
 
-const num = new Intl.NumberFormat('es', { maximumFractionDigits: 2 })
+const num = { format: (n: number) => new Intl.NumberFormat(intlLocale(), { maximumFractionDigits: 2 }).format(n) }
 
 /** "5 de 20 equipos" / "3 de 8 tareas". */
 export function krValueText(kr: KeyResult): string {
@@ -20,5 +21,5 @@ export function krValueText(kr: KeyResult): string {
 /** "YYYY-MM-DD" → "31 dic 2026". */
 export function formatGoalDate(day: string): string {
   const [y, m, d] = day.split('-').map(Number)
-  return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(y, m - 1, d))
+  return dateFormat({ day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(y, m - 1, d))
 }

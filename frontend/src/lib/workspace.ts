@@ -1,5 +1,6 @@
 import type { User, Workspace } from '../api/auth'
 import type { Role } from '../api/types'
+import { t, tk } from './i18n'
 
 /** The workspace the app is showing: the one chosen in preferences, or the first. */
 export function currentWorkspace(user: User): Workspace | undefined {
@@ -8,18 +9,22 @@ export function currentWorkspace(user: User): Workspace | undefined {
 }
 
 export const ROLE_LABELS: Record<Role, string> = {
-  owner: 'Dueño',
-  admin: 'Administrador',
-  member: 'Miembro',
-  guest: 'Invitado',
+  owner: tk('Dueño'),
+  admin: tk('Administrador'),
+  member: tk('Miembro'),
+  guest: tk('Invitado'),
 }
 
 export const ROLE_HINTS: Record<Role, string> = {
-  owner: 'Creó el espacio. Puede todo.',
-  admin: 'Invita y administra a las personas, y edita todo.',
-  member: 'Crea y edita tareas, comenta y registra tiempo.',
-  guest: 'Solo puede ver.',
+  owner: tk('Creó el espacio. Puede todo.'),
+  admin: tk('Invita y administra a las personas, y edita todo.'),
+  member: tk('Crea y edita tareas, comenta y registra tiempo.'),
+  guest: tk('Solo puede ver.'),
 }
+
+/** "Administrador" / "Administrator", in the current language. */
+export const roleLabel = (role: Role) => t(ROLE_LABELS[role])
+export const roleHint = (role: Role) => t(ROLE_HINTS[role])
 
 export function canManage(role: Role | undefined): boolean {
   return role === 'owner' || role === 'admin'

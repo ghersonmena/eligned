@@ -1,15 +1,18 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '../api/client'
+import { LanguageSwitch } from '../components/LanguageSwitch'
 import { Logo } from '../components/Logo'
+import { APP_NAME } from '../lib/brand'
 import { PasswordInput } from '../components/PasswordInput'
 import { useRegister } from '../hooks/useAuth'
 import styles from './pages.module.css'
+import { t, tk } from '../lib/i18n'
 
 const FIELD_MESSAGES: Record<string, string> = {
-  name: 'Escribe tu nombre.',
-  email: 'Revisa el correo: puede que ya esté registrado o no sea válido.',
-  password: 'La contraseña debe tener al menos 8 caracteres y coincidir con la confirmación.',
+  name: tk('Escribe tu nombre.'),
+  email: tk('Revisa el correo: puede que ya esté registrado o no sea válido.'),
+  password: tk('La contraseña debe tener al menos 8 caracteres y coincidir con la confirmación.'),
 }
 
 export function RegisterPage() {
@@ -20,7 +23,7 @@ export function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: params.get('email') ?? '', password: '', password_confirmation: '' })
 
   const error = register.error instanceof ApiError ? register.error : null
-  const fieldError = (field: string) => (error?.fieldError(field) ? FIELD_MESSAGES[field] : undefined)
+  const fieldError = (field: string) => (error?.fieldError(field) ? t(FIELD_MESSAGES[field]) : undefined)
 
   function update(field: keyof typeof form) {
     return (e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, [field]: e.target.value })
@@ -37,15 +40,15 @@ export function RegisterPage() {
     <main className={styles.authShell}>
       <div className={styles.authCard}>
         <div className={styles.authBrand}>
-          <Logo /> [nombre]
+          <Logo /> {APP_NAME}
         </div>
         <h1 className={styles.authTitle}>
-          <span>Empecemos,</span> crea tu cuenta
+          <span>{t('Empecemos,')}</span> {t('crea tu cuenta')}
         </h1>
         <form className={styles.form} onSubmit={onSubmit} noValidate>
           {(['name', 'email'] as const).map((field) => (
             <label key={field} className={styles.field}>
-              {field === 'name' ? 'Nombre' : 'Correo'}
+              {field === 'name' ? t('Nombre') : t('Correo')}
               <input
                 className={styles.input}
                 type={field === 'email' ? 'email' : 'text'}
@@ -59,7 +62,7 @@ export function RegisterPage() {
             </label>
           ))}
           <label className={styles.field}>
-            Contraseña
+            {t('Contraseña')}
             <PasswordInput
               className={styles.input}
               autoComplete="new-password"
@@ -71,7 +74,7 @@ export function RegisterPage() {
             />
           </label>
           <label className={styles.field}>
-            Repite la contraseña
+            {t('Repite la contraseña')}
             <PasswordInput
               className={styles.input}
               autoComplete="new-password"
@@ -83,15 +86,16 @@ export function RegisterPage() {
           </label>
           {error && error.status !== 422 && (
             <span className={styles.error} role="alert">
-              No pudimos crear la cuenta. Inténtalo de nuevo en un momento.
+              {t('No pudimos crear la cuenta. Inténtalo de nuevo en un momento.')}
             </span>
           )}
           <button type="submit" className={styles.primary} disabled={register.isPending}>
-            {register.isPending ? 'Creando cuenta…' : 'Crear cuenta'}
+            {register.isPending ? t('Creando cuenta…') : t('Crear cuenta')}
           </button>
         </form>
+        <LanguageSwitch />
         <p className={styles.switchLink}>
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          {t('¿Ya tienes cuenta?')} <Link to="/login">{t('Inicia sesión')}</Link>
         </p>
       </div>
     </main>

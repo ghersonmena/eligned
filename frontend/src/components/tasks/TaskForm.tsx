@@ -6,7 +6,9 @@ import { PRIORITIES } from '../../lib/colors'
 import { initials } from '../../lib/initials'
 import { startAfterDue, type TaskFormValues } from '../../lib/taskForm'
 import { Icon } from '../Icon'
+import { statusName } from '../../lib/statuses'
 import styles from './TaskForm.module.css'
+import { t } from '../../lib/i18n'
 
 interface TaskFormProps {
   initial: TaskFormValues
@@ -56,7 +58,7 @@ export function TaskForm({
 
   useEffect(() => {
     if (blocker.state !== 'blocked') return
-    if (window.confirm('Tienes cambios sin guardar. ¿Salir sin guardarlos?')) blocker.proceed()
+    if (window.confirm(t('Tienes cambios sin guardar. ¿Salir sin guardarlos?'))) blocker.proceed()
     else blocker.reset()
   }, [blocker])
 
@@ -95,7 +97,7 @@ export function TaskForm({
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
       <label className={styles.field}>
-        Título
+        {t('Título')}
         <input
           className={`${styles.titleInput} caps`}
           autoCapitalize="characters"
@@ -103,39 +105,39 @@ export function TaskForm({
           maxLength={255}
           required
           autoFocus={!initial.title}
-          placeholder="¿Qué hay que hacer?"
+          placeholder={t('¿Qué hay que hacer?')}
           aria-invalid={titleError ? true : undefined}
           onChange={(e) => {
             set('title', e.target.value)
             setTitleError(false)
           }}
         />
-        {titleError && <span className={styles.error}>Escribe un título para la tarea.</span>}
+        {titleError && <span className={styles.error}>{t('Escribe un título para la tarea.')}</span>}
       </label>
 
       <div className={styles.grid}>
         <label className={styles.field}>
-          Estado
+          {t('Estado')}
           <select
             value={values.statusId}
             aria-describedby={completionLocked ? 'status-locked' : undefined}
             onChange={(e) => set('statusId', e.target.value)}
           >
-            {!values.statusId && <option value="">Por hacer</option>}
+            {!values.statusId && <option value="">{t('Por hacer')}</option>}
             {statuses.map((s) => (
               <option key={s.id} value={s.id} disabled={completionLocked && s.is_done !== initialDone}>
-                {s.name}
+                {statusName(s.name)}
               </option>
             ))}
           </select>
           {completionLocked && (
             <span id="status-locked" className={styles.hint}>
-              Se completa al cerrar todas sus subtareas.
+              {t('Se completa al cerrar todas sus subtareas.')}
             </span>
           )}
         </label>
         <label className={styles.field}>
-          Prioridad
+          {t('Prioridad')}
           <select value={values.priority} onChange={(e) => set('priority', Number(e.target.value) as Priority)}>
             {PRIORITIES.map((p) => (
               <option key={p.value} value={p.value}>
@@ -146,9 +148,9 @@ export function TaskForm({
         </label>
         {showProject && (
           <label className={styles.field}>
-            Proyecto
+            {t('Proyecto')}
             <select value={values.projectId} onChange={(e) => set('projectId', e.target.value)}>
-              <option value="">Sin proyecto</option>
+              <option value="">{t('Sin proyecto')}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -160,12 +162,12 @@ export function TaskForm({
       </div>
 
       <div className={styles.field}>
-        <span id="due-label">Fecha límite</span>
+        <span id="due-label">{t('Fecha límite')}</span>
         <div className={styles.dueRow} role="group" aria-labelledby="due-label">
           <input
             type="date"
             className={styles.dateInput}
-            aria-label="Día"
+            aria-label={t('Día')}
             disabled={datesLocked}
             aria-describedby={datesLocked ? 'dates-locked' : undefined}
             value={values.dueDate}
@@ -174,7 +176,7 @@ export function TaskForm({
           <input
             type="time"
             className={styles.timeInput}
-            aria-label="Hora (opcional)"
+            aria-label={t('Hora (opcional)')}
             value={values.dueTime}
             disabled={!values.dueDate || datesLocked}
             onChange={(e) => set('dueTime', e.target.value)}
@@ -186,22 +188,21 @@ export function TaskForm({
               onClick={() => setValues((v) => ({ ...v, dueDate: '', dueTime: '' }))}
             >
               <Icon name="close" size={16} />
-              Quitar fecha
+              {t('Quitar fecha')}
             </button>
           )}
         </div>
         {datesLocked ? (
           <span id="dates-locked" className={styles.hint}>
-            Las fechas se calculan con las subtareas: empieza con la primera y termina con la última. Cambia las fechas de
-            las subtareas para moverla.
+            {t('Las fechas se calculan con las subtareas: empieza con la primera y termina con la última. Cambia las fechas de las subtareas para moverla.')}
           </span>
         ) : (
-          <span className={styles.hint}>La hora es opcional: sin hora, la tarea vence al final del día.</span>
+          <span className={styles.hint}>{t('La hora es opcional: sin hora, la tarea vence al final del día.')}</span>
         )}
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="start-date">Fecha de inicio (opcional)</label>
+        <label htmlFor="start-date">{t('Fecha de inicio (opcional)')}</label>
         <div className={styles.dueRow}>
           <input
             id="start-date"
@@ -217,24 +218,24 @@ export function TaskForm({
           {values.startDate && !datesLocked && (
             <button type="button" className={styles.clear} onClick={() => set('startDate', '')}>
               <Icon name="close" size={16} />
-              Quitar inicio
+              {t('Quitar inicio')}
             </button>
           )}
         </div>
         {datesLocked ? null : startAfterDue(values) ? (
           <span id="start-hint" className={styles.error}>
-            El inicio no puede ser después de la fecha límite.
+            {t('El inicio no puede ser después de la fecha límite.')}
           </span>
         ) : (
           <span id="start-hint" className={styles.hint}>
-            Con inicio y fecha límite, la tarea se dibuja como una barra en el cronograma.
+            {t('Con inicio y fecha límite, la tarea se dibuja como una barra en el cronograma.')}
           </span>
         )}
       </div>
 
       {members.length > 0 && (
         <fieldset className={styles.assignees}>
-          <legend>Responsables</legend>
+          <legend>{t('Responsables')}</legend>
           {members.map((m) => (
             <label key={m.id} className={styles.assignee}>
               <input type="checkbox" checked={values.assigneeIds.includes(m.id)} onChange={() => toggleAssignee(m.id)} />
@@ -248,12 +249,12 @@ export function TaskForm({
       )}
 
       <label className={styles.field}>
-        Descripción
+        {t('Descripción')}
         <textarea
           rows={4}
           className="caps"
           autoCapitalize="characters"
-          placeholder="Agrega detalles, pasos o enlaces…"
+          placeholder={t('Agrega detalles, pasos o enlaces…')}
           value={values.description}
           maxLength={20000}
           onChange={(e) => set('description', e.target.value)}
@@ -270,7 +271,7 @@ export function TaskForm({
         <button type="submit" className={styles.save} disabled={pending || (!dirty && !!initial.title)}>
           {pending ? (
             <>
-              <span className={styles.spinner} aria-hidden="true" /> Guardando…
+              <span className={styles.spinner} aria-hidden="true" /> {t('Guardando…')}
             </>
           ) : (
             submitLabel
@@ -278,15 +279,15 @@ export function TaskForm({
         </button>
         {onCancel && (
           <button type="button" className={styles.cancel} onClick={onCancel} disabled={pending}>
-            Cancelar
+            {t('Cancelar')}
           </button>
         )}
         {dirty && !pending && initial.title && (
           <button type="button" className={styles.cancel} onClick={() => setValues(baseline)}>
-            Descartar cambios
+            {t('Descartar cambios')}
           </button>
         )}
-        {!dirty && initial.title && !pending && <span className={styles.savedNote}>Todo guardado</span>}
+        {!dirty && initial.title && !pending && <span className={styles.savedNote}>{t('Todo guardado')}</span>}
       </div>
     </form>
   )

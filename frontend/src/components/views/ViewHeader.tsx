@@ -4,6 +4,7 @@ import pageStyles from '../../pages/pages.module.css'
 import taskStyles from '../tasks/tasks.module.css'
 import { ViewTabs } from './ViewTabs'
 import styles from './views.module.css'
+import { t } from '../../lib/i18n'
 
 interface ViewHeaderProps {
   eyebrow: string
@@ -31,7 +32,7 @@ export function ViewHeader({ eyebrow, title, aside, filters, newTaskHref = '/tar
         <span className={styles.spacer} />
         {filters}
         <Link to={newTaskHref} className={`${pageStyles.primary} ${pageStyles.buttonLink} ${styles.newTask}`}>
-          + Nueva tarea
+          + {t('Nueva tarea')}
         </Link>
       </div>
     </>

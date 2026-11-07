@@ -3,13 +3,14 @@ import type { ThemePreference, User } from '../api/auth'
 import { VoiceSettings } from '../components/assistant/VoiceSettings'
 import { PushSettings } from '../components/notifications/PushSettings'
 import { useLogout, useUpdatePreferences } from '../hooks/useAuth'
+import { LOCALES, t, tk, type Locale, useLocaleStore } from '../lib/i18n'
 import { useThemeStore } from '../theme/theme'
 import styles from './pages.module.css'
 
 const THEMES: { value: ThemePreference; label: string; left: string; right: string }[] = [
-  { value: 'light', label: 'Claro', left: '#FFFFFF', right: '#F4EEE8' },
-  { value: 'dark', label: 'Oscuro', left: '#211915', right: '#0A0706' },
-  { value: 'system', label: 'Sistema', left: '#FFFFFF', right: '#0A0706' },
+  { value: 'light', label: tk('Claro'), left: '#FFFFFF', right: '#F4EEE8' },
+  { value: 'dark', label: tk('Oscuro'), left: '#211915', right: '#0A0706' },
+  { value: 'system', label: tk('Sistema'), left: '#FFFFFF', right: '#0A0706' },
 ]
 
 export function SettingsPage({ user }: { user: User }) {
@@ -19,6 +20,14 @@ export function SettingsPage({ user }: { user: User }) {
   const updatePreferences = useUpdatePreferences()
   const logout = useLogout()
 
+  const locale = useLocaleStore((s) => s.locale)
+  const setLocale = useLocaleStore((s) => s.setLocale)
+
+  function chooseLocale(next: Locale) {
+    updatePreferences.mutate({ locale: next })
+    setLocale(next)
+  }
+
   function chooseTheme(theme: ThemePreference) {
     setPreference(theme)
     updatePreferences.mutate({ theme })
@@ -26,11 +35,11 @@ export function SettingsPage({ user }: { user: User }) {
 
   return (
     <>
-      <h1 className={styles.pageTitle}>Ajustes</h1>
+      <h1 className={styles.pageTitle}>{t('Ajustes')}</h1>
       <section className={styles.card}>
-        <h2>Apariencia</h2>
-        <p>Elige cómo se ve la app. "Sistema" sigue la configuración de tu equipo.</p>
-        <div role="radiogroup" aria-label="Tema" className={styles.segmented}>
+        <h2>{t('Apariencia')}</h2>
+        <p>{t('Elige cómo se ve la app. "Sistema" sigue la configuración de tu equipo.')}</p>
+        <div role="radiogroup" aria-label={t('Tema')} className={styles.segmented}>
           {THEMES.map((theme) => (
             <button
               key={theme.value}
@@ -44,20 +53,33 @@ export function SettingsPage({ user }: { user: User }) {
                 <span style={{ background: theme.left }} />
                 <span style={{ background: theme.right }} />
               </span>
-              {theme.label}
+              {t(theme.label)}
             </button>
           ))}
         </div>
+        <label className={styles.row}>
+          <span>
+            <strong>{t('Idioma')}</strong>
+            <small>{t('Para toda la app y los avisos que te llegan.')}</small>
+          </span>
+          <select className={styles.settingSelect} value={locale} onChange={(e) => chooseLocale(e.target.value as Locale)}>
+            {LOCALES.map((l) => (
+              <option key={l.value} value={l.value} lang={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className={styles.row}>
           <span>
-            <strong>Animación al completar tareas</strong>
-            <small>Confeti y aviso de logro.</small>
+            <strong>{t('Animación al completar tareas')}</strong>
+            <small>{t('Confeti y aviso de logro.')}</small>
           </span>
           <button
             type="button"
             role="switch"
             aria-checked={user.preferences.confetti}
-            aria-label="Animación al completar tareas"
+            aria-label={t('Animación al completar tareas')}
             className={styles.switch}
             onClick={() => updatePreferences.mutate({ confetti: !user.preferences.confetti })}
           >
@@ -66,38 +88,38 @@ export function SettingsPage({ user }: { user: User }) {
         </div>
       </section>
       <section className={styles.card}>
-        <h2>Notificaciones</h2>
-        <p>Los avisos llegan a la campana de arriba. Puedes poner recordatorios propios en cada tarea.</p>
+        <h2>{t('Notificaciones')}</h2>
+        <p>{t('Los avisos llegan a la campana de arriba. Puedes poner recordatorios propios en cada tarea.')}</p>
         <label className={styles.row}>
           <span>
-            <strong>Tareas con hora</strong>
-            <small>Avisarme antes de que venzan.</small>
+            <strong>{t('Tareas con hora')}</strong>
+            <small>{t('Avisarme antes de que venzan.')}</small>
           </span>
           <select
             className={styles.settingSelect}
             value={user.preferences.due_notice_minutes ?? ''}
             onChange={(e) => updatePreferences.mutate({ due_notice_minutes: e.target.value ? Number(e.target.value) : null })}
           >
-            <option value="">No avisar</option>
-            <option value="5">5 min antes</option>
-            <option value="15">15 min antes</option>
-            <option value="30">30 min antes</option>
-            <option value="60">1 hora antes</option>
-            <option value="120">2 horas antes</option>
-            <option value="1440">1 día antes</option>
+            <option value="">{t('No avisar')}</option>
+            <option value="5">{t('5 min antes')}</option>
+            <option value="15">{t('15 min antes')}</option>
+            <option value="30">{t('30 min antes')}</option>
+            <option value="60">{t('1 hora antes')}</option>
+            <option value="120">{t('2 horas antes')}</option>
+            <option value="1440">{t('1 día antes')}</option>
           </select>
         </label>
         <div className={styles.row}>
           <span>
-            <strong>Tareas de todo el día</strong>
-            <small>Un aviso la mañana del día que vencen.</small>
+            <strong>{t('Tareas de todo el día')}</strong>
+            <small>{t('Un aviso la mañana del día que vencen.')}</small>
           </span>
           <div className={styles.settingInline}>
             {user.preferences.all_day_notice && (
               <input
                 type="time"
                 className={styles.settingSelect}
-                aria-label="Hora del aviso"
+                aria-label={t('Hora del aviso')}
                 defaultValue={user.preferences.all_day_notice_time}
                 onBlur={(e) => {
                   if (e.target.value && e.target.value !== user.preferences.all_day_notice_time) {
@@ -110,7 +132,7 @@ export function SettingsPage({ user }: { user: User }) {
               type="button"
               role="switch"
               aria-checked={user.preferences.all_day_notice}
-              aria-label="Aviso de tareas de todo el día"
+              aria-label={t('Aviso de tareas de todo el día')}
               className={styles.switch}
               onClick={() => updatePreferences.mutate({ all_day_notice: !user.preferences.all_day_notice })}
             >
@@ -120,14 +142,14 @@ export function SettingsPage({ user }: { user: User }) {
         </div>
         <div className={styles.row}>
           <span>
-            <strong>Avisos emergentes</strong>
-            <small>Muestra cada aviso en una ventanita mientras usas la app.</small>
+            <strong>{t('Avisos emergentes')}</strong>
+            <small>{t('Muestra cada aviso en una ventanita mientras usas la app.')}</small>
           </span>
           <button
             type="button"
             role="switch"
             aria-checked={user.preferences.popups}
-            aria-label="Avisos emergentes"
+            aria-label={t('Avisos emergentes')}
             className={styles.switch}
             onClick={() => updatePreferences.mutate({ popups: !user.preferences.popups })}
           >
@@ -135,11 +157,11 @@ export function SettingsPage({ user }: { user: User }) {
           </button>
         </div>
         <PushSettings />
-        <p className={styles.settingNote}>Zona horaria: {user.preferences.timezone}</p>
+        <p className={styles.settingNote}>{t('Zona horaria: {zone}', { zone: user.preferences.timezone })}</p>
       </section>
       <VoiceSettings />
       <section className={styles.card}>
-        <h2>Cuenta</h2>
+        <h2>{t('Cuenta')}</h2>
         <p>
           {user.name} · {user.email}
         </p>
@@ -150,7 +172,7 @@ export function SettingsPage({ user }: { user: User }) {
             disabled={logout.isPending}
             onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/login', { replace: true }) })}
           >
-            Cerrar sesión
+            {t('Cerrar sesión')}
           </button>
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { useState, type InputHTMLAttributes } from 'react'
 import { Icon } from './Icon'
 import styles from './PasswordInput.module.css'
+import { t } from '../lib/i18n'
 
 type PasswordInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>
 
@@ -14,7 +15,7 @@ export function PasswordInput({ className, ...props }: PasswordInputProps) {
       <button
         type="button"
         className={styles.toggle}
-        aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+        aria-label={visible ? t('Ocultar contraseña') : t('Mostrar contraseña')}
         aria-pressed={visible}
         onClick={() => setVisible((v) => !v)}
       >

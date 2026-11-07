@@ -4,6 +4,7 @@ import { formatClock, useElapsed } from '../../hooks/useElapsed'
 import { useStopTimer, useTimer } from '../../hooks/useWorkspaceData'
 import { formatMinutes } from '../../lib/activity'
 import styles from './time.module.css'
+import { t } from '../../lib/i18n'
 
 /** Home: today's tracked time and every running timer. */
 export function TrackerCard({ className }: { className: string }) {
@@ -17,14 +18,14 @@ export function TrackerCard({ className }: { className: string }) {
 
   return (
     <section className={className}>
-      <h2>Registro de tiempo</h2>
+      <h2>{t('Registro de tiempo')}</h2>
       <p className={styles.cardToday}>
-        <span className={styles.cardBig}>{formatMinutes(today)}</span> hoy
+        <span className={styles.cardBig}>{formatMinutes(today)}</span> {t('hoy')}
       </p>
       {entries.length > 0 ? (
         entries.map((e) => <Running key={e.id} entry={e} />)
       ) : (
-        <p>Sin cronómetro activo. Pulsa ▶ en una tarea para empezar a medir; puedes tener varios en marcha.</p>
+        <p>{t('Sin cronómetro activo. Pulsa ▶ en una tarea para empezar a medir; puedes tener varios en marcha.')}</p>
       )}
     </section>
   )

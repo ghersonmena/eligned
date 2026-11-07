@@ -25,8 +25,9 @@ import { closesWithSubtasks, datesFromSubtasks } from '../lib/timeline'
 import { initials } from '../lib/initials'
 import styles from './detail.module.css'
 import pageStyles from './pages.module.css'
+import { dateFormat, t } from '../lib/i18n'
 
-const commentDate = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+const commentDate = { format: (d: Date) => dateFormat({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d) }
 
 export function TaskDetailPage() {
   const { id } = useParams()
@@ -42,9 +43,9 @@ export function TaskDetailPage() {
   if (isError || !task) {
     return (
       <section className={pageStyles.card}>
-        <h2>No encontramos esta tarea</h2>
-        <p>Puede que se haya eliminado o que no tengas acceso.</p>
-        <Link to="/tareas">Volver a mis tareas</Link>
+        <h2>{t('No encontramos esta tarea')}</h2>
+        <p>{t('Puede que se haya eliminado o que no tengas acceso.')}</p>
+        <Link to="/tareas">{t('Volver a mis tareas')}</Link>
       </section>
     )
   }
@@ -58,8 +59,10 @@ function TaskDetail({ task }: { task: Task }) {
   const datesLocked = datesFromSubtasks(task)
 
   function remove() {
-    const extra = task.subtasks_count ? ` y sus ${task.subtasks_count} subtareas` : ''
-    if (!window.confirm(`¿Eliminar "${task.title}"${extra}? No se puede deshacer.`)) return
+    const question = task.subtasks_count
+      ? t('¿Eliminar "{title}" y sus {n} subtareas? No se puede deshacer.', { title: task.title, n: task.subtasks_count })
+      : t('¿Eliminar "{title}"? No se puede deshacer.', { title: task.title })
+    if (!window.confirm(question)) return
     deleteTask.mutate(task.id, {
       onSuccess: () => navigate(task.parent_id ? `/tareas/${task.parent_id}` : '/tareas', { replace: true }),
     })
@@ -73,8 +76,8 @@ function TaskDetail({ task }: { task: Task }) {
         </div>
       )}
 
-      <nav aria-label="Ruta" className={styles.breadcrumb}>
-        <Link to="/tareas">Mis tareas</Link>
+      <nav aria-label={t('Ruta')} className={styles.breadcrumb}>
+        <Link to="/tareas">{t('Mis tareas')}</Link>
         {task.project && (
           <>
             <span aria-hidden="true">/</span>
@@ -84,7 +87,7 @@ function TaskDetail({ task }: { task: Task }) {
         {task.parent_id && (
           <>
             <span aria-hidden="true">/</span>
-            <Link to={`/tareas/${task.parent_id}`}>Tarea principal</Link>
+            <Link to={`/tareas/${task.parent_id}`}>{t('Tarea principal')}</Link>
           </>
         )}
       </nav>
@@ -99,22 +102,22 @@ function TaskDetail({ task }: { task: Task }) {
         </p>
       )}
       {task.completed && task.subtasks_count ? (
-        <p className={styles.autoNote}>Completada: todas sus subtareas están terminadas.</p>
+        <p className={styles.autoNote}>{t('Completada: todas sus subtareas están terminadas.')}</p>
       ) : null}
 
       <section className={pageStyles.card} aria-labelledby="edit-title">
-        <h2 id="edit-title">Detalles</h2>
+        <h2 id="edit-title">{t('Detalles')}</h2>
         <TaskForm
           // Remount when the status changes elsewhere (checkbox, subtasks) so the form never saves a stale status.
           // Also when the dates follow a subtask that was just moved.
           key={`${task.status_id}-${task.completed}-${datesLocked ? `${task.start_at}-${task.due_at}` : ''}`}
           initial={valuesFromTask(task)}
-          submitLabel="Guardar cambios"
+          submitLabel={t('Guardar cambios')}
           showProject={!task.parent_id}
           datesLocked={datesLocked}
           completionLocked={closesWithSubtasks(task)}
           pending={updateTask.isPending}
-          errorMessage={updateTask.isError ? 'No se pudieron guardar los cambios. Inténtalo de nuevo.' : undefined}
+          errorMessage={updateTask.isError ? t('No se pudieron guardar los cambios. Inténtalo de nuevo.') : undefined}
           onSubmit={(values) => {
             const input = toTaskInput(values, !task.parent_id)
             if (datesLocked) {
@@ -135,11 +138,11 @@ function TaskDetail({ task }: { task: Task }) {
       <div>
         <button type="button" className={styles.danger} onClick={remove} disabled={deleteTask.isPending}>
           <Icon name="trash" size={18} />
-          Eliminar tarea
+          {t('Eliminar tarea')}
         </button>
         {deleteTask.isError && (
           <p className={pageStyles.error} role="alert">
-            No se pudo eliminar la tarea. Inténtalo de nuevo.
+            {t('No se pudo eliminar la tarea. Inténtalo de nuevo.')}
           </p>
         )}
       </div>
@@ -162,7 +165,7 @@ function Subtasks({ task }: { task: Task }) {
   }
 
   function remove(subtask: Task) {
-    if (!window.confirm(`¿Eliminar la subtarea "${subtask.title}"?`)) return
+    if (!window.confirm(t('¿Eliminar la subtarea "{title}"?', { title: subtask.title }))) return
     setDeletingId(subtask.id)
     deleteTask.mutate(subtask.id, { onSettled: () => setDeletingId(null) })
   }
@@ -170,7 +173,7 @@ function Subtasks({ task }: { task: Task }) {
   return (
     <section className={pageStyles.card} aria-labelledby="subtasks-title">
       <div className={styles.sectionHeader}>
-        <h2 id="subtasks-title">Subtareas</h2>
+        <h2 id="subtasks-title">{t('Subtareas')}</h2>
         {subtasks.length > 0 && (
           <>
             <span className={styles.progressLabel}>
@@ -183,7 +186,7 @@ function Subtasks({ task }: { task: Task }) {
         )}
       </div>
       {subtasks.length > 0 && (
-        <p className={styles.hintText}>Al terminar todas las subtareas, la tarea se completa sola.</p>
+        <p className={styles.hintText}>{t('Al terminar todas las subtareas, la tarea se completa sola.')}</p>
       )}
       <ul className={styles.subtasks}>
         {subtasks.map((s) => (
@@ -195,13 +198,13 @@ function Subtasks({ task }: { task: Task }) {
             <DoneStamp task={s} />
             {deletingId === s.id ? (
               <span className={styles.inlineStatus} role="status">
-                <span className={styles.spinner} aria-hidden="true" /> Eliminando…
+                <span className={styles.spinner} aria-hidden="true" /> {t('Eliminando…')}
               </span>
             ) : (
               <button
                 type="button"
                 className={styles.iconButton}
-                aria-label={`Eliminar subtarea "${s.title}"`}
+                aria-label={t('Eliminar subtarea "{title}"', { title: s.title })}
                 disabled={deletingId !== null}
                 onClick={() => remove(s)}
               >
@@ -213,11 +216,11 @@ function Subtasks({ task }: { task: Task }) {
       </ul>
       <form className={styles.inlineForm} onSubmit={onSubmit}>
         <label className="visually-hidden" htmlFor="new-subtask">
-          Nueva subtarea
+          {t('Nueva subtarea')}
         </label>
         <input
           id="new-subtask"
-          placeholder="Nueva subtarea"
+          placeholder={t('Nueva subtarea')}
           className="caps"
           autoCapitalize="characters"
           value={title}
@@ -225,7 +228,7 @@ function Subtasks({ task }: { task: Task }) {
           onChange={(e) => setTitle(e.target.value)}
         />
         <button type="submit" disabled={!title.trim() || createSubtask.isPending}>
-          {createSubtask.isPending ? 'Agregando…' : 'Agregar subtarea'}
+          {createSubtask.isPending ? t('Agregando…') : t('Agregar subtarea')}
         </button>
       </form>
     </section>
@@ -249,8 +252,8 @@ function Comments({ task }: { task: Task }) {
     const ok = incoming.filter((f) => f.size <= MAX_BYTES)
     const next = [...files, ...ok].slice(0, MAX_FILES)
     setFiles(next)
-    if (tooBig.length) setFileError(`"${tooBig[0].name}" pesa más de 10 MB.`)
-    else if (files.length + ok.length > MAX_FILES) setFileError(`Puedes adjuntar hasta ${MAX_FILES} archivos por comentario.`)
+    if (tooBig.length) setFileError(t('"{name}" pesa más de 10 MB.', { name: tooBig[0].name }))
+    else if (files.length + ok.length > MAX_FILES) setFileError(t('Puedes adjuntar hasta {n} archivos por comentario.', { n: MAX_FILES }))
     else setFileError(null)
   }
 
@@ -281,8 +284,8 @@ function Comments({ task }: { task: Task }) {
 
   return (
     <section className={pageStyles.card} aria-labelledby="comments-title">
-      <h2 id="comments-title">Comentarios</h2>
-      {comments.length === 0 && <p>Todavía no hay comentarios.</p>}
+      <h2 id="comments-title">{t('Comentarios')}</h2>
+      {comments.length === 0 && <p>{t('Todavía no hay comentarios.')}</p>}
       <ul className={styles.comments}>
         {comments.map((c) => (
           <li key={c.id} className={styles.comment}>
@@ -291,7 +294,7 @@ function Comments({ task }: { task: Task }) {
             </span>
             <div className={styles.commentBody}>
               <span className={styles.commentMeta}>
-                <strong>{c.author?.id === user?.id ? 'Tú' : (c.author?.name ?? 'Usuario eliminado')}</strong> ·{' '}
+                <strong>{c.author?.id === user?.id ? t('Tú') : (c.author?.name ?? t('Usuario eliminado'))}</strong> ·{' '}
                 {commentDate.format(new Date(c.created_at))}
               </span>
               {c.body && <p>{c.body}</p>}
@@ -301,9 +304,9 @@ function Comments({ task }: { task: Task }) {
               <button
                 type="button"
                 className={styles.iconButton}
-                aria-label="Eliminar comentario"
+                aria-label={t('Eliminar comentario')}
                 disabled={deleteComment.isPending}
-                onClick={() => window.confirm('¿Eliminar este comentario y sus archivos?') && deleteComment.mutate(c.id)}
+                onClick={() => window.confirm(t('¿Eliminar este comentario y sus archivos?')) && deleteComment.mutate(c.id)}
               >
                 <Icon name="trash" size={16} />
               </button>
@@ -319,7 +322,7 @@ function Comments({ task }: { task: Task }) {
       )}
       <form className={styles.inlineForm} onSubmit={onSubmit}>
         <label className="visually-hidden" htmlFor="new-comment">
-          Escribe un comentario
+          {t('Escribe un comentario')}
         </label>
         <input
           ref={fileInput}
@@ -337,8 +340,8 @@ function Comments({ task }: { task: Task }) {
         <button
           type="button"
           className={styles.attachButton}
-          aria-label="Adjuntar fotos o archivos"
-          title="Adjuntar fotos o archivos"
+          aria-label={t('Adjuntar fotos o archivos')}
+          title={t('Adjuntar fotos o archivos')}
           disabled={files.length >= MAX_FILES}
           onClick={() => fileInput.current?.click()}
         >
@@ -349,14 +352,14 @@ function Comments({ task }: { task: Task }) {
           rows={2}
           className="caps"
           autoCapitalize="characters"
-          placeholder="Escribe un comentario o pega una imagen…"
+          placeholder={t('Escribe un comentario o pega una imagen…')}
           value={body}
           maxLength={5000}
           onChange={(e) => setBody(e.target.value)}
           onPaste={onPaste}
         />
         <button type="submit" disabled={!canSend}>
-          {addComment.isPending ? (files.length ? 'Subiendo…' : 'Enviando…') : 'Enviar'}
+          {addComment.isPending ? (files.length ? t('Subiendo…') : t('Enviando…')) : t('Enviar')}
         </button>
       </form>
     </section>

@@ -43,11 +43,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'current_workspace_id' => null,
         // Home cards in order, each maybe hidden (null: the default layout).
         'home_layout' => null,
+        // Interface language (es / en); null until the app sends the device's.
+        'locale' => null,
         // "Notas rápidas" home card: a personal scratchpad.
         'home_note' => null,
     ];
 
     public const HOME_NOTE_MAX = 5000;
+
+    public const LOCALES = ['es', 'en'];
 
     /** Cards the home page can show (see HomePage in the app). */
     public const HOME_CARDS = [
