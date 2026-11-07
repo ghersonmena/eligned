@@ -35,7 +35,7 @@ class UpdatePreferencesRequest extends FormRequest
                 'integer',
                 fn (string $attribute, mixed $value, \Closure $fail) => $value === null
                     || $this->user()->workspaces()->whereKey($value)->exists()
-                    || $fail('No perteneces a ese espacio.'),
+                    || $fail(__('No perteneces a ese espacio.')),
             ],
         ];
     }

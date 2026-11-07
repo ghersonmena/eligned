@@ -34,10 +34,10 @@ class WorkspaceInvitationMail extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("{$this->inviterName} te invitó a \"{$this->workspaceName}\"")
-            ->greeting('¡Hola!')
-            ->line("{$this->inviterName} te invitó a colaborar en el espacio \"{$this->workspaceName}\".")
-            ->action('Ver invitación', $this->url)
-            ->line('La invitación vence en '.WorkspaceInvitation::DAYS_VALID.' días. Si no esperabas este correo, puedes ignorarlo.');
+            ->subject(__(':name te invitó a ":space"', ['name' => $this->inviterName, 'space' => $this->workspaceName]))
+            ->greeting(__('¡Hola!'))
+            ->line(__(':name te invitó a colaborar en el espacio ":space".', ['name' => $this->inviterName, 'space' => $this->workspaceName]))
+            ->action(__('Ver invitación'), $this->url)
+            ->line(__('La invitación vence en :days días. Si no esperabas este correo, puedes ignorarlo.', ['days' => WorkspaceInvitation::DAYS_VALID]));
     }
 }

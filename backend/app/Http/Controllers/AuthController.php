@@ -25,7 +25,7 @@ class AuthController extends Controller
         $user = $registerUser->handle($request->validated());
 
         return response()->json([
-            'message' => 'Cuenta creada. Revisa tu correo para confirmarla.',
+            'message' => __('Cuenta creada. Revisa tu correo para confirmarla.'),
             'email' => $user->email,
         ], 201);
     }
@@ -42,7 +42,7 @@ class AuthController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             return response()->json([
-                'message' => 'Confirma tu correo antes de iniciar sesión.',
+                'message' => __('Confirma tu correo antes de iniciar sesión.'),
                 'code' => 'email_unverified',
             ], 403);
         }

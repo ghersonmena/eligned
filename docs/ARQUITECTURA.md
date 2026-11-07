@@ -139,6 +139,15 @@ Campos clave de `tasks`: `title`, `description`, `status_id`, `priority` (1–3)
 - Voz: prefiere las voces naturales del dispositivo (Edge "Natural", Apple "Premium"/"Mejorada"), luego las de México. En Ajustes → Asistente de voz se elige la voz, la velocidad y si responde en voz alta; se guarda por dispositivo (localStorage), porque cada uno tiene voces distintas. Voz en la nube (Azure/Google/ElevenLabs): pendiente, solo si se pide.
 - Pendiente (modo híbrido): cuando `interpret()` devuelve `unknown`, mandar la frase a un endpoint del servidor que use la API de Claude (clave solo en `.env`) y devuelva la misma estructura de intención.
 
+## 7.2 Idiomas (español e inglés)
+
+- **App:** `t('texto en español')` (`frontend/src/lib/i18n.ts`). El español es el texto original y la clave; el inglés vive en `frontend/src/locales/en/*.json` (registrados en `locales/en/index.ts`). `tx()` traduce frases con partes en negritas o enlaces; las listas fijas usan `get label() { return t('…') }`. Las fechas usan `dateFormat()` en el idioma actual.
+- Una prueba (`lib/i18n.test.ts`) falla si algún `t('…')` no tiene inglés, si sobra una traducción, si un texto se traduce de dos formas o si cambian los `{marcadores}`.
+- **Idioma elegido:** preferencia `locale` (es/en) de la cuenta, en Ajustes. Sin sesión se usa el del navegador, con selector en las pantallas de entrada. Cambiar el idioma vuelve a montar la app.
+- **Servidor:** `__('texto en español')` con `backend/lang/en.json`. El middleware `SetLocale` responde en el idioma de la cuenta o, sin sesión, en el del encabezado `Accept-Language` que manda la app. `User` implementa `HasLocalePreference`: correos y notificaciones (campana, push) se escriben en el idioma de quien los recibe (`App\Support\Locale::run`). La invitación va en el idioma de la persona invitada si ya tiene cuenta, si no en el de quien invita.
+- Las columnas por defecto del tablero ("Por hacer", "En progreso"…) se guardan en español y se muestran traducidas; si alguien las renombra, se muestran tal cual.
+- El asistente de voz entiende y habla solo español por ahora.
+
 ## 8. PWA y uso sin conexión
 
 - **Fase 1**: la app se puede instalar, carga sin red y muestra los datos que ya tenía en caché.

@@ -46,11 +46,11 @@ class TeamController extends Controller
         $current = $workspace->roleOf($user);
 
         abort_if($current === null, 404);
-        abort_if($current === WorkspaceRole::Owner, 422, 'El rol del dueño no se puede cambiar.');
+        abort_if($current === WorkspaceRole::Owner, 422, __('El rol del dueño no se puede cambiar.'));
         abort_if(
             $actor !== WorkspaceRole::Owner && ($current === WorkspaceRole::Admin || $data['role'] === 'admin'),
             403,
-            'Solo el dueño puede nombrar o cambiar administradores.',
+            __('Solo el dueño puede nombrar o cambiar administradores.'),
         );
 
         $workspace->members()->updateExistingPivot($user->id, ['role' => $data['role']]);
@@ -67,11 +67,11 @@ class TeamController extends Controller
         }
         $current = $workspace->roleOf($user);
         abort_if($current === null, 404);
-        abort_if($current === WorkspaceRole::Owner, 422, 'El dueño no puede salir ni ser quitado del espacio.');
+        abort_if($current === WorkspaceRole::Owner, 422, __('El dueño no puede salir ni ser quitado del espacio.'));
         abort_if(
             ! $self && $current === WorkspaceRole::Admin && $workspace->roleOf($request->user()) !== WorkspaceRole::Owner,
             403,
-            'Solo el dueño puede quitar administradores.',
+            __('Solo el dueño puede quitar administradores.'),
         );
 
         DB::transaction(function () use ($workspace, $user) {
@@ -108,10 +108,10 @@ class TeamController extends Controller
         abort_if(
             $data['role'] === 'admin' && $workspace->roleOf($request->user()) !== WorkspaceRole::Owner,
             403,
-            'Solo el dueño puede invitar administradores.',
+            __('Solo el dueño puede invitar administradores.'),
         );
         if ($workspace->members()->where('email', $email)->exists()) {
-            return response()->json(['message' => 'Esa persona ya es parte del espacio.', 'errors' => ['email' => ['Esa persona ya es parte del espacio.']]], 422);
+            return response()->json(['message' => __('Esa persona ya es parte del espacio.'), 'errors' => ['email' => [__('Esa persona ya es parte del espacio.')]]], 422);
         }
 
         $invitation = DB::transaction(function () use ($workspace, $email, $data, $request) {
@@ -138,7 +138,7 @@ class TeamController extends Controller
     public function renew(Request $request, WorkspaceInvitation $invitation): InvitationResource
     {
         Gate::authorize('manage', $invitation->workspace);
-        abort_if($invitation->accepted_at !== null, 422, 'Esa invitación ya fue aceptada.');
+        abort_if($invitation->accepted_at !== null, 422, __('Esa invitación ya fue aceptada.'));
         $invitation->refreshToken()->save();
         $this->sendIfAsked($request, $invitation);
 
@@ -157,7 +157,7 @@ class TeamController extends Controller
     public function showInvitation(string $token): JsonResponse
     {
         $invitation = WorkspaceInvitation::findByToken($token);
-        abort_if(! $invitation, 404, 'Esta invitación no existe o fue cancelada.');
+        abort_if(! $invitation, 404, __('Esta invitación no existe o fue cancelada.'));
 
         return response()->json(['data' => [
             'workspace' => $invitation->workspace->name,
@@ -172,15 +172,15 @@ class TeamController extends Controller
     public function accept(Request $request, string $token): JsonResponse
     {
         $invitation = WorkspaceInvitation::findByToken($token);
-        abort_if(! $invitation, 404, 'Esta invitación no existe o fue cancelada.');
-        abort_if($invitation->accepted_at !== null, 422, 'Esta invitación ya se usó.');
-        abort_if($invitation->isExpired(), 422, 'Esta invitación venció. Pide que te envíen una nueva.');
+        abort_if(! $invitation, 404, __('Esta invitación no existe o fue cancelada.'));
+        abort_if($invitation->accepted_at !== null, 422, __('Esta invitación ya se usó.'));
+        abort_if($invitation->isExpired(), 422, __('Esta invitación venció. Pide que te envíen una nueva.'));
 
         $user = $request->user();
         abort_if(
             mb_strtolower($user->email) !== $invitation->email,
             403,
-            "Esta invitación es para {$invitation->email}. Entra con esa cuenta para aceptarla.",
+            __('Esta invitación es para :email. Entra con esa cuenta para aceptarla.', ['email' => $invitation->email]),
         );
 
         $workspace = $invitation->workspace;
@@ -202,6 +202,8 @@ class TeamController extends Controller
             return;
         }
         $url = $request->getSchemeAndHttpHost().$invitation->path();
-        Notification::route('mail', $invitation->email)->notify(WorkspaceInvitationMail::for($invitation->load('workspace', 'inviter'), $url));
+        $locale = User::firstWhere('email', $invitation->email)?->preferredLocale() ?? app()->getLocale();
+        Notification::route('mail', $invitation->email)
+            ->notify(WorkspaceInvitationMail::for($invitation->load('workspace', 'inviter'), $url)->locale($locale));
     }
 }

@@ -48,6 +48,6 @@ class Comment extends Model
         }
         $count = $this->attachments()->count();
 
-        return '📎 '.$count.($count === 1 ? ' archivo' : ' archivos');
+        return '📎 '.($count === 1 ? __('1 archivo') : __(':n archivos', ['n' => $count]));
     }
 }

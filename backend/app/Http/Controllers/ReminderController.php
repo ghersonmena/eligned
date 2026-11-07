@@ -33,7 +33,7 @@ class ReminderController extends Controller
 
         if (isset($data['offset_minutes'])) {
             if (! $task->due_at) {
-                throw ValidationException::withMessages(['offset_minutes' => 'La tarea no tiene fecha límite.']);
+                throw ValidationException::withMessages(['offset_minutes' => __('La tarea no tiene fecha límite.')]);
             }
             $at = $task->due_at->copy()->subMinutes($data['offset_minutes']);
         } else {

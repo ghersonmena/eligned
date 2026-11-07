@@ -61,7 +61,7 @@ trait ResolvesWorkspace
             $due = $this->exists('due_at') ? $this->input('due_at') : $current?->due_at;
 
             if ($start && $due && Carbon::parse($start)->greaterThan(Carbon::parse($due))) {
-                $validator->errors()->add('start_at', 'La fecha de inicio no puede ser posterior a la fecha límite.');
+                $validator->errors()->add('start_at', __('La fecha de inicio no puede ser posterior a la fecha límite.'));
             }
         }];
     }

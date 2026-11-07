@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Support\Locale;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -43,7 +44,10 @@ class TaskAlert extends Notification implements ShouldQueue
     {
         User::whereKey($userIds)->get()
             ->reject(fn (User $u) => $by && $u->is($by))
-            ->each(fn (User $u) => $u->notify(self::for('assigned', $task, ($by ? "{$by->name} te asignó esta tarea" : 'Te asignaron esta tarea'))));
+            ->each(fn (User $u) => $u->notify(self::for('assigned', $task, Locale::run(
+                $u->preferredLocale(),
+                fn () => $by ? __(':name te asignó esta tarea', ['name' => $by->name]) : __('Te asignaron esta tarea'),
+            ))));
     }
 
     /**

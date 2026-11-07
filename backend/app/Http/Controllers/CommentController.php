@@ -10,6 +10,7 @@ use App\Models\CommentAttachment;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAlert;
+use App\Support\Locale;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -47,7 +48,11 @@ class CommentController extends Controller
         $author = $request->user();
         $task->assignees->concat([$task->creator])->filter()->unique('id')
             ->reject(fn (User $u) => $u->is($author))
-            ->each(fn (User $u) => $u->notify(TaskAlert::for('commented', $task, "{$author->name}: ".$comment->excerpt(120))));
+            ->each(fn (User $u) => $u->notify(TaskAlert::for(
+                'commented',
+                $task,
+                Locale::run($u->preferredLocale(), fn () => "{$author->name}: ".$comment->excerpt(120)),
+            )));
 
         return new CommentResource($comment->load(['user', 'attachments']));
     }

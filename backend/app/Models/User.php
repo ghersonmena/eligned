@@ -6,6 +6,7 @@ use App\Enums\Theme;
 use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 
 #[Fillable(['name', 'email', 'password', 'preferences'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasPushSubscriptions, Notifiable;
@@ -97,5 +98,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function resolvedPreferences(): array
     {
         return array_merge(self::DEFAULT_PREFERENCES, $this->preferences ?? []);
+    }
+
+    /** Language for this person's emails, notifications and API messages. */
+    public function preferredLocale(): string
+    {
+        $locale = $this->resolvedPreferences()['locale'];
+
+        return in_array($locale, self::LOCALES, true) ? $locale : config('app.locale');
     }
 }
