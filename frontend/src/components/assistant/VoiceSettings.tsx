@@ -1,11 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { canListen, canSpeak, isNatural, readVoiceSettings, saveVoiceSettings, speak, spanishVoices, stopSpeaking, voiceLabel } from '../../lib/assistant/speech'
+import { ASSISTANT_NAME } from '../../lib/brand'
 import { getLocale, t } from '../../lib/i18n'
 import styles from '../../pages/pages.module.css'
 import voice from './voice.module.css'
 
 // The assistant talks Spanish, so the sample is Spanish in every language.
-const SAMPLE = 'Hola, soy tu asistente. ¿Guardo la tarea: ir a la cita con mi esposa, para hoy a las 5 de la tarde?'
+const SAMPLE = `Hola, soy ${ASSISTANT_NAME}. ¿Guardo la tarea: ir a la cita con mi esposa, para hoy a las 5 de la tarde?`
 
 /* Browsers load their voices a moment after the page; this re-renders when they arrive. */
 function subscribe(onChange: () => void) {
@@ -57,7 +58,7 @@ export function VoiceSettings() {
 
   return (
     <section className={styles.card} aria-labelledby="voice-title">
-      <h2 id="voice-title">{t('Asistente de voz')}</h2>
+      <h2 id="voice-title">{t('{name}, tu asistente de voz', { name: ASSISTANT_NAME })}</h2>
       <p>
         {t('El botón del micrófono, abajo a la derecha, crea tareas y te dice qué tienes pendiente.')}
         {getLocale() !== 'es' && ` ${t('Por ahora entiende y habla solo español.')}`}

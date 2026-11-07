@@ -11,6 +11,7 @@ import { upper } from '../../lib/text'
 import { getLocale, t } from '../../lib/i18n'
 import { Icon } from '../Icon'
 import styles from './assistant.module.css'
+import { ASSISTANT_NAME } from '../../lib/brand'
 
 /** What the next thing you say means. */
 type Mode = 'idle' | 'confirm' | 'title' | 'saving'
@@ -223,7 +224,7 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
       const spanishOnly = getLocale() === 'es' ? '' : ` ${t('Por ahora solo entiendo español.')}`
       add(
         'bot',
-        (canListen() ? t('Hola, te escucho.') : t('Hola. Tu navegador no me deja escuchar, pero puedes escribirme.')) + spanishOnly + ' ' + EXAMPLES,
+        (canListen() ? t('Hola, soy {name}. Te escucho.', { name: ASSISTANT_NAME }) : t('Hola, soy {name}. Tu navegador no me deja escuchar, pero puedes escribirme.', { name: ASSISTANT_NAME })) + spanishOnly + ' ' + EXAMPLES,
       )
     }
     startListening()
@@ -260,16 +261,16 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
   return (
     <>
       {open && (
-        <div ref={panelRef} className={styles.panel} role="dialog" aria-label={t('Asistente')} tabIndex={-1}>
+        <div ref={panelRef} className={styles.panel} role="dialog" aria-label={ASSISTANT_NAME} tabIndex={-1}>
           <header className={styles.head}>
             <span className={styles.orb} aria-hidden="true" />
-            <strong>{t('Asistente')}</strong>
+            <strong>{ASSISTANT_NAME}</strong>
             {canSpeak() && (
               <button type="button" className={styles.iconBtn} onClick={toggleVoice} aria-pressed={voiceOn} aria-label={voiceOn ? t('Silenciar mis respuestas') : t('Leer mis respuestas en voz alta')}>
                 <Icon name={voiceOn ? 'volume' : 'mute'} size={18} />
               </button>
             )}
-            <button type="button" className={styles.iconBtn} onClick={close} aria-label={t('Cerrar asistente')}>
+            <button type="button" className={styles.iconBtn} onClick={close} aria-label={t('Cerrar a {name}', { name: ASSISTANT_NAME })}>
               <Icon name="close" size={18} />
             </button>
           </header>
@@ -325,7 +326,7 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
               placeholder={listening ? t('Te escucho…') : t('Escríbeme o toca el micrófono')}
-              aria-label={t('Mensaje para el asistente')}
+              aria-label={t('Mensaje para {name}', { name: ASSISTANT_NAME })}
               autoCapitalize="characters"
             />
             {typed.trim() ? (
@@ -353,7 +354,7 @@ export function Assistant({ canEdit }: { canEdit: boolean }) {
         type="button"
         className={`${styles.fab} ${listening ? styles.live : ''} ${open ? styles.fabOpen : ''}`}
         onClick={open ? (listening ? stopListening : startListening) : openPanel}
-        aria-label={open ? (listening ? t('Dejar de escuchar') : t('Hablar con el asistente')) : t('Abrir asistente')}
+        aria-label={open ? (listening ? t('Dejar de escuchar') : t('Hablar con {name}', { name: ASSISTANT_NAME })) : t('Abrir a {name}', { name: ASSISTANT_NAME })}
         aria-expanded={open}
       >
         <Icon name="mic" size={24} />

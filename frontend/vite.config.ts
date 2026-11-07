@@ -17,8 +17,8 @@ export default defineConfig({
         overrideManifestIcons: true,
       },
       manifest: {
-        name: 'Todo Smart',
-        short_name: 'Todo Smart',
+        name: 'eLigned',
+        short_name: 'eLigned',
         description: 'Tareas, proyectos, metas y tiempo de tu equipo en un solo lugar.',
         lang: 'es',
         start_url: '/',

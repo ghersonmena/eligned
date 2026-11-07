@@ -1,10 +1,8 @@
 {
-  "Abrir asistente": "Open assistant",
+  "Abrir a {name}": "Open {name}",
   "Abrir la tarea": "Open the task",
-  "Asistente": "Assistant",
-  "Asistente de voz": "Voice assistant",
   "Automática": "Automatic",
-  "Cerrar asistente": "Close assistant",
+  "Cerrar a {name}": "Close {name}",
   "Dejar de escuchar": "Stop listening",
   "Descripción (opcional)": "Description (optional)",
   "Edge incluye voces \"Natural\" (como Dalia o Jorge); necesitan conexión a internet para hablar.": "Edge includes \"Natural\" voices (like Dalia or Jorge); they need an internet connection to talk.",
@@ -18,13 +16,13 @@
   "Este navegador no puede escucharte (Firefox no lo permite), pero puedes escribirle.": "This browser can't listen to you (Firefox doesn't allow it), but you can type to it.",
   "Este navegador no puede leer respuestas en voz alta.": "This browser can't read replies aloud.",
   "Hablar": "Talk",
-  "Hablar con el asistente": "Talk to the assistant",
-  "Hola, te escucho.": "Hi, I'm listening.",
-  "Hola. Tu navegador no me deja escuchar, pero puedes escribirme.": "Hi. Your browser doesn't let me listen, but you can type to me.",
+  "Hablar con {name}": "Talk to {name}",
+  "Hola, soy {name}. Te escucho.": "Hi, I'm {name}. I'm listening.",
+  "Hola, soy {name}. Tu navegador no me deja escuchar, pero puedes escribirme.": "Hi, I'm {name}. Your browser doesn't let me listen, but you can type to me.",
   "La voz que elegiste ya no está en este dispositivo; se usa la automática.": "The voice you chose is no longer on this device; the automatic one is used.",
   "Las voces más realistas gratis vienen en Microsoft Edge (voces \"Natural\") y en iPhone/Mac (voces \"Mejorada\" o \"Premium\").": "The most realistic free voices come with Microsoft Edge (\"Natural\" voices) and iPhone/Mac (\"Enhanced\" or \"Premium\" voices).",
   "Leer mis respuestas en voz alta": "Read my replies aloud",
-  "Mensaje para el asistente": "Message for the assistant",
+  "Mensaje para {name}": "Message for {name}",
   "Más lenta": "Slower",
   "Más rápida": "Faster",
   "Naturales (más realistas)": "Natural (most realistic)",
@@ -46,5 +44,6 @@
   "Velocidad": "Speed",
   "Velocidad de la voz": "Voice speed",
   "Voces en español": "Spanish voices",
-  "Voz": "Voice"
+  "Voz": "Voice",
+  "{name}, tu asistente de voz": "{name}, your voice assistant"
 }

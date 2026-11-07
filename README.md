@@ -1,4 +1,4 @@
-# Todo Smart
+# eLigned
 
 > Nombre provisional. Aplicación de tareas para personas y equipos: lista, Kanban, calendario, cronograma (Gantt),
 > recordatorios, registro de tiempo, metas y notificaciones. PWA para escritorio y celular; app móvil más adelante.

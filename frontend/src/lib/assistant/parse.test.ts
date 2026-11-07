@@ -73,6 +73,12 @@ describe('times', () => {
     expect(at(text)).toMatchObject({ title: expect.stringMatching(/^(junta|cenar|llamar a mamá|sacar la ropa|revisar el horno)$/), due, allDay: false })
   })
 
+  it('leaves her name out of the title', () => {
+    for (const name of ['Lily', 'Lili', 'Lilly']) {
+      expect(at(`Oye ${name}, recuérdame mañana llamar al dentista`).title).toBe('llamar al dentista')
+    }
+  })
+
   it('keeps the morning out of "tomorrow"', () => {
     expect(at('llamar en la mañana')).toMatchObject({ due: '2026-11-07 09:00', title: 'llamar' })
   })
