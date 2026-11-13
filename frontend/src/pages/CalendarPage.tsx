@@ -28,6 +28,7 @@ import {
   daysBetween,
   dueAtEndOf,
   endOfDay,
+  formatStartTime,
   formatTime,
   monthGrid,
   parseDayKey,
@@ -353,7 +354,11 @@ export function CalendarPage() {
                     <Link to={`/tareas/${task.id}`} className={styles.agendaLink}>
                       <span className={styles.agendaTitle}>{task.title}</span>
                       <span className={styles.agendaMeta}>
-                        {task.due_at ? (formatTime(task.due_at) ?? t('Todo el día')) : t('Inicia este día')}
+                        {task.due_at
+                          ? (formatTime(task.due_at) ?? t('Todo el día'))
+                          : task.start_at && formatStartTime(task.start_at)
+                            ? t('Inicia a las {time}', { time: formatStartTime(task.start_at)! })
+                            : t('Inicia este día')}
                         {task.project && ` · ${task.project.name}`}
                       </span>
                       {task.parent && <span className={styles.agendaParent}>{t('Subtarea de {title}', { title: task.parent.title })}</span>}
@@ -471,7 +476,7 @@ function DraggableChip({ task }: { task: Task }) {
 }
 
 function Chip({ task, overlay }: { task: Task; overlay?: boolean }) {
-  const clock = task.due_at ? formatTime(task.due_at) : null
+  const clock = task.due_at ? formatTime(task.due_at) : task.start_at ? formatStartTime(task.start_at) : null
   const color = task.project ? dotColor(task.project.color) : 'var(--faint)'
   const className = `${styles.chip} ${task.completed ? styles.done : ''} ${overlay ? styles.overlay : ''}`
   const content = (

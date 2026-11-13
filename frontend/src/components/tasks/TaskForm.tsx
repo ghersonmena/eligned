@@ -5,6 +5,7 @@ import { useMembers, useProjects, useStatuses } from '../../hooks/useWorkspaceDa
 import { PRIORITIES } from '../../lib/colors'
 import { initials } from '../../lib/initials'
 import { startAfterDue, type TaskFormValues } from '../../lib/taskForm'
+import { currentTimeInput } from '../../lib/dates'
 import { Icon } from '../Icon'
 import { statusName } from '../../lib/statuses'
 import styles from './TaskForm.module.css'
@@ -202,21 +203,35 @@ export function TaskForm({
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="start-date">{t('Fecha de inicio (opcional)')}</label>
-        <div className={styles.dueRow}>
+        <span id="start-label">{t('Fecha de inicio (opcional)')}</span>
+        <div className={styles.dueRow} role="group" aria-labelledby="start-label">
           <input
             id="start-date"
             type="date"
             className={styles.dateInput}
+            aria-label={t('Día de inicio')}
             value={values.startDate}
             disabled={datesLocked}
             max={values.dueDate || undefined}
             aria-invalid={startAfterDue(values) ? true : undefined}
             aria-describedby={datesLocked ? 'dates-locked' : 'start-hint'}
-            onChange={(e) => set('startDate', e.target.value)}
+            // Picking a day also notes the current time; it can be changed or cleared.
+            onChange={(e) => {
+              const date = e.target.value
+              setValues((v) => ({ ...v, startDate: date, startTime: date ? v.startTime || currentTimeInput() : '' }))
+            }}
+          />
+          <input
+            type="time"
+            className={styles.timeInput}
+            aria-label={t('Hora de inicio (opcional)')}
+            value={values.startTime}
+            disabled={!values.startDate || datesLocked}
+            aria-invalid={startAfterDue(values) ? true : undefined}
+            onChange={(e) => set('startTime', e.target.value)}
           />
           {values.startDate && !datesLocked && (
-            <button type="button" className={styles.clear} onClick={() => set('startDate', '')}>
+            <button type="button" className={styles.clear} onClick={() => setValues((v) => ({ ...v, startDate: '', startTime: '' }))}>
               <Icon name="close" size={16} />
               {t('Quitar inicio')}
             </button>
@@ -228,6 +243,7 @@ export function TaskForm({
           </span>
         ) : (
           <span id="start-hint" className={styles.hint}>
+            {t('Al elegir el día se anota la hora actual; puedes cambiarla o borrarla.')}{' '}
             {t('Con inicio y fecha límite, la tarea se dibuja como una barra en el cronograma.')}
           </span>
         )}

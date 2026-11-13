@@ -182,9 +182,38 @@ export function shiftDays(iso: string, days: number): string {
   return moveToDay(iso, addDays(new Date(iso), days))
 }
 
-/** Start dates are day-only: stored as 00:00 local time. */
-export function startFromInput(date: string): string | null {
-  return date ? parseDayKey(date).toISOString() : null
+/**
+ * Start dates may carry a time. Without one they are stored as 00:00 local
+ * time, which reads as "day only" (no time shown).
+ */
+export function startFromInput(date: string, clock = ''): string | null {
+  if (!date) return null
+  const [h, m] = clock ? clock.split(':').map(Number) : [0, 0]
+  const [y, mo, d] = date.split('-').map(Number)
+  return new Date(y, mo - 1, d, h, m).toISOString()
+}
+
+/** True when a start date has a time of its own (not 00:00). */
+export function hasStartTime(date: Date): boolean {
+  return date.getHours() !== 0 || date.getMinutes() !== 0
+}
+
+/** Value for the start <input type="time">, empty for day-only starts. */
+export function toStartTimeInput(startAt: string | null): string {
+  if (!startAt) return ''
+  const d = new Date(startAt)
+  return hasStartTime(d) ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : ''
+}
+
+/** "HH:MM" right now, to prefill the start time. */
+export function currentTimeInput(now = new Date()): string {
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`
+}
+
+/** Time of a start date, or null when it is day-only. */
+export function formatStartTime(iso: string): string | null {
+  const d = new Date(iso)
+  return hasStartTime(d) ? time.format(d) : null
 }
 
 /** A day-only due date (23:59 local) for that day. */
