@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import type { ThemePreference, User } from '../api/auth'
 import { VoiceSettings } from '../components/assistant/VoiceSettings'
 import { PushSettings } from '../components/notifications/PushSettings'
 import { useLogout, useUpdatePreferences } from '../hooks/useAuth'
 import { AUTHOR, AUTHOR_URL, LICENSE_NAME, LICENSE_URL, REPO_URL } from '../lib/about'
+import { APP_VERSION, CHANGELOG } from '../lib/changelog'
+import { WhatsNew } from '../components/WhatsNew'
 import { LOCALES, t, tk, type Locale, useLocaleStore } from '../lib/i18n'
 import { useThemeStore } from '../theme/theme'
 import styles from './pages.module.css'
@@ -20,6 +23,7 @@ export function SettingsPage({ user }: { user: User }) {
   const setPreference = useThemeStore((s) => s.setPreference)
   const updatePreferences = useUpdatePreferences()
   const logout = useLogout()
+  const [showNews, setShowNews] = useState(false)
 
   const locale = useLocaleStore((s) => s.locale)
   const setLocale = useLocaleStore((s) => s.setLocale)
@@ -179,6 +183,16 @@ export function SettingsPage({ user }: { user: User }) {
       </section>
       <section className={styles.card}>
         <h2>{t('Acerca de eLigned')}</h2>
+        <div className={styles.row}>
+          <span>
+            <strong>{t('Versión {version}', { version: APP_VERSION })}</strong>
+            <small>{t('Lo que cambió en cada versión.')}</small>
+          </span>
+          <button type="button" className={styles.secondary} onClick={() => setShowNews(true)}>
+            {t('Ver novedades')}
+          </button>
+        </div>
+        {showNews && <WhatsNew releases={CHANGELOG} onClose={() => setShowNews(false)} />}
         <div className={styles.row}>
           <span>
             <strong>{t('Autoría')}</strong>

@@ -24,6 +24,8 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_verified' => $this->hasVerifiedEmail(),
             'preferences' => $this->resolvedPreferences(),
+            // The app shows "Esto es lo nuevo" only for releases after the account existed.
+            'created_at' => $this->created_at?->toIso8601String(),
             'workspaces' => WorkspaceResource::collection($this->whenLoaded('workspaces')),
         ];
     }

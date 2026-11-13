@@ -1,0 +1,99 @@
+.dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: min(640px, calc(100dvh - 32px));
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.dialog:not([open]) {
+  display: none;
+}
+
+.dialog::backdrop {
+  background: rgb(10 7 6 / 55%);
+}
+
+.title {
+  margin: 0;
+  padding: 24px 24px 4px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.body {
+  padding: 0 24px;
+  overflow-y: auto;
+}
+
+.release + .release {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.version {
+  margin: 8px 0 12px;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.changes {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+}
+
+.changes li {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: var(--radius-md);
+  background: var(--soft);
+}
+
+.changes span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.actions {
+  margin: 0;
+  padding: 20px 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ok {
+  height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog[open] {
+    animation: rise 180ms ease-out;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

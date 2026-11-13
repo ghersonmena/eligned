@@ -48,6 +48,8 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'locale' => null,
         // "Notas rápidas" home card: a personal scratchpad.
         'home_note' => null,
+        // Last app version whose "Esto es lo nuevo" screen they closed (null: none yet).
+        'seen_version' => null,
     ];
 
     public const HOME_NOTE_MAX = 5000;

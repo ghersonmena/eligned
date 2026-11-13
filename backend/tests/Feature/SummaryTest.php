@@ -53,6 +53,15 @@ it('keeps a personal note for the home page', function () {
     $this->patchJson('/api/v1/me/preferences', ['home_note' => str_repeat('a', 5001)])->assertJsonValidationErrors('home_note');
 });
 
+it('remembers the last version whose news were seen', function () {
+    [$me] = memberWithWorkspace();
+    $this->actingAs($me)->getJson('/api/v1/me')
+        ->assertJsonPath('data.preferences.seen_version', null)
+        ->assertJsonPath('data.created_at', $me->created_at->toIso8601String());
+    $this->patchJson('/api/v1/me/preferences', ['seen_version' => '1.0.1'])->assertJsonPath('data.preferences.seen_version', '1.0.1');
+    $this->patchJson('/api/v1/me/preferences', ['seen_version' => 'v1'])->assertJsonValidationErrors('seen_version');
+});
+
 it('saves the home layout and rejects unknown cards', function () {
     [$me] = memberWithWorkspace();
     $layout = [['id' => 'goals', 'hidden' => false], ['id' => 'today', 'hidden' => false], ['id' => 'tracker', 'hidden' => true]];

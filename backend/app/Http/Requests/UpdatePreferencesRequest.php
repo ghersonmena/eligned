@@ -29,6 +29,7 @@ class UpdatePreferencesRequest extends FormRequest
             'home_layout.*.hidden' => ['required', 'boolean'],
             'locale' => ['sometimes', Rule::in(User::LOCALES)],
             'home_note' => ['sometimes', 'nullable', 'string', 'max:'.User::HOME_NOTE_MAX],
+            'seen_version' => ['sometimes', 'nullable', 'string', 'max:20', 'regex:/^\d+\.\d+\.\d+$/'],
             'current_workspace_id' => [
                 'sometimes',
                 'nullable',

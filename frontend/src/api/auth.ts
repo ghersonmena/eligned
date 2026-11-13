@@ -22,6 +22,8 @@ export interface Preferences {
   home_note: string | null
   /** Interface language; null until the app saves the device's. */
   locale: 'es' | 'en' | null
+  /** Last version whose "Esto es lo nuevo" screen they closed (null: none yet). */
+  seen_version: string | null
 }
 
 export type HomeCardId =
@@ -58,6 +60,8 @@ export interface User {
   name: string
   email: string
   email_verified: boolean
+  /** ISO date the account was created. */
+  created_at: string | null
   preferences: Preferences
   workspaces: Workspace[]
 }

@@ -18,6 +18,8 @@ import { Toasts } from './notifications/Toasts'
 import { TimerPill } from './time/TimerPill'
 import { ThemeToggle } from './ThemeToggle'
 import { UserMenu } from './UserMenu'
+import { WhatsNew } from './WhatsNew'
+import { APP_VERSION, unseenReleases } from '../lib/changelog'
 import styles from './layout.module.css'
 
 /** Board and timeline are views of "Mis tareas", reached from its tabs on phones. */
@@ -59,6 +61,13 @@ export function AppLayout({ user }: { user: User }) {
     if (savedLocale) setLocale(savedLocale as Locale)
     else savePreferences({ locale: localLocale })
   }, [savedLocale, localLocale, setLocale, savePreferences])
+
+  // "Esto es lo nuevo": once per version, decided when the app opens.
+  const [news, setNews] = useState(() => unseenReleases(user.preferences.seen_version, user.created_at))
+  function closeNews() {
+    setNews([])
+    savePreferences({ seen_version: APP_VERSION })
+  }
 
   // The server copy of the theme wins when it differs (e.g. changed on another device).
   useEffect(() => {
@@ -109,6 +118,7 @@ export function AppLayout({ user }: { user: User }) {
       </div>
 
       <Toasts />
+      {news.length > 0 && <WhatsNew releases={news} onClose={closeNews} />}
       <Assistant canEdit={currentWorkspace(user)?.role !== 'guest'} />
 
       <nav className={styles.bottomNav} aria-label={t('Principal (móvil)')}>
